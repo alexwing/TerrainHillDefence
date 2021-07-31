@@ -96,7 +96,7 @@ public class TargetTerrain : MonoBehaviour
         Terrain terr = GetComponent<Terrain>();
         // get the normalized position of this game object relative to the terrain
         Vector3 tempCoord = (collision.transform.position - terr.gameObject.transform.position);
-        Debug.Log("collision position: "+ collision.transform.position.x + " " + collision.transform.position.y + " " + collision.transform.position.z);
+      //  Debug.Log("collision position: "+ collision.transform.position.x + " " + collision.transform.position.y + " " + collision.transform.position.z);
         
         Vector3 coord;
 
@@ -113,7 +113,7 @@ public class TargetTerrain : MonoBehaviour
        float ExplosionVelocity = destructionVelocity;
 
 
-        Debug.Log($"ExplosionVelocity {ExplosionVelocity}");
+      //  Debug.Log($"ExplosionVelocity {ExplosionVelocity}");
 
         coord.x = tempCoord.x / terr.terrainData.size.x;
         coord.y = tempCoord.y / terr.terrainData.size.y;

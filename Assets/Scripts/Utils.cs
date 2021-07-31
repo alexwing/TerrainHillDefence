@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -485,5 +486,52 @@ public class Utils
         // Now, we can play the sound in the direction, but not position, of the spawn
         AudioSource.PlayClipAtPoint(clip, player.position + unitSpawnDirection, explosionDistanceVolumen);
     }
+
+
+    public static Vector3 CreateRamdomPosition(Vector3 quad,  ref List<Vector3> otherPositions, float minimalDistanceBetween, int retries = 2000)
+    {
+        Vector3 position = new Vector3(0, 0, 0);
+        bool isInRange = false;
+        int retryCount = 0;
+        while (!isInRange)
+        {
+            isInRange = true;
+         
+            //verify not in the same position with other hills with the hillSizeLimit
+            Vector3 auxPosition = new Vector3(0, 0, 0);
+            float auxDistance = 0;
+            position = new Vector3(Random.Range(quad.x,quad.y), 0, Random.Range(quad.y, quad.z));
+            for (int j = 0; j < otherPositions.Count; j++)
+            {
+                //verfiy not in the same position in hillSizeLimit range
+                float distance = Vector3.Distance(otherPositions[j], position);
+                if (distance < minimalDistanceBetween)
+                {
+                    isInRange = false;
+                    //if now position has a distance greater that before save in auxDistance
+                    if (distance > auxDistance)
+                    {
+                        auxDistance = distance;
+                        auxPosition = position;
+                    }
+                    //limit retry count
+                    if (retryCount > retries)
+                    {
+                        //restore element on more distance in retries
+                        position = auxPosition;
+
+                        isInRange = true;
+                        Debug.Log("Can't find a position for the hill with this hills Distance between: "+ auxDistance);             
+                    }
+                }
+            }
+            retryCount++;
+        }
+
+         
+        otherPositions.Add(position);
+        return position;
+
+    }    
 
 }
