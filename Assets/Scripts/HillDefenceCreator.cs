@@ -27,6 +27,8 @@ public class HillDefenceCreator : MonoBehaviour
         public int killCount;
         public int deathCount;
         public int flagCount;
+        public int teamEnemyNumber;
+
     }
     //create list on team objects
     public static List<Team> teams = new List<Team>();
