@@ -14,13 +14,9 @@ public class TeamFlag : MonoBehaviour
         changeFlagColor(teamColor);
     }
 
-    public Material flagMaterial;
-
-
     // change the color of the flag
     public void changeFlagColor(Color color)
     {
-        //clone material
         Renderer newRenderer = flag.GetComponent<Renderer>();
         var propBlock = new MaterialPropertyBlock();
         newRenderer.GetPropertyBlock(propBlock);

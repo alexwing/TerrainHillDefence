@@ -15,9 +15,21 @@ public class HillDefenceCreator : MonoBehaviour
     private List<Vector3> hillPositions = new List<Vector3>();
 
     // list of all hill objects
-    private List<GameObject> teams = new List<GameObject>();
 
-        public Material flagMaterial;
+    public Material flagMaterial;
+
+    //create team class and properties
+    public class Team
+    {
+        public int teamNumber;
+        public GameObject teamFlag;
+        public List<GameObject> soldiers = new List<GameObject>();
+        public int killCount;
+        public int deathCount;
+        public int flagCount;
+    }
+    //create list on team objects
+    public static List<Team> teams = new List<Team>();
 
     [Tooltip("Teams colors.")]
     public Color[] teamsColors;
@@ -44,15 +56,18 @@ public class HillDefenceCreator : MonoBehaviour
 
             position.y = height;
             //clone instanciate Hill
-            GameObject instanciateHill = Instantiate(hill, position, Quaternion.identity) as GameObject;
+            GameObject instanciateTeamFlag = Instantiate(hill, position, Quaternion.identity) as GameObject;
 
-            //add hill to list
-            teams.Add(instanciateHill);            
+            //add team
+            Team team = new Team();
+            team.teamNumber = i;
+            team.teamFlag = instanciateTeamFlag;            
+            teams.Add(team);            
 
             //distribute the team color in the hills in order
-            instanciateHill.GetComponent<TeamFlag>().teamColor=  teamsColors[i % teamsColors.Length];            
+            instanciateTeamFlag.GetComponent<TeamFlag>().teamColor=  teamsColors[i % teamsColors.Length];            
     
-            GetComponent<TargetTerrain>().modifyTerrain(instanciateHill, true, hillSize, 100f);
+            GetComponent<TargetTerrain>().modifyTerrain(instanciateTeamFlag, true, hillSize, 100f);
             // GetComponent<TargetTerrain>().detonationTerrain(instanciateHill, 20f);
         }
 
