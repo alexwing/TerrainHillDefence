@@ -531,7 +531,7 @@ MonoBehaviour:
   hillsDistanceBetween: 500
   ememiesDistanceFromHill: 100
   ememiesDistanceBetween: 20
-  enemiesPerTeam: 10
+  enemiesPerTeam: 30
   enemyPrefab: {fileID: 1471741602374830, guid: 89906651707b14449b3008b2a12d41c9,
     type: 3}
   borderSizeLimit: 100

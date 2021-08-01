@@ -75,6 +75,7 @@ public class HillDefenceCreator : MonoBehaviour
 
             //set team color
             team.teamColor = teamsColors[i % teamsColors.Length];
+            instanciateTeamFlag.name = "Team " + i;
 
             //distribute the team color in the hills in order
             instanciateTeamFlag.GetComponent<TeamFlag>().teamColor =team.teamColor;
@@ -103,8 +104,10 @@ public class HillDefenceCreator : MonoBehaviour
 
                 GameObject enemy = Instantiate(enemyPrefab, enemyPosition, Quaternion.identity) as GameObject;
                 enemy.GetComponent<TeamSoldier>().teamColor = teams[i].teamColor;
+                enemy.name = "EnemyTeam"+i+"Soldier"+j;
                 teams[i].soldiers.Add(enemy);
                 teams[i].soldiersPosition.Add(enemyPosition);
+            
 
             }
         }
