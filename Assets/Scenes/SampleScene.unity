@@ -201,7 +201,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_BoundingSphereOverride: {x: 0, y: 1.4775e-41, z: 0, w: 7.46875}
   m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
@@ -316,12 +316,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   anchorToTerrain: {fileID: 1494981329}
-  minHeighToTerrain: 20
-  maxHeighToTerrain: 120
-  mainSpeed: 150
+  minHeighToTerrain: 35
+  maxHeighToTerrain: 180
+  mainSpeed: 200
   rotationSpeed: 20
   shiftAdd: 3
-  maxShift: 100
+  maxShift: 750
   camSens: 0.25
 --- !u!1001 &1179539122
 PrefabInstance:
@@ -521,9 +521,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hill: {fileID: 1258100156410762, guid: 8ce6fe957984e604e83dc97357a59d19, type: 3}
-  hills: 20
+  hills: 10
   hillSize: 100
   hillsDistanceBetween: 500
+  flagMaterial: {fileID: 0}
+  teamsColors:
+  - {r: 1, g: 0, b: 0, a: 0}
+  - {r: 0, g: 1, b: 0, a: 0}
+  - {r: 0, g: 0, b: 1, a: 0}
+  - {r: 0, g: 1, b: 1, a: 0}
+  - {r: 1, g: 1, b: 0, a: 0}
+  - {r: 1, g: 0, b: 1, a: 0}
+  - {r: 0.5176471, g: 0, b: 1, a: 0}
+  - {r: 1, g: 0.5176471, b: 0, a: 0}
+  - {r: 0, g: 0.5254902, b: 1, a: 0}
+  - {r: 1, g: 0.5254902, b: 0.5176471, a: 0}
 --- !u!114 &1494981327
 MonoBehaviour:
   m_ObjectHideFlags: 0

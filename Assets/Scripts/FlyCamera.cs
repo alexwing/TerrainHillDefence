@@ -38,7 +38,7 @@ public class FlyCamera : MonoBehaviour
     public float camSens = 0.25f;
     private float totalRun = 1f;
     public static bool lockMovement = false;
-
+    private float timeShiftLapsed = 1f;
 
     private void Awake()
     {
@@ -68,16 +68,21 @@ public class FlyCamera : MonoBehaviour
 
             if (Input.GetKey(KeyCode.LeftShift))
             {
-                totalRun += Time.deltaTime;
-                p = p * totalRun * shiftAdd;
-                p.x = Mathf.Clamp(p.x, -maxShift, maxShift * mainSpeed);
-                p.y = Mathf.Clamp(p.y, -maxShift, maxShift * mainSpeed);
-                p.z = Mathf.Clamp(p.z, -maxShift, maxShift * mainSpeed);
+
+                timeShiftLapsed += Time.deltaTime;
+
+                //   totalRun += Time.deltaTime;
+                p = p * totalRun * shiftAdd * timeShiftLapsed;
+                p.x = Mathf.Clamp(p.x, -maxShift,+maxShift);
+                p.y = Mathf.Clamp(p.y, -maxShift, +maxShift);
+                p.z = Mathf.Clamp(p.z, -maxShift,+maxShift);
+
             }
             else
             {
                 totalRun = Mathf.Clamp(mainSpeed * 0.5f, 1f, 1000f);
                 p = p * totalRun;
+                timeShiftLapsed = 1f;
             }
 
             p = p * Time.deltaTime;

@@ -13,6 +13,14 @@ public class HillDefenceCreator : MonoBehaviour
     float borderSizeLimit = 100;
     // list of all hills postions
     private List<Vector3> hillPositions = new List<Vector3>();
+
+    // list of all hill objects
+    private List<GameObject> teams = new List<GameObject>();
+
+        public Material flagMaterial;
+
+    [Tooltip("Teams colors.")]
+    public Color[] teamsColors;
     void Start()
     {
         spawnHills();
@@ -35,9 +43,15 @@ public class HillDefenceCreator : MonoBehaviour
             float height = terrain.SampleHeight(position);
 
             position.y = height;
+            //clone instanciate Hill
+            GameObject instanciateHill = Instantiate(hill, position, Quaternion.identity) as GameObject;
 
-            GameObject instanciateHill = Instantiate(hill, position, Quaternion.identity);
+            //add hill to list
+            teams.Add(instanciateHill);            
 
+            //distribute the team color in the hills in order
+            instanciateHill.GetComponent<TeamFlag>().teamColor=  teamsColors[i % teamsColors.Length];            
+    
             GetComponent<TargetTerrain>().modifyTerrain(instanciateHill, true, hillSize, 100f);
             // GetComponent<TargetTerrain>().detonationTerrain(instanciateHill, 20f);
         }

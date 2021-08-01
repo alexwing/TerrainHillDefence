@@ -488,7 +488,15 @@ public class Utils
     }
 
 
-    public static Vector3 CreateRamdomPosition(Vector3 quad,  ref List<Vector3> otherPositions, float minimalDistanceBetween, int retries = 2000)
+    /// <summary>
+    /// Create ramdon postion from quad limits and list of others positions
+    /// </summary>
+    /// <param name="quad">quad</param>
+    /// <param name="otherPositions">otherPositions</param>
+    /// <param name="minimalDistanceBetween">minimalDistanceBetween</param>
+    /// <param name="retries">retries</param>
+    /// <returns>Return the randomized position</returns>
+    public static Vector3 CreateRamdomPosition(Vector3 quad, ref List<Vector3> otherPositions, float minimalDistanceBetween, int retries = 2000)
     {
         Vector3 position = new Vector3(0, 0, 0);
         bool isInRange = false;
@@ -496,11 +504,11 @@ public class Utils
         while (!isInRange)
         {
             isInRange = true;
-         
+
             //verify not in the same position with other hills with the hillSizeLimit
             Vector3 auxPosition = new Vector3(0, 0, 0);
             float auxDistance = 0;
-            position = new Vector3(Random.Range(quad.x,quad.y), 0, Random.Range(quad.y, quad.z));
+            position = new Vector3(Random.Range(quad.x, quad.y), 0, Random.Range(quad.y, quad.z));
             for (int j = 0; j < otherPositions.Count; j++)
             {
                 //verfiy not in the same position in hillSizeLimit range
@@ -521,17 +529,23 @@ public class Utils
                         position = auxPosition;
 
                         isInRange = true;
-                        Debug.Log("Can't find a position for the hill with this hills Distance between: "+ auxDistance);             
+                        Debug.Log("Can't find a position for the hill with this hills Distance between: " + auxDistance);
                     }
                 }
             }
             retryCount++;
         }
 
-         
+
         otherPositions.Add(position);
         return position;
 
-    }    
+    }
+
+    public static Color Darken(Color color, float darkenAmount)
+    {
+        return Color.Lerp(color, Color.black, darkenAmount);
+
+    }
 
 }
