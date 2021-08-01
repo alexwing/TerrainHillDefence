@@ -496,7 +496,7 @@ public class Utils
     /// <param name="minimalDistanceBetween">minimalDistanceBetween</param>
     /// <param name="retries">retries</param>
     /// <returns>Return the randomized position</returns>
-    public static Vector3 CreateRamdomPosition(Vector3 quad, ref List<Vector3> otherPositions, float minimalDistanceBetween, int retries = 2000)
+    public static Vector3 CreateRamdomPosition(Vector4 quad, ref List<Vector3> otherPositions, float minimalDistanceBetween, int retries = 2000)
     {
         Vector3 position = new Vector3(0, 0, 0);
         bool isInRange = false;
@@ -508,7 +508,7 @@ public class Utils
             //verify not in the same position with other hills with the hillSizeLimit
             Vector3 auxPosition = new Vector3(0, 0, 0);
             float auxDistance = 0;
-            position = new Vector3(Random.Range(quad.x, quad.y), 0, Random.Range(quad.y, quad.z));
+            position = new Vector3(Random.Range(quad.x, quad.y), 0, Random.Range(quad.z, quad.w));
             for (int j = 0; j < otherPositions.Count; j++)
             {
                 //verfiy not in the same position in hillSizeLimit range
@@ -547,5 +547,22 @@ public class Utils
         return Color.Lerp(color, Color.black, darkenAmount);
 
     }
+
+    /// <summary>
+    ///  change the color of the object renderer copy instance
+    /// </summary>
+    /// <param name="painterObject">Renderer to paint</param>
+    /// <param name="color">Color to paint</param>
+    /// <param name="name">Shader variable</param>
+    /// <returns>none</returns>    
+    public static void ChangeColor(Renderer painterObject, Color color, string name ="_Color")
+    {
+        var propBlock = new MaterialPropertyBlock();
+        painterObject.GetPropertyBlock(propBlock);
+        propBlock.SetColor(name, color);
+        painterObject.SetPropertyBlock(propBlock);
+
+    }
+    
 
 }

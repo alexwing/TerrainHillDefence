@@ -10,7 +10,11 @@ public class HillDefenceCreator : MonoBehaviour
     [Tooltip("Hill size limit")]
     public float hillSize = 50f;
     public float hillsDistanceBetween = 80f;
-    float borderSizeLimit = 100;
+    public float ememiesDistanceFromHill = 20f;
+    public float ememiesDistanceBetween = 10f;
+    public int enemiesPerTeam = 10;
+    public GameObject enemyPrefab;
+    public float borderSizeLimit = 100;
     // list of all hills postions
     private List<Vector3> hillPositions = new List<Vector3>();
 
@@ -23,6 +27,8 @@ public class HillDefenceCreator : MonoBehaviour
     {
         public int teamNumber;
         public GameObject teamFlag;
+        public Color teamColor;
+        public List<Vector3> soldiersPosition = new List<Vector3>();
         public List<GameObject> soldiers = new List<GameObject>();
         public int killCount;
         public int deathCount;
@@ -38,6 +44,7 @@ public class HillDefenceCreator : MonoBehaviour
     void Start()
     {
         spawnHills();
+        spawnEnemy();
     }
     void spawnHills()
     {
@@ -51,7 +58,7 @@ public class HillDefenceCreator : MonoBehaviour
             Vector4 quad = new Vector4(borderSizeLimit, terrain.terrainData.size.x - borderSizeLimit, borderSizeLimit, terrain.terrainData.size.z - borderSizeLimit);
 
             // Random position in the terrain with a size limit and a distance limit between hills
-            Vector3 position = Utils.CreateRamdomPosition(quad,ref hillPositions,hillsDistanceBetween);
+            Vector3 position = Utils.CreateRamdomPosition(quad, ref hillPositions, hillsDistanceBetween);
 
             //get terraindata height from positon
             float height = terrain.SampleHeight(position);
@@ -63,14 +70,43 @@ public class HillDefenceCreator : MonoBehaviour
             //add team
             Team team = new Team();
             team.teamNumber = i;
-            team.teamFlag = instanciateTeamFlag;            
-            teams.Add(team);            
+            team.teamFlag = instanciateTeamFlag;
+            teams.Add(team);
+
+            //set team color
+            team.teamColor = teamsColors[i % teamsColors.Length];
 
             //distribute the team color in the hills in order
-            instanciateTeamFlag.GetComponent<TeamFlag>().teamColor=  teamsColors[i % teamsColors.Length];            
-    
+            instanciateTeamFlag.GetComponent<TeamFlag>().teamColor =team.teamColor;
+
             GetComponent<TargetTerrain>().modifyTerrain(instanciateTeamFlag, true, hillSize, 100f);
             // GetComponent<TargetTerrain>().detonationTerrain(instanciateHill, 20f);
+        }
+
+    }
+
+    void spawnEnemy()
+    {
+        //spawn enemy
+        for (int i = 0; i < teams.Count; i++)
+        {
+            //enemies per team
+            for (int j = 0; j < enemiesPerTeam; j++)
+            {
+                //spawn enemy position near the hill ramdom position
+                Vector3 enemyPosition = Utils.CreateRamdomPosition(new Vector4(teams[i].teamFlag.transform.position.x - ememiesDistanceFromHill, teams[i].teamFlag.transform.position.x + ememiesDistanceFromHill, teams[i].teamFlag.transform.position.z - ememiesDistanceFromHill, teams[i].teamFlag.transform.position.z + ememiesDistanceFromHill), ref hillPositions, ememiesDistanceBetween);
+                //spawn enemy
+                //get terraindata height from positon
+                float height = terrain.SampleHeight(enemyPosition);
+                enemyPosition.y = height;
+
+
+                GameObject enemy = Instantiate(enemyPrefab, enemyPosition, Quaternion.identity) as GameObject;
+                enemy.GetComponent<TeamSoldier>().teamColor = teams[i].teamColor;
+                teams[i].soldiers.Add(enemy);
+                teams[i].soldiersPosition.Add(enemyPosition);
+
+            }
         }
 
     }
