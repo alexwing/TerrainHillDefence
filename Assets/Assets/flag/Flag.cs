@@ -1,16 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-[System.Serializable]
-public class Team
-{
-    public enum Type
-    {
-        A,
-        B
-    };
 
-}
+
+
+namespace HillDefence
+{
 public class Flag : MonoBehaviour
 {
 
@@ -18,7 +13,7 @@ public class Flag : MonoBehaviour
     public Material teamAMaterial;
     public Material teamBMaterial;
 
-    public Team.Type teamFlag;
+    public Team teamFlag;
 
     private Transform originalHolder;
 
@@ -29,7 +24,7 @@ public class Flag : MonoBehaviour
     {
         originalHolder = transform.parent;
     }
-
+/*
     void Update()
     {
         UpdateMaterials();
@@ -42,7 +37,7 @@ public class Flag : MonoBehaviour
         if (teamFlag == Team.Type.B)
             meshRenderer.material = teamBMaterial;
     }
-
+*/
     public void ResetFlag()
     {
 
@@ -60,18 +55,18 @@ public class Flag : MonoBehaviour
         if (_boxCollider == null)
             _boxCollider = GetComponent<BoxCollider>();
 
-        if (teamFlag == Team.Type.A)
+       // if (teamFlag == Team.Type.A)
             Gizmos.color = Color.red;
-        else if (teamFlag == Team.Type.B)
-            Gizmos.color = Color.blue;
+     //  else if (teamFlag == Team.Type.B)
+      //      Gizmos.color = Color.blue;
 
         Gizmos.DrawWireCube(_boxCollider.center + transform.position, _boxCollider.size / 2);
     }
 
-    public Team.Type GetTeam()
-    {
-        return teamFlag;
-    }
+   // public Team.Type GetTeam()
+   // {
+   //     return teamFlag;
+   // }
 
     public Vector3 GetLocation()
     {
@@ -83,4 +78,5 @@ public class Flag : MonoBehaviour
         return transform;
     }
 
+}
 }
