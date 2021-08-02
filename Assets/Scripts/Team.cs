@@ -17,6 +17,7 @@ namespace HillDefence
         public int deathCount;
         public int flagCount;
         public int teamEnemyNumber;
+         public Team enemyTeam;
 
     }
 }

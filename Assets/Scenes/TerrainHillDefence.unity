@@ -182,7 +182,7 @@ PrefabInstance:
     - target: {fileID: 7960701362008997274, guid: ec7acd9d4ff75a54187b7423d8dd14a4,
         type: 3}
       propertyPath: m_RootOrder
-      value: 3
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7960701362008997274, guid: ec7acd9d4ff75a54187b7423d8dd14a4,
         type: 3}
@@ -427,7 +427,7 @@ Transform:
   m_Children:
   - {fileID: 1494981330}
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1394242489
 MonoBehaviour:
@@ -453,6 +453,10 @@ PrefabInstance:
     - target: {fileID: 1908289622503518, guid: 6904f37e0f927a64e88a66be020e8796, type: 3}
       propertyPath: m_Name
       value: Terrain
+      objectReference: {fileID: 0}
+    - target: {fileID: 1908289622503518, guid: 6904f37e0f927a64e88a66be020e8796, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4824509251536950, guid: 6904f37e0f927a64e88a66be020e8796, type: 3}
       propertyPath: m_LocalPosition.x
@@ -526,7 +530,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hill: {fileID: 1258100156410762, guid: 8ce6fe957984e604e83dc97357a59d19, type: 3}
-  hills: 10
+  hills: 14
   hillSize: 100
   hillsDistanceBetween: 500
   ememiesDistanceFromHill: 100
@@ -546,7 +550,11 @@ MonoBehaviour:
   - {r: 0.5176471, g: 0, b: 1, a: 0}
   - {r: 1, g: 0.5176471, b: 0, a: 0}
   - {r: 0, g: 0.5254902, b: 1, a: 0}
-  - {r: 1, g: 0.5254902, b: 0.5176471, a: 0}
+  - {r: 0, g: 0, b: 0, a: 0}
+  - {r: 1, g: 1, b: 1, a: 0}
+  - {r: 0.509434, g: 0.509434, b: 0.509434, a: 0}
+  - {r: 0.2, g: 0, b: 0.5254902, a: 0}
+  - {r: 0.5254902, g: 0.19705346, b: 0, a: 0}
 --- !u!114 &1494981327
 MonoBehaviour:
   m_ObjectHideFlags: 0

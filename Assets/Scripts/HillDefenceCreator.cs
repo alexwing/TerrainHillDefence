@@ -2,12 +2,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace HillDefence
 {
     public class HillDefenceCreator : MonoBehaviour
     {
         Terrain terrain;
+
+        public static Terrain TerrainInstance;
+
         public GameObject hill;
         public int hills = 10;
         [Tooltip("Hill size limit")]
@@ -33,6 +37,7 @@ namespace HillDefence
         void Start()
         {
             spawnHills();
+            spawnEnemyTeam();
             spawnEnemy();
         }
         void spawnHills()
@@ -73,6 +78,31 @@ namespace HillDefence
                 // GetComponent<TargetTerrain>().detonationTerrain(instanciateHill, 20f);
             }
 
+
+
+        }
+        void spawnEnemyTeam()
+        {
+            //set ememy to team nead distance of flag
+            for (int i = 0; i < teams.Count; i++)
+            {
+                float minimalDistance = 0;
+                for (int j = 0; j < teams.Count; j++)
+                {
+                    if (i != j)
+                    {
+                        Vector3 hillPos = teams[i].teamFlag.transform.position;
+                        Vector3 enemyPos = teams[j].teamFlag.transform.position;
+                        float distance = Vector3.Distance(enemyPos, hillPos);
+                        if (minimalDistance == 0 || minimalDistance > distance)
+                        {
+                            minimalDistance = distance;
+                            teams[i].enemyTeam = teams[j];
+                           // print(i + " " + j + " " + minimalDistance);
+                        }
+                    }
+                }
+            }
         }
 
         void spawnEnemy()
@@ -97,7 +127,6 @@ namespace HillDefence
                     enemy.name = "EnemyTeam" + i + "Soldier" + j;
                     teams[i].soldiers.Add(enemy);
                     teams[i].soldiersPosition.Add(enemyPosition);
-
 
                 }
             }
