@@ -1,17 +1,24 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+namespace HillDefence
+{
 public class TeamFlag : MonoBehaviour
 {
     // material to change color of the flag
     public GameObject flag;
     public Color teamColor;
-        
+
+    public int teamNumber;
+
+    
+
+     int flagShootsReceived;
+
     // Use this for initialization
     void Start()
     {
-       // changeFlagColor(teamColor);
+        // changeFlagColor(teamColor);
 
         Utils.ChangeColor(flag.GetComponent<Renderer>(), teamColor);
         Utils.ChangeColor(flag.GetComponent<Renderer>(), Utils.Darken(teamColor, 0.75f), "_EmissionColor");
@@ -24,8 +31,24 @@ public class TeamFlag : MonoBehaviour
         var propBlock = new MaterialPropertyBlock();
         newRenderer.GetPropertyBlock(propBlock);
         propBlock.SetColor("_Color", color);
-        propBlock.SetColor("_EmissionColor", Utils.Darken(color,0.25f));
+        propBlock.SetColor("_EmissionColor", Utils.Darken(color, 0.25f));
         newRenderer.SetPropertyBlock(propBlock);
+    }
+
+    void OnTriggerEnter(Collider collision)
+    {
+        if (collision.gameObject.tag == "bullet" && "bullet" + teamNumber != collision.gameObject.name)
+        {
+            flagShootsReceived++;
+            if (SceneConfig.flagShootsToWin == flagShootsReceived){
+            //win a flag 
+            HillDefence.HillDefenceCreator.teams[collision.gameObject.GetComponent<Bullet>().teamNumber].flagsWinsCount ++;
+            Destroy(collision.gameObject);
+            Destroy(gameObject);
+            }
+
+        }
     }
 }
 
+}

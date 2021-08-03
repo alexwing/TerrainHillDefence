@@ -79,6 +79,7 @@ namespace HillDefence
 
                 //distribute the team color in the hills in order
                 instanciateTeamFlag.GetComponent<TeamFlag>().teamColor = team.teamColor;
+                instanciateTeamFlag.GetComponent<TeamFlag>().teamNumber = team.teamNumber;
 
                 GetComponent<TargetTerrain>().ModifyTerrain(instanciateTeamFlag, hillSize, 60f, true);
                 // GetComponent<TargetTerrain>().detonationTerrain(instanciateHill, 20f);

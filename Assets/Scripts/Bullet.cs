@@ -5,6 +5,7 @@ public class Bullet : MonoBehaviour
 {
 
     public Vector3 origin;
+    public int teamNumber;
     void Start()
     {
         InvokeRepeating("CheckDistance", 0, 1f / SceneConfig.SOLDIER.ShootMaxDistanceCheckFrameRate);

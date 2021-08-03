@@ -4,7 +4,7 @@ using UnityEngine;
 public static class SceneConfig
 {
     public static bool Debug = false;
-
+    public static int flagShootsToWin = 20;
     public static class SOLDIER
     {
         public readonly static float AttackRange = 150f;

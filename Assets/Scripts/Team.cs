@@ -13,6 +13,7 @@ namespace HillDefence
         public Color teamColor;
         public List<Vector3> soldiersPosition = new List<Vector3>();
         public List<GameObject> soldiers = new List<GameObject>();
+        public int flagsWinsCount;
         public int killCount;
         public int deathCount;
         public int flagCount;

@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 33114076133968484}
   - component: {fileID: 23710559431699518}
   - component: {fileID: 114805275723462186}
-  - component: {fileID: 65561986816682456}
   m_Layer: 16
   m_Name: pole
   m_TagString: flag
@@ -95,21 +94,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   meshRenderer: {fileID: 137847560026355848}
   teamAMaterial: {fileID: 2100000, guid: 6437b95ceed1f4844a0d715382b06413, type: 2}
-  teamBMaterial: {fileID: 2100000, guid: 55a8bab017586e7419d138854d0437b6, type: 2}
-  teamFlag: 0
---- !u!65 &65561986816682456
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1086345026533466}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 1.5, y: 4, z: 1.0000002}
-  m_Center: {x: 0, y: 0, z: 0}
+  teamBMaterial: {fileID: 0}
 --- !u!1 &1255025823256588
 GameObject:
   m_ObjectHideFlags: 0
@@ -152,6 +137,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4460132980178502}
   - component: {fileID: 5700783271374052665}
+  - component: {fileID: 5205241323453516286}
   m_Layer: 16
   m_Name: flag
   m_TagString: flag
@@ -188,7 +174,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   flag: {fileID: 1819177482892690}
-  flagMaterial: {fileID: 2100000, guid: 55a8bab017586e7419d138854d0437b6, type: 2}
+  teamColor: {r: 0, g: 0, b: 0, a: 0}
+  teamNumber: 0
+--- !u!65 &5205241323453516286
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1258100156410762}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0.51, z: 0}
 --- !u!1 &1266493119914786
 GameObject:
   m_ObjectHideFlags: 0
@@ -200,7 +200,6 @@ GameObject:
   - component: {fileID: 4756579751271226}
   - component: {fileID: 33402385285583922}
   - component: {fileID: 23491403873399080}
-  - component: {fileID: 1116932093309440776}
   m_Layer: 16
   m_Name: basest
   m_TagString: Untagged
@@ -269,19 +268,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!65 &1116932093309440776
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1266493119914786}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0.000000059604645, z: 0}
 --- !u!1 &1819177482892690
 GameObject:
   m_ObjectHideFlags: 0

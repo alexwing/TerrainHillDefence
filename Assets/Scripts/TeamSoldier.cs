@@ -59,6 +59,7 @@ namespace HillDefence
                     //move bullet to enemy
                     shootSend.GetComponent<Rigidbody>().velocity = dir * shootSpeed;
                     shootSend.GetComponent<Bullet>().origin = shootPos;
+                    shootSend.GetComponent<Bullet>().teamNumber = team.teamNumber;
                     shootSend.name = "bullet" + team.teamNumber;
                     shootSend.gameObject.tag = "bullet";
                     //  print("velocity" +shootSend.GetComponent<Rigidbody>().velocity);
