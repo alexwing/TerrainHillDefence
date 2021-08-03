@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 
 
 namespace HillDefence
@@ -110,107 +111,113 @@ namespace HillDefence
         public void findEnemy()
         {
 
-            float distance = float.MaxValue;
-            bool foundEnemy = false;
-
-            //find enemy from ememy team
+            if (enemy == team.enemyTeam.teamFlag || enemy == null)
+            {
+                //find near enemy randomized from ememy team 
+                System.Random rand = new System.Random();
+                int n;
+                int k = n = team.enemyTeam.soldiers.Count;
+                for (int i = 0; k > 0; ++i)
+                {
+                    int r = rand.Next(0, n - i);
+                    if (r < k)
+                    {
+                        if (Vector3.Distance(transform.position, team.enemyTeam.soldiers[r].transform.position) < SceneConfig.SOLDIER.FindEnemyRange)
+                        {
+                            enemy = team.enemyTeam.soldiers[r];
+                            return;
+                        }
+                        k--;
+                    }
+                }
+            }
+            /*
             foreach (GameObject enemyFind in team.enemyTeam.soldiers)
             {
-                float tempDistance = Vector3.Distance(transform.position, enemyFind.transform.position);
-                if (tempDistance < SceneConfig.SOLDIER.FindEnemyRange)
+                if (Vector3.Distance(transform.position, enemyFind.transform.position) < SceneConfig.SOLDIER.FindEnemyRange)
                 {
-                    distance = tempDistance;
                     enemy = enemyFind;
                     foundEnemy = true;
                     return;
                 }
             }
-            if (enemy != null)
+
+            //find other enemy near this soldier
+            foreach (Team teamFind in HillDefenceCreator.teams)
             {
-                return;
-            }
-            if (!foundEnemy)
-            {
-                //find other enemy near this soldier
-                foreach (Team teamFind in HillDefenceCreator.teams)
+                if (teamFind.teamNumber != team.teamNumber && team.enemyTeam.teamNumber != teamFind.teamNumber)
                 {
-                    if (teamFind.teamNumber != team.teamNumber && team.enemyTeam.teamNumber != teamFind.teamNumber)
+                    foreach (GameObject enemyFind in teamFind.enemyTeam.soldiers)
                     {
-                        foreach (GameObject enemyFind in teamFind.enemyTeam.soldiers)
+                        if (Vector3.Distance(transform.position, enemyFind.transform.position) < SceneConfig.SOLDIER.FindEnemyRange)
                         {
-                            float tempDistance = Vector3.Distance(transform.position, enemyFind.transform.position);
-                            if (tempDistance < SceneConfig.SOLDIER.FindEnemyRange)
-                            {
-                                distance = tempDistance;
-                                enemy = enemyFind;
-                                foundEnemy = true;
-                                return;
-                            }
+                            enemy = enemyFind;
+                            return;
                         }
                     }
-
                 }
+
             }
+        */
             //attack enemy flag
-            if (!foundEnemy)
-            {
-                enemy = team.enemyTeam.teamFlag;
 
-            }
+            enemy = team.enemyTeam.teamFlag;
+
+            
         }
-        private void UpdateSoldier()
+    private void UpdateSoldier()
+    {
+        if (animateStatus == "death")
         {
-            if (animateStatus == "death")
-            {
-                return;
-            }
+            return;
+        }
 
-            if (enemy != null)
+        if (enemy != null)
+        {
+            Vector3 myPosition = transform.position;
+            float distance = Vector3.Distance(enemy.transform.position, myPosition);
+            //print("distance: " + distance);
+            if (distance > SceneConfig.SOLDIER.AttackRange + AttackDistance)
             {
-                Vector3 myPosition = transform.position;
-                float distance = Vector3.Distance(enemy.transform.position, myPosition);
-                //print("distance: " + distance);
-                if (distance > SceneConfig.SOLDIER.AttackRange + AttackDistance)
-                {
-                    //Lerp to enemy flag ajust to frame rate
-                    transform.position = Vector3.Lerp(transform.position, enemy.transform.position, Time.deltaTime * SceneConfig.SOLDIER.SoldierVelocity * (1f / SceneConfig.SOLDIER.SoldierFrameRate));
-                    float y = Terrain.activeTerrain.SampleHeight(transform.position);
-                    transform.position = new Vector3(transform.position.x, y, transform.position.z);
-                    transform.rotation = Quaternion.LookRotation(enemy.transform.position - transform.position);
-                    isWalking = true;
-                }
-                else
-                {
-                    Shoot();
-                    isWalking = false;
-                }
-
-            }
-
-            if (isWalking)
-            {
-                if (animateStatus != "walking")
-                {
-                    animator.SetBool("is_run", true);
-                    animator.SetBool("is_ataka", false);
-                    animator.SetBool("is_hi", false);
-                    animator.SetBool("is_death", false);
-                    animateStatus = "walking";
-                }
+                //Lerp to enemy flag ajust to frame rate
+                transform.position = Vector3.Lerp(transform.position, enemy.transform.position, Time.deltaTime * SceneConfig.SOLDIER.SoldierVelocity * (1f / SceneConfig.SOLDIER.SoldierFrameRate));
+                float y = Terrain.activeTerrain.SampleHeight(transform.position);
+                transform.position = new Vector3(transform.position.x, y, transform.position.z);
+                transform.rotation = Quaternion.LookRotation(enemy.transform.position - transform.position);
+                isWalking = true;
             }
             else
             {
-                if (animateStatus != "idle")
-                {
-                    animator.SetBool("is_run", false);
-                    animator.SetBool("is_ataka", false);
-                    animator.SetBool("is_hi", true);
-                    animator.SetBool("is_death", false);
-                    animateStatus = "idle";
-                }
+                Shoot();
+                isWalking = false;
             }
 
         }
+
+        if (isWalking)
+        {
+            if (animateStatus != "walking")
+            {
+                animator.SetBool("is_run", true);
+                animator.SetBool("is_ataka", false);
+                animator.SetBool("is_hi", false);
+                animator.SetBool("is_death", false);
+                animateStatus = "walking";
+            }
+        }
+        else
+        {
+            if (animateStatus != "idle")
+            {
+                animator.SetBool("is_run", false);
+                animator.SetBool("is_ataka", false);
+                animator.SetBool("is_hi", true);
+                animator.SetBool("is_death", false);
+                animateStatus = "idle";
+            }
+        }
+
     }
+}
 }
 
