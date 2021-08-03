@@ -12,28 +12,33 @@ namespace HillDefence
 
         public static Terrain TerrainInstance;
 
+        [Header("Team")]
         public GameObject hill;
         public int hills = 10;
         [Tooltip("Hill size limit")]
         public float hillSize = 50f;
         public float hillsDistanceBetween = 80f;
+
+
+        [Header("Ememies")]
         public float ememiesDistanceFromHill = 20f;
         public float ememiesDistanceBetween = 10f;
         public int enemiesPerTeam = 10;
         public GameObject enemyPrefab;
         public float borderSizeLimit = 100;
+
+        [Header("Effect")]
+        [SerializeField] private GameObject[] _magicArray;
+
         // list of all hills postions
         private List<Vector3> hillPositions = new List<Vector3>();
-
-        // list of all hill objects
-
-        public Material flagMaterial;
 
         //create list on team objects
         public static List<Team> teams = new List<Team>();
 
         [Tooltip("Teams colors.")]
         public Color[] teamsColors;
+
         void Start()
         {
             spawnHills();
@@ -69,6 +74,7 @@ namespace HillDefence
 
                 //set team color
                 team.teamColor = teamsColors[i % teamsColors.Length];
+                team.bulletPrefab = _magicArray[i % _magicArray.Length];
                 instanciateTeamFlag.name = "Team " + i;
 
                 //distribute the team color in the hills in order
@@ -86,22 +92,27 @@ namespace HillDefence
             //set ememy to team nead distance of flag
             for (int i = 0; i < teams.Count; i++)
             {
-                float minimalDistance = 0;
+                float minimalDistance = float.MaxValue;
                 for (int j = 0; j < teams.Count; j++)
                 {
-                    if (i != j)
+                    Vector3 hillPos = teams[i].teamFlag.transform.position;
+                    if (teams[i].teamNumber != teams[j].teamNumber)
                     {
-                        Vector3 hillPos = teams[i].teamFlag.transform.position;
                         Vector3 enemyPos = teams[j].teamFlag.transform.position;
                         float distance = Vector3.Distance(enemyPos, hillPos);
-                        if (minimalDistance == 0 || minimalDistance > distance)
+                        if (minimalDistance > distance)
                         {
                             minimalDistance = distance;
                             teams[i].enemyTeam = teams[j];
-                           // print(i + " " + j + " " + minimalDistance);
+
+                            // print(i + " " + j + " " + minimalDistance);
                         }
                     }
                 }
+            }
+            for (int i = 0; i < teams.Count; i++)
+            {
+                print(teams[i].teamNumber + " is enemy of " + teams[i].enemyTeam.teamNumber);
             }
         }
 

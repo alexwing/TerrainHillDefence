@@ -18,6 +18,8 @@ namespace HillDefence
         public int flagCount;
         public int teamEnemyNumber;
          public Team enemyTeam;
+         public GameObject bulletPrefab;
+
 
     }
 }

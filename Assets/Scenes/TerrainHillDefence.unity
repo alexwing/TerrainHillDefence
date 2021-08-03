@@ -530,7 +530,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hill: {fileID: 1258100156410762, guid: 8ce6fe957984e604e83dc97357a59d19, type: 3}
-  hills: 4
+  hills: 8
   hillSize: 100
   hillsDistanceBetween: 500
   ememiesDistanceFromHill: 100
@@ -539,7 +539,14 @@ MonoBehaviour:
   enemyPrefab: {fileID: 1471741602374830, guid: 89906651707b14449b3008b2a12d41c9,
     type: 3}
   borderSizeLimit: 100
-  flagMaterial: {fileID: 0}
+  _magicArray:
+  - {fileID: 100004, guid: aeae58bf37a687647adec1a709ea4bd4, type: 3}
+  - {fileID: 322934440826955859, guid: 7f4cd52014748b049b82f29f755c1278, type: 3}
+  - {fileID: 100008, guid: 9c001e713c3ebd34b9a93ba39ccdb2c7, type: 3}
+  - {fileID: 6040648356650526432, guid: 45a042ad00395204ca3f3561c3a05756, type: 3}
+  - {fileID: 3062452900393054525, guid: ab8125ffea4d43e4aa9439d5f8fff4c4, type: 3}
+  - {fileID: 100006, guid: 244b633c88d21fa43ac7a1b652c14793, type: 3}
+  - {fileID: 100008, guid: fbe02a07d24e2ce43b8e224ebcf00316, type: 3}
   teamsColors:
   - {r: 1, g: 0, b: 0, a: 0}
   - {r: 0, g: 1, b: 0, a: 0}
@@ -586,7 +593,7 @@ MonoBehaviour:
   terrainDestructHeight: 8
   terrainDestructWidth: 50
   ramdomExplosion: 0.022
-  UpOrDown: 1
+  UpOrDown: 0
   analogIntensityCurve:
     serializedVersion: 2
     m_Curve:

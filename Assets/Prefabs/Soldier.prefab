@@ -352,7 +352,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &4221524811272524
 Transform:
   m_ObjectHideFlags: 0
@@ -1618,6 +1618,7 @@ GameObject:
   - component: {fileID: 4543829338664524}
   - component: {fileID: 95028430175513588}
   - component: {fileID: 297589628205193603}
+  - component: {fileID: 1832913943777563721}
   m_Layer: 0
   m_Name: Soldier
   m_TagString: Untagged
@@ -1645,6 +1646,7 @@ Transform:
   - {fileID: 4350728018353678}
   - {fileID: 4192917150878038}
   - {fileID: 4221524811272524}
+  - {fileID: 8276919747652260627}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1682,12 +1684,21 @@ MonoBehaviour:
   body: {fileID: 1564007370318816}
   head: {fileID: 1873560179198120}
   arms: {fileID: 1207467848881926}
-  shoot: {fileID: 6268938333466774043, guid: 31843bb4b7c27f6458b7417daad7eb97, type: 3}
-  shootInitPosition: {fileID: 1089286396315000}
-  shootTime: 0
-  shootSpeed: 0
-  shootRange: 0
+  shootInitPosition: {fileID: 6459393093809552415}
   enemy: {fileID: 0}
+--- !u!65 &1832913943777563721
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1471741602374830}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 1, y: 2, z: 1}
+  m_Center: {x: 0, y: 1, z: 0}
 --- !u!1 &1472528145733400
 GameObject:
   m_ObjectHideFlags: 0
@@ -2873,3 +2884,33 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!1 &6459393093809552415
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8276919747652260627}
+  m_Layer: 0
+  m_Name: shootOrigin
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8276919747652260627
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6459393093809552415}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.055, y: 1.675, z: 0.67001945}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4543829338664524}
+  m_RootOrder: 9
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

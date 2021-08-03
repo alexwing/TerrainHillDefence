@@ -33,7 +33,7 @@ namespace HillDefence
 
         void OnTriggerEnter(Collider collision)
         {
-            if (collision.gameObject.name == "kamehameha")
+            if (collision.gameObject.tag == "bullet")
             {
                 ModifyTerrain(collision.gameObject, 10, 10, UpOrDown);
                 DetonationTerrain(collision.gameObject, 10);
