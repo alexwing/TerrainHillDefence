@@ -1682,6 +1682,12 @@ MonoBehaviour:
   body: {fileID: 1564007370318816}
   head: {fileID: 1873560179198120}
   arms: {fileID: 1207467848881926}
+  shoot: {fileID: 6268938333466774043, guid: 31843bb4b7c27f6458b7417daad7eb97, type: 3}
+  shootInitPosition: {fileID: 1089286396315000}
+  shootTime: 0
+  shootSpeed: 0
+  shootRange: 0
+  enemy: {fileID: 0}
 --- !u!1 &1472528145733400
 GameObject:
   m_ObjectHideFlags: 0
