@@ -18,7 +18,7 @@ namespace HillDefence
         [Tooltip("Hill size limit")]
         public float hillSize = 50f;
         public float hillsDistanceBetween = 80f;
-
+        private System.Random rng = new System.Random();
 
         [Header("Ememies")]
         public float ememiesDistanceFromHill = 20f;
@@ -45,10 +45,10 @@ namespace HillDefence
         {
             if (instance == null)
             {
-            instance = this;
-            TerrainInstance = terrain;
-            }   
-            else if (instance != this)  
+                instance = this;
+                TerrainInstance = terrain;
+            }
+            else if (instance != this)
             {
                 Destroy(gameObject);
 
@@ -120,7 +120,7 @@ namespace HillDefence
                         float distance = Vector3.Distance(enemyPos, hillPos);
                         if (minimalDistance > distance)
                         {
-                            minimalDistance = distance;                          
+                            minimalDistance = distance;
                             teams[i].enemyTeam = teams[j];
                             // print(i + " " + j + " " + minimalDistance);
                         }
@@ -134,14 +134,17 @@ namespace HillDefence
         }
 
         // asign a new enemy team to team, not asign is enemy team flag is eliminated
-        public void UpdateEnemyTeam(Team team){
-            foreach(Team enemy in teams){
-                if(enemy.teamFlag != null && enemy.teamNumber != team.teamEnemyNumber){
+        public void UpdateEnemyTeam(Team team)
+        {
+            foreach (Team enemy in teams)
+            {
+                if (enemy.teamFlag != null && enemy.teamNumber != team.teamEnemyNumber)
+                {
                     team.enemyTeam = enemy;
                     break;
                 }
             }
-           
+            EvaluateWin();
         }
 
 
@@ -172,18 +175,39 @@ namespace HillDefence
                 }
             }
 
+            //ramdomize the soldiers list
+            soldiers = Shuffle(soldiers);
+
+        }
+
+
+        public  List<TeamSoldier> Shuffle(List<TeamSoldier> list)
+        {
+            int n = list.Count;
+            while (n > 1)
+            {
+                n--;
+                int k = rng.Next(n + 1);
+                TeamSoldier value = list[k];
+                list[k] = list[n];
+                list[n] = value;
+            }
+            return list;
         }
         public void EvaluateWin()
         {
             int countPendingTeams = 0;
             Team win = null;
-            foreach (Team team in teams){
-                if(team.teamFlag != null){
+            foreach (Team team in teams)
+            {
+                if (team.teamFlag != null)
+                {
                     countPendingTeams++;
                     win = team;
                 }
             }
-            if(countPendingTeams == 1){
+            if (countPendingTeams == 1)
+            {
                 {
                     UIController.instance.ShowWin(win);
                 }

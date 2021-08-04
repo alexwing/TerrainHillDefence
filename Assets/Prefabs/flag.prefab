@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 4307953351900680}
   - component: {fileID: 33114076133968484}
   - component: {fileID: 23710559431699518}
-  - component: {fileID: 114805275723462186}
   m_Layer: 16
   m_Name: pole
   m_TagString: flag
@@ -80,21 +79,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!114 &114805275723462186
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1086345026533466}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e9ac011cb3723142a3aa96627a22ed8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  meshRenderer: {fileID: 137847560026355848}
-  teamAMaterial: {fileID: 2100000, guid: 6437b95ceed1f4844a0d715382b06413, type: 2}
-  teamBMaterial: {fileID: 0}
 --- !u!1 &1255025823256588
 GameObject:
   m_ObjectHideFlags: 0

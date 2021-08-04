@@ -4,7 +4,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 public class Utils
 {
@@ -461,9 +460,9 @@ public class Utils
     {
 
         obj.position = new Vector3(
-            Random.Range(obj.position.x - XRange, obj.position.x + XRange),
-            Random.Range(obj.position.y - YRange, obj.position.y + YRange),
-            Random.Range(obj.position.z - ZRange, obj.position.z + ZRange)
+             UnityEngine.Random.Range(obj.position.x - XRange, obj.position.x + XRange),
+             UnityEngine.Random.Range(obj.position.y - YRange, obj.position.y + YRange),
+             UnityEngine.Random.Range(obj.position.z - ZRange, obj.position.z + ZRange)
             );
 
         return obj;
@@ -471,7 +470,8 @@ public class Utils
 
     public static void PlaySound(AudioClip clip, Transform collision, Transform player, int DistanceSoundLimit)
     {
-        if (clip == null){
+        if (clip == null)
+        {
             return;
         }
         float cameraDistance = Vector3.Distance(player.position, collision.position);
@@ -511,7 +511,7 @@ public class Utils
             //verify not in the same position with other hills with the hillSizeLimit
             Vector3 auxPosition = new Vector3(0, 0, 0);
             float auxDistance = 0;
-            position = new Vector3(Random.Range(quad.x, quad.y), 0, Random.Range(quad.z, quad.w));
+            position = new Vector3(UnityEngine.Random.Range(quad.x, quad.y), 0, UnityEngine.Random.Range(quad.z, quad.w));
             for (int j = 0; j < otherPositions.Count; j++)
             {
                 //verfiy not in the same position in hillSizeLimit range
@@ -558,7 +558,7 @@ public class Utils
     /// <param name="color">Color to paint</param>
     /// <param name="name">Shader variable</param>
     /// <returns>none</returns>    
-    public static void ChangeColor(Renderer painterObject, Color color, string name ="_Color")
+    public static void ChangeColor(Renderer painterObject, Color color, string name = "_Color")
     {
         var propBlock = new MaterialPropertyBlock();
         painterObject.GetPropertyBlock(propBlock);
@@ -566,6 +566,8 @@ public class Utils
         painterObject.SetPropertyBlock(propBlock);
 
     }
-    
+
+
+
 
 }

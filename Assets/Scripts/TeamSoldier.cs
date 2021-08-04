@@ -43,8 +43,9 @@ namespace HillDefence
             Utils.ChangeColor(body.GetComponent<Renderer>(), team.teamColor);
             Utils.ChangeColor(head.GetComponent<Renderer>(), team.teamColor);
             Utils.ChangeColor(arms.GetComponent<Renderer>(), team.teamColor);
-            InvokeRepeating("UpdateSoldier", 0, 1f / SceneConfig.SOLDIER.SoldierFrameRate);
-            InvokeRepeating("findEnemy", 0, 1f / SceneConfig.SOLDIER.FindEnemyRange);
+            InvokeRepeating("UpdateSoldier", Random.Range(0,1f / SceneConfig.SOLDIER.SoldierFrameRate), 1f / SceneConfig.SOLDIER.SoldierFrameRate);
+            InvokeRepeating("findEnemy", Random.Range(0,1f / SceneConfig.SOLDIER.FindEnemyRange), 1f / SceneConfig.SOLDIER.FindEnemyRange); 
+          
         }
 
         //shoot to enemy with carence 
@@ -106,8 +107,12 @@ namespace HillDefence
         }
         public void death()
         {
-            //    print(gameObject.name + " death");
+            //remove from HillDefenceCreator.soldiers
+            team.soldiers.Remove(gameObject);
+            //remove from team.soldiers
+            team.soldiers.Remove(gameObject);
             Destroy(gameObject);
+        
         }
         public void Step()
         {
@@ -126,37 +131,10 @@ namespace HillDefence
         public void findEnemy()
         {
 
-            //print ("teamnumber " +team.teamNumber +"=="+ team.enemyTeam.teamNumber);
             if (team.enemyTeam.teamFlag == null || team.teamNumber == team.enemyTeam.teamNumber)
             {
                 HillDefenceCreator.instance.UpdateEnemyTeam(team);
             }
-            /*
-                       if (enemy == team.enemyTeam.teamFlag || enemy == null)
-                       {
-
-                           //find near enemy randomized from ememy team 
-                           System.Random rand = new System.Random();
-                           int n;
-                           int k = n = HillDefenceCreator.soldiers.Count;
-                           for (int i = 0; k > 0; ++i)
-                           {
-                               int r = rand.Next(0, n - i);
-                               if (r < k)
-                               {
-                                   if (HillDefenceCreator.soldiers[r].team.teamNumber != team.teamNumber)
-                                   {
-                                       if (Vector3.Distance(transform.position, team.enemyTeam.soldiers[r].transform.position) < SceneConfig.SOLDIER.FindEnemyRange)
-                                       {
-                                           enemy = HillDefenceCreator.soldiers[r].gameObject;
-                                           return;
-                                       }
-                                   }
-                                   k--;
-                               }
-                           }
-                       }
-                      */
             foreach (TeamSoldier enemyFind in HillDefenceCreator.soldiers)
             {
                 if (enemyFind.team.teamNumber != team.teamNumber && !enemyFind.isDead)
@@ -168,28 +146,7 @@ namespace HillDefence
                     }
                 }
             }
-/*
-            //find other enemy near this soldier
-            foreach (Team teamFind in HillDefenceCreator.teams)
-            {
-                if (teamFind.teamNumber != team.teamNumber && team.enemyTeam.teamNumber != teamFind.teamNumber)
-                {
-                    foreach (GameObject enemyFind in teamFind.enemyTeam.soldiers)
-                    {
-                        if (Vector3.Distance(transform.position, enemyFind.transform.position) < SceneConfig.SOLDIER.FindEnemyRange)
-                        {
-                            enemy = enemyFind;
-                            return;
-                        }
-                    }
-                }
-
-            }
-*/
-            //attack enemy flag
-
             enemy = team.enemyTeam.teamFlag;
-
 
         }
         private void UpdateSoldier()
