@@ -669,7 +669,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hill: {fileID: 1258100156410762, guid: 8ce6fe957984e604e83dc97357a59d19, type: 3}
-  hills: 7
+  hills: 10
   hillSize: 100
   hillsDistanceBetween: 500
   ememiesDistanceFromHill: 100

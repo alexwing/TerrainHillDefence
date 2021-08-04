@@ -12,10 +12,18 @@ public class UIController : MonoBehaviour
     public Transform healthLayoutHolder;
     public GameObject healthLayout;
 
-    public void Awake()
-    {
-        instance = this;
-    }
+        void Awake()
+        {
+            if (instance == null)
+            {
+                instance = this;
+            }   
+            else if (instance != this)  
+            {
+                Destroy(gameObject);
+
+            }
+        }
 
     private void Update()
     {

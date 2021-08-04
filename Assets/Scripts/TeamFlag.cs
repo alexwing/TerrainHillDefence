@@ -45,6 +45,8 @@ namespace HillDefence
                     //win a flag 
                     HillDefence.HillDefenceCreator.teams[collision.gameObject.GetComponent<Bullet>().teamNumber].flagsWinsCount++;
                     Destroy(gameObject);
+                    TargetTerrain.instance.ModifyTerrain(gameObject, 1000, 1000,false);
+                    TargetTerrain.instance.DetonationTerrain(collision.gameObject, 1000);
                 }
                 Destroy(collision.gameObject);
 

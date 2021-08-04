@@ -4,6 +4,7 @@ namespace HillDefence
     public class TargetTerrain : MonoBehaviour
     {
 
+public static TargetTerrain instance;
         // public TerrainData tData;
         public GameObject currentDetonatorTerrain;
         public float explosionLife = 10;
@@ -30,6 +31,19 @@ namespace HillDefence
         [Tooltip("Width of terrain destruction")]
         [Range(0, 1500)]
         public int DistanceSoundLimit = 500;
+
+        void Awake()
+        {
+            if (instance == null)
+            {
+                instance = this;
+            }   
+            else if (instance != this)  
+            {
+                Destroy(gameObject);
+
+            }
+        }
 
         void OnTriggerEnter(Collider collision)
         {

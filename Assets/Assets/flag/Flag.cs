@@ -49,25 +49,25 @@ public class Flag : MonoBehaviour
 
         GetComponent<BoxCollider>().enabled = true;
     }
-
+/*
     void OnDrawGizmos()
     {
         if (_boxCollider == null)
             _boxCollider = GetComponent<BoxCollider>();
 
        // if (teamFlag == Team.Type.A)
-            Gizmos.color = Color.red;
+        //    Gizmos.color = Color.red;
      //  else if (teamFlag == Team.Type.B)
       //      Gizmos.color = Color.blue;
 
-        Gizmos.DrawWireCube(_boxCollider.center + transform.position, _boxCollider.size / 2);
+       // Gizmos.DrawWireCube(_boxCollider.center + transform.position, _boxCollider.size / 2);
     }
 
    // public Team.Type GetTeam()
    // {
    //     return teamFlag;
    // }
-
+*/
     public Vector3 GetLocation()
     {
         return transform.position;

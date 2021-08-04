@@ -17,6 +17,8 @@ namespace HillDefence
         private float shootSpeed = 100f;
         public int shootCount = 0;
 
+        public bool isDead = false;
+
         public AudioClip shootClip;
         public AudioClip deathClip;
 
@@ -53,7 +55,7 @@ namespace HillDefence
                 //shoot carence
                 if (shootTime > shootCarence)
                 {
-                   // print("shootTime > shootCarence " + shootTime + " > " + shootCarence);
+                    // print("shootTime > shootCarence " + shootTime + " > " + shootCarence);
                     shootTime = 0;
                     //shoot
 
@@ -93,6 +95,7 @@ namespace HillDefence
                     team.soldiers.Remove(gameObject);
                     animator.Play("Standing_React_Death_Backward");
                     animateStatus = "death";
+                    isDead = true;
                     //remove soldier collider
                     Destroy(this.GetComponent<BoxCollider>());
                 }
@@ -103,7 +106,7 @@ namespace HillDefence
         }
         public void death()
         {
-            print(gameObject.name + " death");
+            //    print(gameObject.name + " death");
             Destroy(gameObject);
         }
         public void Step()
@@ -123,45 +126,49 @@ namespace HillDefence
         public void findEnemy()
         {
 
-            if (team.enemyTeam.teamFlag == null)
+            //print ("teamnumber " +team.teamNumber +"=="+ team.enemyTeam.teamNumber);
+            if (team.enemyTeam.teamFlag == null || team.teamNumber == team.enemyTeam.teamNumber)
             {
                 HillDefenceCreator.instance.UpdateEnemyTeam(team);
             }
- /*
-            if (enemy == team.enemyTeam.teamFlag || enemy == null)
-            {
+            /*
+                       if (enemy == team.enemyTeam.teamFlag || enemy == null)
+                       {
 
-                //find near enemy randomized from ememy team 
-                System.Random rand = new System.Random();
-                int n;
-                int k = n = HillDefenceCreator.soldiers.Count;
-                for (int i = 0; k > 0; ++i)
+                           //find near enemy randomized from ememy team 
+                           System.Random rand = new System.Random();
+                           int n;
+                           int k = n = HillDefenceCreator.soldiers.Count;
+                           for (int i = 0; k > 0; ++i)
+                           {
+                               int r = rand.Next(0, n - i);
+                               if (r < k)
+                               {
+                                   if (HillDefenceCreator.soldiers[r].team.teamNumber != team.teamNumber)
+                                   {
+                                       if (Vector3.Distance(transform.position, team.enemyTeam.soldiers[r].transform.position) < SceneConfig.SOLDIER.FindEnemyRange)
+                                       {
+                                           enemy = HillDefenceCreator.soldiers[r].gameObject;
+                                           return;
+                                       }
+                                   }
+                                   k--;
+                               }
+                           }
+                       }
+                      */
+            foreach (TeamSoldier enemyFind in HillDefenceCreator.soldiers)
+            {
+                if (enemyFind.team.teamNumber != team.teamNumber && !enemyFind.isDead)
                 {
-                    int r = rand.Next(0, n - i);
-                    if (r < k)
+                    if (Vector3.Distance(transform.position, enemyFind.transform.position) < SceneConfig.SOLDIER.FindEnemyRange)
                     {
-                        if (HillDefenceCreator.soldiers[r].team.teamNumber != team.teamNumber)
-                        {
-                            if (Vector3.Distance(transform.position, team.enemyTeam.soldiers[r].transform.position) < SceneConfig.SOLDIER.FindEnemyRange)
-                            {
-                                enemy = HillDefenceCreator.soldiers[r].gameObject;
-                                return;
-                            }
-                        }
-                        k--;
+                        enemy = enemyFind.gameObject;
+                        return;
                     }
                 }
             }
-           */
-            foreach (GameObject enemyFind in team.enemyTeam.soldiers)
-            {
-                if (Vector3.Distance(transform.position, enemyFind.transform.position) < SceneConfig.SOLDIER.FindEnemyRange)
-                {
-                    enemy = enemyFind;
-                    return;
-                }
-            }
-
+/*
             //find other enemy near this soldier
             foreach (Team teamFind in HillDefenceCreator.teams)
             {
@@ -178,7 +185,7 @@ namespace HillDefence
                 }
 
             }
-    
+*/
             //attack enemy flag
 
             enemy = team.enemyTeam.teamFlag;

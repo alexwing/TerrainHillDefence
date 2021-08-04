@@ -40,10 +40,19 @@ namespace HillDefence
         [Tooltip("Teams colors.")]
         public Color[] teamsColors;
 
+
         void Awake()
         {
+            if (instance == null)
+            {
             instance = this;
             TerrainInstance = terrain;
+            }   
+            else if (instance != this)  
+            {
+                Destroy(gameObject);
+
+            }
         }
 
         void Start()
@@ -127,7 +136,7 @@ namespace HillDefence
         // asign a new enemy team to team, not asign is enemy team flag is eliminated
         public void UpdateEnemyTeam(Team team){
             foreach(Team enemy in teams){
-                if(enemy.teamFlag != null && enemy != team){
+                if(enemy.teamFlag != null && enemy.teamNumber != team.teamEnemyNumber){
                     team.enemyTeam = enemy;
                     break;
                 }
