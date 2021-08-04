@@ -35,17 +35,18 @@ namespace HillDefence
 
         //create list on team objects
         public static List<Team> teams = new List<Team>();
+        public static List<TeamSoldier> soldiers = new List<TeamSoldier>();
 
         [Tooltip("Teams colors.")]
         public Color[] teamsColors;
 
         void Start()
         {
-            spawnHills();
-            spawnEnemyTeam();
-            spawnEnemy();
+            SpawnHills();
+            SpawnEnemyTeam();
+            SpawnSoldiers();
         }
-        void spawnHills()
+        void SpawnHills()
         {
             // Get the terrain
             terrain = GetComponent<Terrain>();
@@ -88,7 +89,7 @@ namespace HillDefence
 
 
         }
-        void spawnEnemyTeam()
+        void SpawnEnemyTeam()
         {
             //set ememy to team nead distance of flag
             for (int i = 0; i < teams.Count; i++)
@@ -113,32 +114,33 @@ namespace HillDefence
             }
             for (int i = 0; i < teams.Count; i++)
             {
-                print(teams[i].teamNumber + " is enemy of " + teams[i].enemyTeam.teamNumber);
+                print(teams[i].teamNumber + " is soldier of " + teams[i].enemyTeam.teamNumber);
             }
         }
 
-        void spawnEnemy()
+        void SpawnSoldiers()
         {
-            //spawn enemy
+            //spawn soldier
             for (int i = 0; i < teams.Count; i++)
             {
                 //enemies per team
                 for (int j = 0; j < enemiesPerTeam; j++)
                 {
-                    //spawn enemy position near the hill ramdom position
+                    //spawn soldier position near the hill ramdom position
                     Vector3 enemyPosition = Utils.CreateRamdomPosition(new Vector4(teams[i].teamFlag.transform.position.x - ememiesDistanceFromHill, teams[i].teamFlag.transform.position.x + ememiesDistanceFromHill, teams[i].teamFlag.transform.position.z - ememiesDistanceFromHill, teams[i].teamFlag.transform.position.z + ememiesDistanceFromHill), ref hillPositions, ememiesDistanceBetween);
-                    //spawn enemy
+                    //spawn soldier
                     //get terraindata height from positon
                     float height = terrain.SampleHeight(enemyPosition);
                     enemyPosition.y = height;
 
-                    GameObject enemy = Instantiate(enemyPrefab, enemyPosition, Quaternion.identity) as GameObject;
+                    GameObject soldier = Instantiate(enemyPrefab, enemyPosition, Quaternion.identity) as GameObject;
 
-                    TeamSoldier teamSoldier = enemy.GetComponent<TeamSoldier>();
+                    TeamSoldier teamSoldier = soldier.GetComponent<TeamSoldier>();
                     teamSoldier.setTeam(teams[i]);
-                    enemy.name = "EnemyTeam" + i + "Soldier" + j;
-                    teams[i].soldiers.Add(enemy);
+                    soldier.name = "EnemyTeam" + i + "Soldier" + j;
+                    teams[i].soldiers.Add(soldier);
                     teams[i].soldiersPosition.Add(enemyPosition);
+                    soldiers.Add(teamSoldier);
 
                 }
             }

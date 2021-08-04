@@ -471,6 +471,9 @@ public class Utils
 
     public static void PlaySound(AudioClip clip, Transform collision, Transform player, int DistanceSoundLimit)
     {
+        if (clip == null){
+            return;
+        }
         float cameraDistance = Vector3.Distance(player.position, collision.position);
 
 

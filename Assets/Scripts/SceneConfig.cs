@@ -15,6 +15,8 @@ public static class SceneConfig
         public readonly static float FindEnemyFrameRate = 1f;
         public readonly static int ShootMaxDistance = 300;
         public readonly static float ShootMaxDistanceCheckFrameRate  = 0.5f;
+        public readonly static int SoldierLife = 5;
+        
     }
 
 }
