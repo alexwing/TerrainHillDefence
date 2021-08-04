@@ -36,7 +36,7 @@ namespace HillDefence
             if (collision.gameObject.tag == "bullet")
             {
                 ModifyTerrain(collision.gameObject, 10, 10, UpOrDown);
-               // DetonationTerrain(collision.gameObject, 10);
+                DetonationTerrain(collision.gameObject, 1);
                 Destroy(collision.gameObject);
             }
 

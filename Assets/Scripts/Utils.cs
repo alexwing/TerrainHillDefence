@@ -485,7 +485,7 @@ public class Utils
         // Then, normalize it into a unit vector
         Vector3 unitSpawnDirection = spawnDirection.normalized;
 
-        Debug.Log("Camera distance: " + cameraDistance + " explosion sound volumen : " + explosionDistanceVolumen);
+        //Debug.Log("Camera distance: " + cameraDistance + " explosion sound volumen : " + explosionDistanceVolumen);
         // Now, we can play the sound in the direction, but not position, of the spawn
         AudioSource.PlayClipAtPoint(clip, player.position + unitSpawnDirection, explosionDistanceVolumen);
     }

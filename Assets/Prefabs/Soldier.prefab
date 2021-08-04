@@ -1685,6 +1685,9 @@ MonoBehaviour:
   head: {fileID: 1873560179198120}
   arms: {fileID: 1207467848881926}
   shootInitPosition: {fileID: 6459393093809552415}
+  shootCount: 0
+  shootClip: {fileID: 8300000, guid: ca78acf0b437e9b488a2eaba3521b9f3, type: 3}
+  deathClip: {fileID: 8300000, guid: 8f05368033b464b45ad846a2914dec98, type: 3}
   enemy: {fileID: 0}
 --- !u!65 &1832913943777563721
 BoxCollider:

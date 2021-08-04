@@ -45,6 +45,7 @@ namespace HillDefence
             SpawnHills();
             SpawnEnemyTeam();
             SpawnSoldiers();
+           // UIController.instance.CreateHealthbars();
         }
         void SpawnHills()
         {
@@ -97,16 +98,15 @@ namespace HillDefence
                 float minimalDistance = float.MaxValue;
                 for (int j = 0; j < teams.Count; j++)
                 {
-                    Vector3 hillPos = teams[i].teamFlag.transform.position;
-                    if (teams[i].teamNumber != teams[j].teamNumber)
+                    if (i != j)
                     {
+                        Vector3 hillPos = teams[i].teamFlag.transform.position;
                         Vector3 enemyPos = teams[j].teamFlag.transform.position;
                         float distance = Vector3.Distance(enemyPos, hillPos);
                         if (minimalDistance > distance)
                         {
-                            minimalDistance = distance;
+                            minimalDistance = distance;                          
                             teams[i].enemyTeam = teams[j];
-
                             // print(i + " " + j + " " + minimalDistance);
                         }
                     }
@@ -114,7 +114,7 @@ namespace HillDefence
             }
             for (int i = 0; i < teams.Count; i++)
             {
-                print(teams[i].teamNumber + " is soldier of " + teams[i].enemyTeam.teamNumber);
+                print(teams[i].teamNumber + " is enemy of " + teams[i].enemyTeam.teamNumber);
             }
         }
 

@@ -12,10 +12,10 @@ namespace HillDefence
         public GameObject arms;
 
         public GameObject shootInitPosition;
-        private float shootCarence = 3f;
+        private float shootCarence = 1.5f;
         private float shootTime = 0;
         private float shootSpeed = 100f;
-        private int shootCount = 0;
+        public int shootCount = 0;
 
         public AudioClip shootClip;
         public AudioClip deathClip;
@@ -53,7 +53,7 @@ namespace HillDefence
                 //shoot carence
                 if (shootTime > shootCarence)
                 {
-                    print("shootTime > shootCarence " + shootTime + " > " + shootCarence);
+                   // print("shootTime > shootCarence " + shootTime + " > " + shootCarence);
                     shootTime = 0;
                     //shoot
 
@@ -95,8 +95,8 @@ namespace HillDefence
                     animateStatus = "death";
                     //remove soldier collider
                     Destroy(this.GetComponent<BoxCollider>());
-                    Destroy(collision.gameObject);
                 }
+                Destroy(collision.gameObject);
                 shootCount++;
 
             }
@@ -116,15 +116,16 @@ namespace HillDefence
             team = currentTeam;
             animator.Play("standing_idle_looking_ver_1", -1, Random.Range(0.0f, 1.0f));
             animateStatus = "idle";
-            // enemy = team.enemyTeam.teamFlag;
+            enemy = team.enemyTeam.teamFlag;
         }
 
         //find nearest enemy
         public void findEnemy()
         {
-
+ /*
             if (enemy == team.enemyTeam.teamFlag || enemy == null)
             {
+
                 //find near enemy randomized from ememy team 
                 System.Random rand = new System.Random();
                 int n;
@@ -146,13 +147,12 @@ namespace HillDefence
                     }
                 }
             }
-            /*
+           */
             foreach (GameObject enemyFind in team.enemyTeam.soldiers)
             {
                 if (Vector3.Distance(transform.position, enemyFind.transform.position) < SceneConfig.SOLDIER.FindEnemyRange)
                 {
                     enemy = enemyFind;
-                    foundEnemy = true;
                     return;
                 }
             }
@@ -173,7 +173,7 @@ namespace HillDefence
                 }
 
             }
-        */
+    
             //attack enemy flag
 
             enemy = team.enemyTeam.teamFlag;
