@@ -60,7 +60,7 @@ namespace HillDefence
             SpawnHills();
             SpawnEnemyTeam();
             SpawnSoldiers();
-           // UIController.instance.CreateHealthbars();
+            // UIController.instance.CreateHealthbars();         
         }
         void SpawnHills()
         {
@@ -141,6 +141,7 @@ namespace HillDefence
                     break;
                 }
             }
+           
         }
 
 
@@ -171,6 +172,22 @@ namespace HillDefence
                 }
             }
 
+        }
+        public void EvaluateWin()
+        {
+            int countPendingTeams = 0;
+            Team win = null;
+            foreach (Team team in teams){
+                if(team.teamFlag != null){
+                    countPendingTeams++;
+                    win = team;
+                }
+            }
+            if(countPendingTeams == 1){
+                {
+                    UIController.instance.ShowWin(win);
+                }
+            }
         }
 
 
