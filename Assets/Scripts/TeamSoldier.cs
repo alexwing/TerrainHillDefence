@@ -122,6 +122,11 @@ namespace HillDefence
         //find nearest enemy
         public void findEnemy()
         {
+
+            if (team.enemyTeam.teamFlag == null)
+            {
+                HillDefenceCreator.instance.UpdateEnemyTeam(team);
+            }
  /*
             if (enemy == team.enemyTeam.teamFlag || enemy == null)
             {

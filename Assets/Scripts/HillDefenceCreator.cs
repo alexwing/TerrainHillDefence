@@ -9,7 +9,7 @@ namespace HillDefence
     public class HillDefenceCreator : MonoBehaviour
     {
         Terrain terrain;
-
+        public static HillDefenceCreator instance;
         public static Terrain TerrainInstance;
 
         [Header("Team")]
@@ -39,6 +39,12 @@ namespace HillDefence
 
         [Tooltip("Teams colors.")]
         public Color[] teamsColors;
+
+        void Awake()
+        {
+            instance = this;
+            TerrainInstance = terrain;
+        }
 
         void Start()
         {
@@ -117,6 +123,17 @@ namespace HillDefence
                 print(teams[i].teamNumber + " is enemy of " + teams[i].enemyTeam.teamNumber);
             }
         }
+
+        // asign a new enemy team to team, not asign is enemy team flag is eliminated
+        public void UpdateEnemyTeam(Team team){
+            foreach(Team enemy in teams){
+                if(enemy.teamFlag != null && enemy != team){
+                    team.enemyTeam = enemy;
+                    break;
+                }
+            }
+        }
+
 
         void SpawnSoldiers()
         {

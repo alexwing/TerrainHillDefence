@@ -41,8 +41,6 @@ Unity 2019.4.1f1
 
 * Show the percentage of available health for each soldier.
 
-* When a base is eliminated the team must go for the next one.
-
 * Create a UI with information about the game and the winner.
 
 * Improve the initial performance and find enemy performance
