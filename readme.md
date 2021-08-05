@@ -57,4 +57,18 @@ Unity 2019.4.1f1
 
 - TargetTerrain: Generate the hills that cover the target of the flag. It receives collisions from soldiers' shots and modifies the terrain and generates explosions.
 
-  
+## Change log
+
+2021-08-04	change logic find enemy
+2021-08-03	detroy flags
+2021-08-03	simplify findenemy
+2021-08-03	add enemy logic
+2021-08-03	test shoot
+2021-08-03	Enemies move and find targets
+2021-08-02	asign team to soldier
+2021-08-01	add teams class
+2021-08-01	spawn enemies per team
+2021-08-01	add teams class
+2021-08-01	add teams class
+2021-08-01	add teams flag colors
+2021-08-01	spawn hills in minimal distance between
