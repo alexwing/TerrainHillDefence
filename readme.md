@@ -59,16 +59,21 @@ Unity 2019.4.1f1
 
 ## Change log
 
-* 2021-08-04	change logic find enemy
-* 2021-08-03	detroy flags
-* 2021-08-03	simplify findenemy
-* 2021-08-03	add enemy logic
-* 2021-08-03	test shoot
-* 2021-08-03	Enemies move and find targets
-* 2021-08-02	asign team to soldier
-* 2021-08-01	add teams class
-* 2021-08-01	spawn enemies per team
-* 2021-08-01	add teams class
-* 2021-08-01	add teams class
-* 2021-08-01	add teams flag colors
-* 2021-08-01	spawn hills in minimal distance between
+* 2021-08-05 ramdomize the soldiers list
+* 2021-08-04 show win
+* 2021-08-04 destroy flag hill
+* 2021-08-04 When a base is eliminated the team must go for the next one.
+* 2021-08-04 Ajust soldiers find enemy and shoot
+* 2021-08-04 change logic find enemy
+* 2021-08-03 detroy flags
+* 2021-08-03 simplify findenemy
+* 2021-08-03 add enemy logic
+* 2021-08-03 test shoot
+* 2021-08-03 Enemies move and find targets
+* 2021-08-02 asign team to soldier
+* 2021-08-01 add teams class
+* 2021-08-01 spawn enemies per team
+* 2021-08-01 add teams class
+* 2021-08-01 add teams class
+* 2021-08-01 add teams flag colors
+* 2021-08-01 spawn hills in minimal distance between
