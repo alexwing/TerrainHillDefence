@@ -15,7 +15,8 @@ Unity 2019.4.1f1
 - Mouse : Mouse look
 - Scroll wheel : Height over terrain
 - mouse click right: set lock/unlock movement 
-- mouse click left: Placing the tower on the terrain (TO DO)
+- mouse click left: Show the tower to place it on the terrain (The tower is painted in the color of the team of the nearest tower, if it is far from the tower it will be painted black and cannot be instantiated.)
+- mouse double click left: Placing the tower on the terrain.
   
 ## Implemented
 
@@ -31,9 +32,9 @@ Unity 2019.4.1f1
 
 * Soldiers and flags have a number of hits to be destroyed.
 
-## TO DO
-
 * Place turrets to defend a flag.
+
+## TO DO
 
 * Improve the movement of soldiers to avoid colliding with turrets.
 
@@ -43,7 +44,7 @@ Unity 2019.4.1f1
 
 * Create a UI with information about the game and the winner.
 
-* Improve the initial performance and find enemy performance
+* Improve the initial and find enemy performance 
 
 ## Code description
 
