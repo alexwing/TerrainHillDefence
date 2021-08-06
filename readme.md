@@ -1,5 +1,6 @@
 # Hill Defence
 
+![Hill Defence](./res/about.png)
 
 This game is a tower defence game. The player controls a tower which is placed on a terrain. The tower can shoot at enemies and deal damage to them.
 
