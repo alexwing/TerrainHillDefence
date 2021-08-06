@@ -30,6 +30,7 @@ namespace HillDefence
 
         private void Update()
         {
+            //double click
 
             //raycast mouse cursor to objetct pointer in terrain
             if (Input.GetMouseButton(0) && anchorToTerrain)
@@ -40,9 +41,41 @@ namespace HillDefence
                 {
                     if (hit.collider.gameObject == anchorToTerrain.gameObject)
                     {
+                        //find the near flag tower in the terrain
+                        Team foundTeamTower = null;
+                        foreach (Team team in HillDefenceCreator.teams)
+                        {
+                            if (team.teamFlag)
+                            {
+                                if (Vector3.Distance(hit.point, team.teamFlag.transform.position) < SceneConfig.SOLDIER.FindEnemyRange)
+                                {
+                                    foundTeamTower = team;
+                                }
+                            }
+                        }
+
                         cursorPointer.SetActive(true);
                         //  Debug.Log("position x: " + hit.transform.position.x + " position z: " + hit.transform.position.z);
                         cursorPointer.transform.position = hit.point;
+                        if (foundTeamTower!=null)
+                        {
+                            Utils.ChangeColor(cursorPointer.GetComponent<TeamTower>().towerMaterial,foundTeamTower.teamColor);
+                            if (Utils.DoubleClick())
+                            {
+                                //instanciate a new cursor pointer
+                                GameObject newCursor = Instantiate(cursorPointer, hit.point, Quaternion.identity) as GameObject;
+                                TeamTower teamTower = newCursor.GetComponent<TeamTower>();
+                                teamTower.setTeam(foundTeamTower);                               
+                                teamTower.Init();                                
+                                if (teamTower != null)
+                                {
+                                    teamTower.setTeam(HillDefenceCreator.teams[0]);
+                                    teamTower.name = "TeamTower"+foundTeamTower.teamNumber;
+                                }
+                            }
+                        }else{
+                             Utils.ChangeColor(cursorPointer.GetComponent<TeamTower>().towerMaterial, Color.black);
+                        }
                     }
                 }
             }
@@ -57,7 +90,7 @@ namespace HillDefence
         {
             winText.transform.gameObject.SetActive(true);
             winText.text = Team.teamNumber + " wins!";
-           // winText.color = Team.teamColor;
+            // winText.color = Team.teamColor;
 
         }
 

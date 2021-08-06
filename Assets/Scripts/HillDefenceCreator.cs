@@ -170,6 +170,7 @@ namespace HillDefence
                     soldier.name = "EnemyTeam" + i + "Soldier" + j;
                     teams[i].soldiers.Add(soldier);
                     teams[i].soldiersPosition.Add(enemyPosition);
+                    teamSoldier.Init();
                     soldiers.Add(teamSoldier);
 
                 }

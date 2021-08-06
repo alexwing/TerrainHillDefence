@@ -12,9 +12,9 @@ namespace HillDefence
         public GameObject arms;
 
         public GameObject shootInitPosition;
-        private float shootCarence = 1.5f;
         private float shootTime = 0;
         private float shootSpeed = 100f;
+        [HideInInspector]
         public int shootCount = 0;
 
         public bool isDead = false;
@@ -38,14 +38,14 @@ namespace HillDefence
             animator = GetComponent<Animator>();
             AttackDistance = Random.Range(-SceneConfig.SOLDIER.AttackRamdomRange, SceneConfig.SOLDIER.AttackRamdomRange);
         }
-        void Start()
+        public void Init()
         {
             Utils.ChangeColor(body.GetComponent<Renderer>(), team.teamColor);
             Utils.ChangeColor(head.GetComponent<Renderer>(), team.teamColor);
             Utils.ChangeColor(arms.GetComponent<Renderer>(), team.teamColor);
-            InvokeRepeating("UpdateSoldier", Random.Range(0,1f / SceneConfig.SOLDIER.SoldierFrameRate), 1f / SceneConfig.SOLDIER.SoldierFrameRate);
-            InvokeRepeating("findEnemy", Random.Range(0,1f / SceneConfig.SOLDIER.FindEnemyRange), 1f / SceneConfig.SOLDIER.FindEnemyRange); 
-          
+            InvokeRepeating("UpdateSoldier", Random.Range(0, 1f / SceneConfig.SOLDIER.SoldierFrameRate), 1f / SceneConfig.SOLDIER.SoldierFrameRate);
+            InvokeRepeating("findEnemy", Random.Range(0, 1f / SceneConfig.SOLDIER.FindEnemyRange), 1f / SceneConfig.SOLDIER.FindEnemyRange);
+
         }
 
         //shoot to enemy with carence 
@@ -54,7 +54,7 @@ namespace HillDefence
             if (enemy != null)
             {
                 //shoot carence
-                if (shootTime > shootCarence)
+                if (shootTime > SceneConfig.SOLDIER.shootCarence)
                 {
                     // print("shootTime > shootCarence " + shootTime + " > " + shootCarence);
                     shootTime = 0;
@@ -112,7 +112,7 @@ namespace HillDefence
             //remove from team.soldiers
             team.soldiers.Remove(gameObject);
             Destroy(gameObject);
-        
+
         }
         public void Step()
         {
