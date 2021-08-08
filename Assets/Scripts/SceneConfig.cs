@@ -31,12 +31,12 @@ public static class SceneConfig
         public readonly static float AttackRamdomRange = 30f;
         public readonly static float SoldierVelocity = 3f;
         public readonly static float SoldierFrameRate = 25f;
-        public readonly static float FindEnemyFrameRate = 2f;
         public readonly static int ShootMaxDistance = 300;
         public readonly static float ShootMaxDistanceCheckFrameRate = 0.5f;
         public readonly static int SoldierLife = 5;
         public readonly static float shootCarence = 1.75f;
         public readonly static float shootSpeed = 100f;
+        public readonly static float shootTargetHeight = 1.75f;
 
     }
 

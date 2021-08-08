@@ -40,7 +40,9 @@ namespace HillDefence
                     // print("shootTime > shootCarence " + shootTime + " > " + shootCarence);
                     shootTime = 0;
                     //shoot
-                    Vector3 dir = (enemy.transform.position - shootInitPosition.transform.position).normalized;
+                    Vector3 shootTargetPosition = enemy.transform.position;
+                    shootTargetPosition.y += SceneConfig.SOLDIER.shootTargetHeight;
+                    Vector3 dir = (shootTargetPosition - shootInitPosition.transform.position).normalized;
                     Vector3 shootPos = shootInitPosition.transform.position + dir;
                     GameObject shootSend = Instantiate(team.bulletPrefab, shootPos, Quaternion.identity);
                     //move bullet to enemy
@@ -59,6 +61,10 @@ namespace HillDefence
 
         void OnTriggerEnter(Collider collision)
         {
+            if (!collision.gameObject)
+            {
+                return;
+            }
             if (collision.gameObject.tag == "bullet" && "bullet" + team.teamNumber != collision.gameObject.name)
             {
 
@@ -66,7 +72,8 @@ namespace HillDefence
                 {
                     // team.soldiers.Remove(gameObject);
                     npcInfo.isDead = true;
-                    //remove soldier collider
+                    team.towers.Remove(gameObject.GetComponent<TeamTower>());
+                    HillDefenceCreator.towers.Remove(gameObject.GetComponent<TeamTower>());
                     Destroy(gameObject);
                     TargetTerrain.instance.ModifyTerrain(collision.gameObject, 15, 15, false);
                     TargetTerrain.instance.DetonationTerrain(collision.gameObject, 15);
@@ -75,13 +82,6 @@ namespace HillDefence
                 npcInfo.shootCount++;
 
             }
-        }
-        public void death()
-        {
-            //remove from HillDefenceCreator.soldiers
-            //  team.soldiers.Remove(gameObject);
-            //remove from team.soldiers
-            //  team.soldiers.Remove(gameObject);
         }
         public void setTeam(Team currentTeam)
         {

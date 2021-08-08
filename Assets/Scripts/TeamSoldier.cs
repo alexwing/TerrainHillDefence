@@ -50,8 +50,10 @@ namespace HillDefence
                     // print("shootTime > shootCarence " + shootTime + " > " + shootCarence);
                     shootTime = 0;
                     //shoot
-
-                    Vector3 dir = (enemy.transform.position - shootInitPosition.transform.position).normalized;
+                    //add shootTargetHeight to the position of the shootInitPosition
+                    Vector3 shootTargetPosition = enemy.transform.position;
+                    shootTargetPosition.y += SceneConfig.SOLDIER.shootTargetHeight;
+                    Vector3 dir = (shootTargetPosition - shootInitPosition.transform.position).normalized;
                     Vector3 shootPos = shootInitPosition.transform.position + dir;
                     GameObject shootSend = Instantiate(team.bulletPrefab, shootPos, Quaternion.identity);
                     //move bullet to enemy
@@ -73,6 +75,10 @@ namespace HillDefence
 
         void OnTriggerEnter(Collider collision)
         {
+            if (!collision.gameObject)
+            {
+                return;
+            }
             if (collision.gameObject.tag == "bullet" && "bullet" + team.teamNumber != collision.gameObject.name)
             {
                 if (npcInfo.shootCount >= SceneConfig.SOLDIER.SoldierLife)
