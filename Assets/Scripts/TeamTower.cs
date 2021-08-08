@@ -67,7 +67,9 @@ namespace HillDefence
                     // team.soldiers.Remove(gameObject);
                     npcInfo.isDead = true;
                     //remove soldier collider
-                    Destroy(this.GetComponent<BoxCollider>());
+                    Destroy(gameObject);
+                    TargetTerrain.instance.ModifyTerrain(collision.gameObject, 15, 15, false);
+                    TargetTerrain.instance.DetonationTerrain(collision.gameObject, 15);
                 }
                 Destroy(collision.gameObject);
                 npcInfo.shootCount++;
@@ -80,7 +82,6 @@ namespace HillDefence
             //  team.soldiers.Remove(gameObject);
             //remove from team.soldiers
             //  team.soldiers.Remove(gameObject);
-            Destroy(gameObject);
         }
         public void setTeam(Team currentTeam)
         {
