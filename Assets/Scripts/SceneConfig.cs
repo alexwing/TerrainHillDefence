@@ -17,8 +17,8 @@ public static class SceneConfig
     public static class TOWER
     {
         public static float RotationSpeed = 14f;
-        public readonly static float FindEnemyRange = 200f;
-        public readonly static int ShootMaxDistance = 300;
+        public readonly static float FindEnemyRange = 400f;
+        public readonly static int ShootMaxDistance = 400;
         public readonly static float TowerFrameRate = 25f;
         public readonly static int TowerLife = 5;
         public readonly static float shootCarence = 0.75f;
