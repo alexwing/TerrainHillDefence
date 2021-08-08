@@ -516,6 +516,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1394242488}
+  - component: {fileID: 1394242489}
   m_Layer: 0
   m_Name: HillsDefender
   m_TagString: Untagged
@@ -538,6 +539,23 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1394242489
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1394242487}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c00689ca76316904c8b87121a70eb619, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  AIBitmap: {fileID: 0}
+  realWidth: 0
+  realHeight: 0
+  width: 0
+  height: 0
 --- !u!114 &1398536600 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1398536600, guid: cdf3c9339dfd0a44f92e5db13f8dc692,
@@ -563,7 +581,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1908289622503518, guid: 6904f37e0f927a64e88a66be020e8796, type: 3}
       propertyPath: m_StaticEditorFlags
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4824509251536950, guid: 6904f37e0f927a64e88a66be020e8796, type: 3}
       propertyPath: m_LocalPosition.x
@@ -615,6 +633,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 15600000, guid: 5a2585971f88ee14ea0dc432488a27d9,
         type: 2}
+    - target: {fileID: 218851552330760692, guid: 6904f37e0f927a64e88a66be020e8796,
+        type: 3}
+      propertyPath: m_LightmapParameters
+      value: 
+      objectReference: {fileID: 15200, guid: 0000000000000000f000000000000000, type: 0}
     m_RemovedComponents:
     - {fileID: 114216396480093674, guid: 6904f37e0f927a64e88a66be020e8796, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 6904f37e0f927a64e88a66be020e8796, type: 3}
@@ -637,23 +660,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hill: {fileID: 1258100156410762, guid: 8ce6fe957984e604e83dc97357a59d19, type: 3}
-  hills: 10
+  hills: 14
   hillSize: 100
   hillsDistanceBetween: 500
   ememiesDistanceFromHill: 100
   ememiesDistanceBetween: 20
-  enemiesPerTeam: 10
+  enemiesPerTeam: 20
   enemyPrefab: {fileID: 1471741602374830, guid: 89906651707b14449b3008b2a12d41c9,
     type: 3}
   borderSizeLimit: 100
   _magicArray:
-  - {fileID: 100004, guid: aeae58bf37a687647adec1a709ea4bd4, type: 3}
-  - {fileID: 322934440826955859, guid: 7f4cd52014748b049b82f29f755c1278, type: 3}
-  - {fileID: 100008, guid: 9c001e713c3ebd34b9a93ba39ccdb2c7, type: 3}
-  - {fileID: 6040648356650526432, guid: 45a042ad00395204ca3f3561c3a05756, type: 3}
-  - {fileID: 3062452900393054525, guid: ab8125ffea4d43e4aa9439d5f8fff4c4, type: 3}
-  - {fileID: 100006, guid: 244b633c88d21fa43ac7a1b652c14793, type: 3}
-  - {fileID: 100008, guid: fbe02a07d24e2ce43b8e224ebcf00316, type: 3}
+  - {fileID: 100004, guid: b5ba8fbf42f76ef48ba06ca1917920f2, type: 3}
+  - {fileID: 100004, guid: baf3c4f96fe0a294d9c9a271f9df48d1, type: 3}
+  - {fileID: 100004, guid: 0c7b0564a8052734d97fc944841a9f97, type: 3}
   teamsColors:
   - {r: 1, g: 0, b: 0, a: 0}
   - {r: 0, g: 1, b: 0, a: 0}
@@ -694,9 +713,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8952dfb71b6dbe43b007b45fcfabf7c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentDetonatorTerrain: {fileID: 100004, guid: 2e30c8faef924a24092d82bc1255e5ff,
+  detonationBulletPrefab: {fileID: 100004, guid: 31d75800007df144faf4eab32d273baf,
     type: 3}
-  explosionLife: 18
+  detonationPrefab: {fileID: 100004, guid: 2e30c8faef924a24092d82bc1255e5ff, type: 3}
+  explosionLife: 10
   terrainDestructHeight: 8
   terrainDestructWidth: 50
   ramdomExplosion: 0.022
@@ -780,8 +800,6 @@ MonoBehaviour:
   tower: {fileID: 64527503}
   shootInitPosition: {fileID: 7226061049110690845}
   towerMaterial: {fileID: 7226061048494982596}
-  shootCount: 0
-  isDead: 0
   shootClip: {fileID: 8300000, guid: ca78acf0b437e9b488a2eaba3521b9f3, type: 3}
   deathClip: {fileID: 8300000, guid: 8f05368033b464b45ad846a2914dec98, type: 3}
   enemy: {fileID: 0}

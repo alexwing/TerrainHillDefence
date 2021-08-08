@@ -1,23 +1,16 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
 
 
 namespace HillDefence
 {
-    public class TeamSoldier : MonoBehaviour
+    public class TeamSoldier : NpcInfo
     {
         // material to change color of the flag
         public GameObject body;
         public GameObject head;
         public GameObject arms;
-
         public GameObject shootInitPosition;
         private float shootTime = 0;
-        private float shootSpeed = 100f;
-        [HideInInspector]
-        public int shootCount = 0;
-
-        public bool isDead = false;
 
         public AudioClip shootClip;
         public AudioClip deathClip;
@@ -27,7 +20,6 @@ namespace HillDefence
 
         // [HideInInspector]
         public GameObject enemy = null;
-
         private Animator animator;
         private bool isWalking = false;
         private string animateStatus = "";
@@ -45,7 +37,6 @@ namespace HillDefence
             Utils.ChangeColor(arms.GetComponent<Renderer>(), team.teamColor);
             InvokeRepeating("UpdateSoldier", Random.Range(0, 1f / SceneConfig.SOLDIER.SoldierFrameRate), 1f / SceneConfig.SOLDIER.SoldierFrameRate);
             InvokeRepeating("findEnemy", Random.Range(0, 1f / SceneConfig.SOLDIER.FindEnemyRange), 1f / SceneConfig.SOLDIER.FindEnemyRange);
-
         }
 
         //shoot to enemy with carence 
@@ -64,7 +55,7 @@ namespace HillDefence
                     Vector3 shootPos = shootInitPosition.transform.position + dir;
                     GameObject shootSend = Instantiate(team.bulletPrefab, shootPos, Quaternion.identity);
                     //move bullet to enemy
-                    shootSend.GetComponent<Rigidbody>().velocity = dir * shootSpeed;
+                    shootSend.GetComponent<Rigidbody>().velocity = dir * SceneConfig.SOLDIER.shootSpeed;
                     shootSend.GetComponent<Bullet>().origin = shootPos;
                     shootSend.GetComponent<Bullet>().teamNumber = team.teamNumber;
                     shootSend.name = "bullet" + team.teamNumber;
@@ -77,8 +68,6 @@ namespace HillDefence
                     Utils.PlaySound(shootClip, transform, Camera.main.transform, SceneConfig.SOLDIER.ShootMaxDistance);
                 }
             }
-            shootTime += Time.deltaTime;
-
         }
 
 
@@ -86,68 +75,65 @@ namespace HillDefence
         {
             if (collision.gameObject.tag == "bullet" && "bullet" + team.teamNumber != collision.gameObject.name)
             {
-
-                if (shootCount >= SceneConfig.SOLDIER.SoldierLife)
+                if (npcInfo.shootCount >= SceneConfig.SOLDIER.SoldierLife)
                 {
                     animator.SetBool("is_run", false);
                     animator.SetBool("is_ataka", false);
                     animator.SetBool("is_hi", false);
                     animator.SetBool("is_death", true);
-                    team.soldiers.Remove(gameObject);
+                    team.soldiers.Remove(gameObject.GetComponent<TeamSoldier>());
                     animator.Play("Standing_React_Death_Backward");
                     animateStatus = "death";
-                    isDead = true;
+                    npcInfo.isDead = true;
                     //remove soldier collider
                     Destroy(this.GetComponent<BoxCollider>());
                 }
                 Destroy(collision.gameObject);
-                shootCount++;
+                npcInfo.shootCount++;
 
             }
         }
         public void death()
         {
             //remove from HillDefenceCreator.soldiers
-            team.soldiers.Remove(gameObject);
+            team.soldiers.Remove(gameObject.GetComponent<TeamSoldier>());
             //remove from team.soldiers
-            team.soldiers.Remove(gameObject);
+            team.soldiers.Remove(gameObject.GetComponent<TeamSoldier>());
             Destroy(gameObject);
-
         }
         public void Step()
         {
             //step
-            //  print("step "+isWalking);
         }
         public void setTeam(Team currentTeam)
         {
             team = currentTeam;
             animator.Play("standing_idle_looking_ver_1", -1, Random.Range(0.0f, 1.0f));
             animateStatus = "idle";
-            enemy = team.enemyTeam.teamFlag;
+            enemy = team.enemyTeam.teamFlag.gameObject;
         }
 
         //find nearest enemy
         public void findEnemy()
         {
-
             if (team.enemyTeam.teamFlag == null || team.teamNumber == team.enemyTeam.teamNumber)
             {
-                HillDefenceCreator.instance.UpdateEnemyTeam(team);
+                AIController.instance.UpdateEnemyTeam(team);
             }
-            foreach (TeamSoldier enemyFind in HillDefenceCreator.soldiers)
+            //if not enemy or enemy is a enemy flag find near enemy
+            if (enemy == null || enemy == team.enemyTeam.teamFlag.gameObject)
             {
-                if (enemyFind.team.teamNumber != team.teamNumber && !enemyFind.isDead)
+                GameNpc npcEnemy = AIController.instance.getNearNpc(transform.position, team.teamNumber, SceneConfig.FindRange,  NpcType.Any);
+                if (npcEnemy != null)
                 {
-                    if (Vector3.Distance(transform.position, enemyFind.transform.position) < SceneConfig.SOLDIER.FindEnemyRange)
-                    {
-                        enemy = enemyFind.gameObject;
-                        return;
-                    }
+                    // print(this.name + " Enemy of " +npcEnemy.npcType+ " " + npcEnemy.teamNumber + " " +npcEnemy.npcNumber + " " + npcEnemy.npcType);
+                    enemy = npcToGameObject(npcEnemy);
+                }
+                else
+                {
+                    enemy = team.enemyTeam.teamFlag.gameObject;
                 }
             }
-            enemy = team.enemyTeam.teamFlag;
-
         }
         private void UpdateSoldier()
         {
@@ -155,7 +141,7 @@ namespace HillDefence
             {
                 return;
             }
-
+            shootTime += Time.deltaTime;
             if (enemy != null)
             {
                 Vector3 myPosition = transform.position;
@@ -200,7 +186,6 @@ namespace HillDefence
                     animateStatus = "idle";
                 }
             }
-
         }
     }
 }

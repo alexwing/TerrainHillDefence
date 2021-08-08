@@ -35,11 +35,13 @@ Unity 2019.4.1f1
 
 * Place turrets to defend a flag.
 
+* Improve the soldiers AI, take into account the soldiers of other teams.
+
 ## TO DO
 
 * Improve the movement of soldiers to avoid colliding with turrets.
 
-* Improve the soldiers AI, take into account the soldiers of other teams, or who are under attack, as well as defend the flag when it is under attack.
+* Improve the soldiers AI, who are under attack, as well as defend the flag when it is under attack.
 
 * Show the percentage of available health for each soldier.
 
@@ -61,6 +63,8 @@ Unity 2019.4.1f1
 
 ## Change log
 
+* 2021-08-08 Improve the soldiers AI, take into account the soldiers of other teams.
+* 2021-08-07 Creater towers defence near the flag base with mouse double click
 * 2021-08-05 ramdomize the soldiers list
 * 2021-08-04 show win
 * 2021-08-04 destroy flag hill

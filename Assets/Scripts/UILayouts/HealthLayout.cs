@@ -20,7 +20,7 @@ namespace HillDefence
             if (teamSoldier)
                 Destroy(gameObject);
 
-            healthImage.fillAmount = (float)teamSoldier.shootCount / (float)SceneConfig.SOLDIER.SoldierLife;
+            healthImage.fillAmount = (float)teamSoldier.npcInfo.shootCount / (float)SceneConfig.SOLDIER.SoldierLife;
 
             transform.position = Camera.main.WorldToScreenPoint(teamSoldier.transform.position + (Vector3.up * yOffset));
         }

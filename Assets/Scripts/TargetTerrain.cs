@@ -6,7 +6,8 @@ namespace HillDefence
 
 public static TargetTerrain instance;
         // public TerrainData tData;
-        public GameObject currentDetonatorTerrain;
+        public GameObject detonationBulletPrefab;
+        public GameObject detonationPrefab;
         public float explosionLife = 10;
 
         [Header("Terrain Destrucion")]
@@ -50,7 +51,7 @@ public static TargetTerrain instance;
             if (collision.gameObject.tag == "bullet")
             {
                 ModifyTerrain(collision.gameObject, 10, 10, UpOrDown);
-                DetonationTerrain(collision.gameObject, 1);
+                DetonationBullet(collision.gameObject, 1);
                 Destroy(collision.gameObject);
             }
 
@@ -122,9 +123,15 @@ public static TargetTerrain instance;
 
         }
 
+
+        public void DetonationBullet(GameObject collision, float destructionSize)
+        {
+            Destroy(Instantiate(detonationBulletPrefab, collision.transform.position, Quaternion.identity), explosionLife);            
+        }
+
         public void DetonationTerrain(GameObject collision, float destructionSize)
         {
-            Destroy(Instantiate(currentDetonatorTerrain, collision.transform.position, Quaternion.identity), explosionLife);
+            Destroy(Instantiate(detonationPrefab, collision.transform.position, Quaternion.identity), explosionLife);
             float normalizedValue = Mathf.InverseLerp(0, 100, destructionSize);
             float explosionSize = Mathf.Lerp(0, terrainDestructWidth, normalizedValue);
             GameObject _currentEffect = Instantiate(collision.gameObject, collision.transform.position, Quaternion.identity);
@@ -136,7 +143,7 @@ public static TargetTerrain instance;
             Destroy(_currentEffect, 0.5f);
             for (int i = 0; i < explosionSize; i++)
             {
-                Destroy(Instantiate(currentDetonatorTerrain, Utils.RandomNearPosition(collision.transform, ramdomExplosion, 0f, ramdomExplosion).position, Quaternion.identity), explosionLife);
+                Destroy(Instantiate(detonationPrefab, Utils.RandomNearPosition(collision.transform, ramdomExplosion, 0f, ramdomExplosion).position, Quaternion.identity), explosionLife);
             }
         }
     }

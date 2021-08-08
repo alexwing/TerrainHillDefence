@@ -3,13 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 namespace HillDefence
 {
-    public class TeamFlag : MonoBehaviour
+    public class TeamFlag : NpcInfo
     {
         // material to change color of the flag
         public GameObject flag;
-        public Color teamColor;
-
-        public int teamNumber;
 
 
 
@@ -20,8 +17,8 @@ namespace HillDefence
         {
             // changeFlagColor(teamColor);
 
-            Utils.ChangeColor(flag.GetComponent<Renderer>(), teamColor);
-            Utils.ChangeColor(flag.GetComponent<Renderer>(), Utils.Darken(teamColor, 0.75f), "_EmissionColor");
+            Utils.ChangeColor(flag.GetComponent<Renderer>(), npcInfo.teamColor);
+            Utils.ChangeColor(flag.GetComponent<Renderer>(), Utils.Darken(npcInfo.teamColor, 0.75f), "_EmissionColor");
         }
 
         // change the color of the flag
@@ -37,10 +34,10 @@ namespace HillDefence
 
         void OnTriggerEnter(Collider collision)
         {
-            if (collision.gameObject.tag == "bullet" && "bullet" + teamNumber != collision.gameObject.name)
+            if (collision.gameObject.tag == "bullet" && "bullet" + npcInfo.teamNumber != collision.gameObject.name)
             {
                 flagShootsReceived++;
-                if (SceneConfig.flagShootsToWin == flagShootsReceived)
+                if (SceneConfig.FLAG.FlagShootsToWin == flagShootsReceived)
                 {
                     //win a flag 
                     HillDefence.HillDefenceCreator.teams[collision.gameObject.GetComponent<Bullet>().teamNumber].flagsWinsCount++;

@@ -1,8 +1,6 @@
-﻿using HillDefence;
-using System.Collections;
+﻿
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AI;
 
 namespace HillDefence
 {
@@ -35,6 +33,7 @@ namespace HillDefence
 
         //create list on team objects
         public static List<Team> teams = new List<Team>();
+        public static List<TeamTower> towers = new List<TeamTower>();
         public static List<TeamSoldier> soldiers = new List<TeamSoldier>();
 
         [Tooltip("Teams colors.")]
@@ -61,6 +60,7 @@ namespace HillDefence
             SpawnEnemyTeam();
             SpawnSoldiers();
             // UIController.instance.CreateHealthbars();         
+            AIController.instance.Init((int)terrain.terrainData.size.x);
         }
         void SpawnHills()
         {
@@ -82,21 +82,21 @@ namespace HillDefence
                 position.y = height;
                 //clone instanciate Hill
                 GameObject instanciateTeamFlag = Instantiate(hill, position, Quaternion.identity) as GameObject;
-
+                TeamFlag teamFlag = instanciateTeamFlag.GetComponent<TeamFlag>();
                 //add team
                 Team team = new Team();
                 team.teamNumber = i;
-                team.teamFlag = instanciateTeamFlag;
+                team.teamFlag = teamFlag;
                 teams.Add(team);
 
                 //set team color
                 team.teamColor = teamsColors[i % teamsColors.Length];
                 team.bulletPrefab = _magicArray[i % _magicArray.Length];
-                instanciateTeamFlag.name = "Team " + i;
+                instanciateTeamFlag.name = "Flag_" + i;
 
                 //distribute the team color in the hills in order
-                instanciateTeamFlag.GetComponent<TeamFlag>().teamColor = team.teamColor;
-                instanciateTeamFlag.GetComponent<TeamFlag>().teamNumber = team.teamNumber;
+                team.teamFlag.npcInfo.teamColor = team.teamColor;
+                team.teamFlag.npcInfo.teamNumber = team.teamNumber;
 
                 GetComponent<TargetTerrain>().ModifyTerrain(instanciateTeamFlag, hillSize, 60f, true);
                 // GetComponent<TargetTerrain>().detonationTerrain(instanciateHill, 20f);
@@ -127,25 +127,13 @@ namespace HillDefence
                     }
                 }
             }
-            for (int i = 0; i < teams.Count; i++)
+          /*  for (int i = 0; i < teams.Count; i++)
             {
                 print(teams[i].teamNumber + " is enemy of " + teams[i].enemyTeam.teamNumber);
-            }
+            }*/
         }
 
-        // asign a new enemy team to team, not asign is enemy team flag is eliminated
-        public void UpdateEnemyTeam(Team team)
-        {
-            foreach (Team enemy in teams)
-            {
-                if (enemy.teamFlag != null && enemy.teamNumber != team.teamEnemyNumber)
-                {
-                    team.enemyTeam = enemy;
-                    break;
-                }
-            }
-            EvaluateWin();
-        }
+
 
 
         void SpawnSoldiers()
@@ -167,11 +155,15 @@ namespace HillDefence
 
                     TeamSoldier teamSoldier = soldier.GetComponent<TeamSoldier>();
                     teamSoldier.setTeam(teams[i]);
-                    soldier.name = "EnemyTeam" + i + "Soldier" + j;
-                    teams[i].soldiers.Add(soldier);
+                    soldier.name = "Soldier_" + i + "_" + j;
+                    teams[i].soldiers.Add(teamSoldier);
                     teams[i].soldiersPosition.Add(enemyPosition);
-                    teamSoldier.Init();
+                    teamSoldier.npcInfo.teamColor = teams[i].teamColor;
+                    teamSoldier.npcInfo.teamNumber = teams[i].teamNumber;
+                    teamSoldier.npcInfo.npcNumber = j;
+                    teamSoldier.npcInfo.npcType = NpcType.soldier;
                     soldiers.Add(teamSoldier);
+                    teamSoldier.Init();
 
                 }
             }

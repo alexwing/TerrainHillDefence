@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace HillDefence
 {
@@ -14,6 +15,7 @@ namespace HillDefence
 
         public Transform healthLayoutHolder;
         public GameObject healthLayout;
+
 
         void Awake()
         {
@@ -63,14 +65,22 @@ namespace HillDefence
                             if (Utils.DoubleClick())
                             {
                                 //instanciate a new cursor pointer
-                                GameObject newCursor = Instantiate(cursorPointer, hit.point, Quaternion.identity) as GameObject;
-                                TeamTower teamTower = newCursor.GetComponent<TeamTower>();
-                                teamTower.setTeam(foundTeamTower);                               
-                                teamTower.Init();                                
+                                GameObject newTower = Instantiate(cursorPointer, hit.point, Quaternion.identity) as GameObject;
+                                TeamTower teamTower = newTower.GetComponent<TeamTower>();
                                 if (teamTower != null)
                                 {
-                                    teamTower.setTeam(HillDefenceCreator.teams[0]);
-                                    teamTower.name = "TeamTower"+foundTeamTower.teamNumber;
+                                    teamTower.setTeam(foundTeamTower);                               
+                                    HillDefenceCreator.towers.Add(teamTower);
+                                    foundTeamTower.towers.Add(teamTower);
+
+                                    teamTower.npcInfo.teamColor = foundTeamTower.teamColor;
+                                    teamTower.npcInfo.teamNumber = foundTeamTower.teamNumber;
+                                    teamTower.npcInfo.npcNumber = foundTeamTower.towers.Count-1;
+                                    teamTower.npcInfo.npcType = NpcType.tower;
+
+                                    teamTower.name = "Tower_" + teamTower.npcInfo.teamNumber + "_" + teamTower.npcInfo.npcNumber;
+                                    teamTower.Init();                                
+                                    
                                 }
                             }
                         }else{
