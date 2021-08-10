@@ -1,35 +1,38 @@
 ﻿
 using UnityEngine;
-
-public class Bullet : MonoBehaviour
+namespace HillDefence
 {
-
-    public Vector3 origin;
-    public int teamNumber;
-    void Start()
+    public class Bullet : MonoBehaviour
     {
-        InvokeRepeating("CheckDistance", 0, 1f / SceneConfig.SOLDIER.ShootMaxDistanceCheckFrameRate);
-    }
 
-    private void CheckDistance()
-    {
-        float originDistance = Vector3.Distance(origin, transform.position);
-        if (originDistance > SceneConfig.SOLDIER.ShootMaxDistance)
+        public Vector3 origin;
+        public int teamNumber;
+        public GameNpc npcInfo = new GameNpc();
+        void Start()
         {
-            Destroy(gameObject);
+            InvokeRepeating("CheckDistance", 0, 1f / SceneConfig.SOLDIER.ShootMaxDistanceCheckFrameRate);
+        }
+
+        private void CheckDistance()
+        {
+            float originDistance = Vector3.Distance(origin, transform.position);
+            if (originDistance > SceneConfig.SOLDIER.ShootMaxDistance)
+            {
+                Destroy(gameObject);
+            }
+        }
+
+        void OnDisable()
+        {
+            CancelInvoke("CheckDistance");
+        }
+        private void OnDestroy()
+        {
+            CancelInvoke("CheckDistance");
         }
     }
 
-    void OnDisable()
-    {
-        CancelInvoke("CheckDistance");
-    }
-    private void OnDestroy()
-    {
-        CancelInvoke("CheckDistance");
-    }
+
+
+
 }
-
-
-
-

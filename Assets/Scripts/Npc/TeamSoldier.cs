@@ -20,6 +20,7 @@ namespace HillDefence
 
         // [HideInInspector]
         public GameObject enemy = null;
+        public GameNpc enemyNpc = null;
         private Animator animator;
         private bool isWalking = false;
         private string animateStatus = "";
@@ -47,9 +48,7 @@ namespace HillDefence
                 //shoot carence
                 if (shootTime > SceneConfig.SOLDIER.shootCarence)
                 {
-                    // print("shootTime > shootCarence " + shootTime + " > " + shootCarence);
                     shootTime = 0;
-                    //shoot
                     //add shootTargetHeight to the position of the shootInitPosition
                     Vector3 shootTargetPosition = enemy.transform.position;
                     shootTargetPosition.y += SceneConfig.SOLDIER.shootTargetHeight;
@@ -58,8 +57,10 @@ namespace HillDefence
                     GameObject shootSend = Instantiate(team.bulletPrefab, shootPos, Quaternion.identity);
                     //move bullet to enemy
                     shootSend.GetComponent<Rigidbody>().velocity = dir * SceneConfig.SOLDIER.shootSpeed;
-                    shootSend.GetComponent<Bullet>().origin = shootPos;
-                    shootSend.GetComponent<Bullet>().teamNumber = team.teamNumber;
+                    Bullet bullet = shootSend.GetComponent<Bullet>();
+                    bullet.origin = shootPos;
+                    bullet.teamNumber = team.teamNumber;
+                    bullet.npcInfo = npcInfo;
                     shootSend.name = "bullet" + team.teamNumber;
                     shootSend.gameObject.tag = "bullet";
                     //  print("velocity" +shootSend.GetComponent<Rigidbody>().velocity);
@@ -94,6 +95,21 @@ namespace HillDefence
                     //remove soldier collider
                     Destroy(this.GetComponent<BoxCollider>());
                 }
+                else
+                {
+                    //atack to the shotting bullet enemy
+                    NpcInfo npcEnemy = collision.gameObject.GetComponent<NpcInfo>();
+                    if (npcEnemy != null)
+                    {
+                        if (npcEnemy.npcInfo.teamNumber != team.teamNumber)
+                        {
+                            print(this.name + " Enemy of " +npcEnemy.npcInfo.npcType+ " " + npcEnemy.npcInfo.teamNumber + " " +npcEnemy.npcInfo .npcNumber);
+                            enemy = npcToGameObject(npcEnemy.npcInfo);
+                            enemyNpc = npcEnemy.npcInfo;
+                        }
+                    }
+                }
+
                 Destroy(collision.gameObject);
                 npcInfo.shootCount++;
 
@@ -129,14 +145,16 @@ namespace HillDefence
             //if not enemy or enemy is a enemy flag find near enemy
             if (enemy == null || enemy == team.enemyTeam.teamFlag.gameObject)
             {
-                GameNpc npcEnemy = AIController.instance.getNearNpc(transform.position, team.teamNumber, SceneConfig.FindRange,  NpcType.Any);
+                GameNpc npcEnemy = AIController.instance.getNearNpc(transform.position, team.teamNumber, SceneConfig.FindRange, NpcType.Any);
                 if (npcEnemy != null)
                 {
                     // print(this.name + " Enemy of " +npcEnemy.npcType+ " " + npcEnemy.teamNumber + " " +npcEnemy.npcNumber + " " + npcEnemy.npcType);
+                    enemyNpc = npcEnemy;
                     enemy = npcToGameObject(npcEnemy);
                 }
                 else
                 {
+                    enemyNpc = team.enemyTeam.teamFlag.npcInfo;
                     enemy = team.enemyTeam.teamFlag.gameObject;
                 }
             }

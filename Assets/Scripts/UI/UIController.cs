@@ -1,6 +1,5 @@
 using TMPro;
 using UnityEngine;
-using System.Collections.Generic;
 
 namespace HillDefence
 {
@@ -109,7 +108,7 @@ namespace HillDefence
             // Clear healthbars
             for (int i = 0; i < healthLayoutHolder.childCount; i++)
             {
-                GameObject.Destroy(healthLayoutHolder.GetChild(i).gameObject);
+                Destroy(healthLayoutHolder.GetChild(i).gameObject);
             }
 
             // print ("CreateHealthbars"+HillDefenceCreator.soldiers.Count);
