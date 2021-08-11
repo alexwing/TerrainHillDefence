@@ -87,6 +87,7 @@ namespace HillDefence
                     animator.SetBool("is_ataka", false);
                     animator.SetBool("is_hi", false);
                     animator.SetBool("is_death", true);
+                   // animator.SetBool("is_deathEnd", false);
                     team.soldiers.Remove(gameObject.GetComponent<TeamSoldier>());
                    // animator.Play("Standing_React_Death_Backward");
                     animateStatus = "death";
@@ -117,33 +118,14 @@ namespace HillDefence
         }
         public void death()
         {
-           // print("death");
+            animator.speed = 0;
             //remove from HillDefenceCreator.soldiers
             HillDefenceCreator.soldiers.Remove(gameObject.GetComponent<TeamSoldier>());
-
-            animator.SetBool("is_run", false);
-            animator.SetBool("is_ataka", false);
-            animator.SetBool("is_hi", false);
-            animator.SetBool("is_death", true);
-            animator.SetBool("is_deathEnd", true);
-         //   animator.Play("DeathEnd");
-            //animator.enabled = false;
             //remove from team.soldiers
             team.soldiers.Remove(gameObject.GetComponent<TeamSoldier>());
             this.name = "death_" + this.name;
-            //Rigidbody rb =  gameObject.AddComponent<Rigidbody>();
-            // rb.mass = 5000000;
-            //   rb.freezeRotation = false;
-         //   gameObject.transform.position = new Vector3(gameObject.transform.position.x, gameObject.transform.position.y - 1.8f, gameObject.transform.position.z);  
-         //   Destroy(gameObject.GetComponent<TeamSoldier>());
-            
-
         }
 
-        public void Step()
-        {
-            //step
-        }
         public void setTeam(Team currentTeam)
         {
             team = currentTeam;
