@@ -117,7 +117,7 @@ namespace HillDefence
                                     }
                                     catch (System.Exception e)
                                     {
-                                           print(e.Message);
+                                        //   print(e.Message);
                                     }
 
                                 }

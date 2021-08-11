@@ -59,9 +59,8 @@ namespace HillDefence
                     shootSend.GetComponent<Rigidbody>().velocity = dir * SceneConfig.SOLDIER.shootSpeed;
                     Bullet bullet = shootSend.GetComponent<Bullet>();
                     bullet.origin = shootPos;
-                    bullet.teamNumber = team.teamNumber;
                     bullet.npcInfo = npcInfo;
-                    shootSend.name = "bullet" + team.teamNumber;
+                    shootSend.name = "bullet_" + npcInfo.teamNumber;
                     shootSend.gameObject.tag = "bullet";
                     //  print("velocity" +shootSend.GetComponent<Rigidbody>().velocity);
                     animator.SetBool("is_run", false);
@@ -73,15 +72,15 @@ namespace HillDefence
             }
         }
 
-
         void OnTriggerEnter(Collider collision)
         {
             if (!collision.gameObject)
             {
                 return;
             }
-            if (collision.gameObject.tag == "bullet" && "bullet" + team.teamNumber != collision.gameObject.name)
+            if (collision.gameObject.tag == "bullet" && "bullet_" + team.teamNumber != collision.gameObject.name)
             {
+                //print("bullet_" + team.teamNumber);
                 if (npcInfo.shootCount >= SceneConfig.SOLDIER.SoldierLife)
                 {
                     animator.SetBool("is_run", false);
@@ -89,11 +88,12 @@ namespace HillDefence
                     animator.SetBool("is_hi", false);
                     animator.SetBool("is_death", true);
                     team.soldiers.Remove(gameObject.GetComponent<TeamSoldier>());
-                    animator.Play("Standing_React_Death_Backward");
+                   // animator.Play("Standing_React_Death_Backward");
                     animateStatus = "death";
                     npcInfo.isDead = true;
                     //remove soldier collider
                     Destroy(this.GetComponent<BoxCollider>());
+
                 }
                 else
                 {
@@ -110,19 +110,36 @@ namespace HillDefence
                     }
                 }
 
-                Destroy(collision.gameObject);
                 npcInfo.shootCount++;
+                Destroy(collision.gameObject);
 
             }
         }
         public void death()
         {
+           // print("death");
             //remove from HillDefenceCreator.soldiers
-            team.soldiers.Remove(gameObject.GetComponent<TeamSoldier>());
+            HillDefenceCreator.soldiers.Remove(gameObject.GetComponent<TeamSoldier>());
+
+            animator.SetBool("is_run", false);
+            animator.SetBool("is_ataka", false);
+            animator.SetBool("is_hi", false);
+            animator.SetBool("is_death", true);
+            animator.SetBool("is_deathEnd", true);
+         //   animator.Play("DeathEnd");
+            //animator.enabled = false;
             //remove from team.soldiers
             team.soldiers.Remove(gameObject.GetComponent<TeamSoldier>());
-            Destroy(gameObject);
+            this.name = "death_" + this.name;
+            //Rigidbody rb =  gameObject.AddComponent<Rigidbody>();
+            // rb.mass = 5000000;
+            //   rb.freezeRotation = false;
+         //   gameObject.transform.position = new Vector3(gameObject.transform.position.x, gameObject.transform.position.y - 1.8f, gameObject.transform.position.z);  
+         //   Destroy(gameObject.GetComponent<TeamSoldier>());
+            
+
         }
+
         public void Step()
         {
             //step
@@ -130,7 +147,7 @@ namespace HillDefence
         public void setTeam(Team currentTeam)
         {
             team = currentTeam;
-            animator.Play("standing_idle_looking_ver_1", -1, Random.Range(0.0f, 1.0f));
+            animator.Play("Idle", -1, Random.Range(0.0f, 1.0f));
             animateStatus = "idle";
             enemy = team.enemyTeam.teamFlag.gameObject;
         }
@@ -143,7 +160,7 @@ namespace HillDefence
                 AIController.instance.UpdateEnemyTeam(team);
             }
             //if not enemy or enemy is a enemy flag find near enemy
-            if (enemy == null || enemy == team.enemyTeam.teamFlag.gameObject)
+            if (enemy == null || enemy == team.enemyTeam.teamFlag.gameObject || enemyNpc.isDead)
             {
                 GameNpc npcEnemy = AIController.instance.getNearNpc(transform.position, team.teamNumber, SceneConfig.FindRange, NpcType.Any);
                 if (npcEnemy != null)
@@ -158,6 +175,7 @@ namespace HillDefence
                     enemy = team.enemyTeam.teamFlag.gameObject;
                 }
             }
+            
         }
         private void UpdateSoldier()
         {

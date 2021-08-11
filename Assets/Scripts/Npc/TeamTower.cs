@@ -47,9 +47,10 @@ namespace HillDefence
                     GameObject shootSend = Instantiate(team.bulletPrefab, shootPos, Quaternion.identity);
                     //move bullet to enemy
                     shootSend.GetComponent<Rigidbody>().velocity = dir * SceneConfig.TOWER.shootSpeed;
-                    shootSend.GetComponent<Bullet>().origin = shootPos;
-                    shootSend.GetComponent<Bullet>().teamNumber = team.teamNumber;
-                    shootSend.name = "bullet" + team.teamNumber;
+                    Bullet bullet = shootSend.GetComponent<Bullet>();
+                    bullet.origin = shootPos;
+                    bullet.npcInfo = npcInfo;
+                    shootSend.name = "bullet_" + npcInfo.teamNumber;
                     shootSend.gameObject.tag = "bullet";
                     Utils.PlaySound(shootClip, transform, Camera.main.transform, SceneConfig.TOWER.ShootMaxDistance);
                 }
@@ -65,7 +66,7 @@ namespace HillDefence
             {
                 return;
             }
-            if (collision.gameObject.tag == "bullet" && "bullet" + team.teamNumber != collision.gameObject.name)
+            if (collision.gameObject.tag == "bullet" && "bullet_" + team.teamNumber != collision.gameObject.name)
             {
 
                 if (npcInfo.shootCount >= SceneConfig.TOWER.TowerLife)

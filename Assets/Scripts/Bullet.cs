@@ -6,7 +6,6 @@ namespace HillDefence
     {
 
         public Vector3 origin;
-        public int teamNumber;
         public GameNpc npcInfo = new GameNpc();
         void Start()
         {
