@@ -75,7 +75,7 @@ namespace HillDefence
 
         }
 
-        //get the Color position near a given position
+
         public GameNpc getNearNpc(Vector3 pos, int teamNumber, int findRange = -1, NpcType npcTypeToFind = NpcType.Any)
         {
             if (findRange == -1)
@@ -84,57 +84,41 @@ namespace HillDefence
             }
 
             Vector2 pos2D = posToMap(pos.x, pos.z);
-            int x = (int)pos2D.x;
-            int y = (int)pos2D.y;
             int count = 0;
-
-
             GameNpc[] nearNpcs = new GameNpc[SceneConfig.NpcFindCount];
 
             for (int i = -findRange; i <= findRange; i++)
             {
                 for (int j = -findRange; j <= findRange; j++)
                 {
-                    //is x + i, y + j is a valid array position
-                    if (x + i >= 0 && x + i < width && y + j >= 0 && y + j < height)
+                    //is findX, findY is a valid array position
+                    int findX = (int)pos2D.x + i;
+                    int findY = (int)pos2D.y + j;
+                    if (findX >= 0 && findX < width && findY >= 0 && findY < height)
                     {
-
-                        if (AIMap[x + i, y + j] != null)
+                        if (AIMap[findX, findY] != null)
                         {
-                            if (AIMap[x + i, y + j].npcType == npcTypeToFind || npcTypeToFind == NpcType.Any)
+                            if (AIMap[findX, findY].npcType == npcTypeToFind || npcTypeToFind == NpcType.Any)
                             {
-                                if ((int)AIMap[x + i, y + j].teamNumber != teamNumber)
+                                if (AIMap[findX, findY].teamNumber != teamNumber)
                                 {
-                                    try
+                                    if (count < SceneConfig.NpcFindCount)
                                     {
-                                        // print(AIMap[x + i, y + j].teamNumber + " != " + teamNumber);
-                                        nearNpcs[count] = AIMap[x + i, y + j];
-                                        count++;
-                                        if (SceneConfig.NpcFindCount == count)
-                                        {
-                                            break;
-                                        }
+                                        nearNpcs[count] = AIMap[findX, findY];
                                     }
-                                    catch (System.Exception e)
+                                    else
                                     {
-                                        //   print(e.Message);
+                                        return nearNpcs[Random.Range(0, count)];
                                     }
-
+                                    count++;
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            if (count > 0)
-            {
-                return nearNpcs[Random.Range(0, count)];
             }
-            else
-            {
-                return null;
-            }
+            return null;
         }
 
         // asign a new enemy team to team, not asign is enemy team flag is eliminated

@@ -63,10 +63,7 @@ namespace HillDefence
                     shootSend.name = "bullet_" + npcInfo.teamNumber;
                     shootSend.gameObject.tag = "bullet";
                     //  print("velocity" +shootSend.GetComponent<Rigidbody>().velocity);
-                    animator.SetBool("is_run", false);
-                    animator.SetBool("is_ataka", true);
-                    animator.SetBool("is_hi", false);
-                    animator.SetBool("is_death", false);
+
                     Utils.PlaySound(shootClip, transform, Camera.main.transform, SceneConfig.SOLDIER.ShootMaxDistance);
                 }
             }
@@ -126,6 +123,11 @@ namespace HillDefence
             this.name = "death_" + this.name;
         }
 
+        public void ShootEvent()
+        {
+            //step
+            Shoot();
+        }
         public void setTeam(Team currentTeam)
         {
             team = currentTeam;
@@ -175,17 +177,20 @@ namespace HillDefence
                 {
                     //Lerp to enemy flag ajust to frame rate
                     transform.position = Vector3.Lerp(transform.position, enemy.transform.position, Time.deltaTime * SceneConfig.SOLDIER.SoldierVelocity * (1f / SceneConfig.SOLDIER.SoldierFrameRate));
-                    float y = Terrain.activeTerrain.SampleHeight(transform.position);
-                    transform.position = new Vector3(transform.position.x, y, transform.position.z);
-                    transform.rotation = Quaternion.LookRotation(enemy.transform.position - transform.position);
                     isWalking = true;
                 }
                 else
                 {
-                    Shoot();
+                    // Shoot();
+                    animator.SetBool("is_run", false);
+                    animator.SetBool("is_ataka", true);
+                    animator.SetBool("is_hi", false);
+                    animator.SetBool("is_death", false);
                     isWalking = false;
                 }
-
+                float y = Terrain.activeTerrain.SampleHeight(transform.position);
+                transform.position = new Vector3(transform.position.x, y, transform.position.z);
+                transform.rotation = Quaternion.LookRotation(enemy.transform.position - transform.position);
             }
 
             if (isWalking)
