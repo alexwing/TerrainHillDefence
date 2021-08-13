@@ -14,6 +14,8 @@ namespace HillDefence
 
         public Transform healthLayoutHolder;
         public GameObject healthLayout;
+        public GameObject map; 
+
 
 
         void Awake()
@@ -27,14 +29,19 @@ namespace HillDefence
                 Destroy(gameObject);
 
             }
+            map.SetActive(false);
         }
 
         private void Update()
         {
             //double click
+            if (Input.GetKeyUp(KeyCode.M))
+            {
+                map.SetActive(!map.activeSelf);
+            }
 
-            //raycast mouse cursor to objetct pointer in terrain
-            if (Input.GetMouseButton(0) && anchorToTerrain)
+                //raycast mouse cursor to objetct pointer in terrain
+                if (Input.GetMouseButton(0) && anchorToTerrain)
             {
                 RaycastHit hit;
 

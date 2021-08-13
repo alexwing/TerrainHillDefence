@@ -5,10 +5,10 @@ public static class SceneConfig
 {
     public static bool Debug = false;
 
-    public static int FindSizeMap = 100;
-    public static int FindRange = 10;
-    public static int NpcFindCount = 5;
-
+    public readonly static int FindSizeMap = 256;
+    public readonly static int FindRange = 10;
+    public readonly static int NpcFindCount = 5;
+    public readonly static float AICheckFrameRate = 25f;
     public static class FLAG
     {
         public static int FlagShootsToWin = 20;

@@ -11,7 +11,8 @@ namespace HillDefence
 
         public GameNpc[,] AIMap;
 
-        public Texture2D AIBitmap;
+        public RenderTexture AIMapTexture;
+        private Texture2D AIBitmap;
 
         public float realWidth;
         public float realHeight;
@@ -32,7 +33,7 @@ namespace HillDefence
             AIMap = new GameNpc[width, height];
             AIBitmap = new Texture2D(width, height);
 
-            InvokeRepeating("refreshAIMap", 5f, 2f);
+            InvokeRepeating("refreshAIMap", 2f, 1f/ SceneConfig.AICheckFrameRate);
         }
 
         //paint a color in array position
@@ -44,16 +45,18 @@ namespace HillDefence
         public void refreshAIMap()
         {
             AIMap = new GameNpc[width, height];
+            AIBitmap = new Texture2D(width, height);
+          
             foreach (TeamSoldier soldier in HillDefenceCreator.soldiers)
             {
                 if (!soldier.npcInfo.isDead && soldier != null)
                 {
                     Vector2 pos = posToMap(soldier.transform.position.x, soldier.transform.position.z);
-                    if (pos.x >= 0 && pos.x < width && pos.y >= 0 && pos.y < height)
+                    if (pos.x >= 0 && pos.x < width && pos.y >= 0 && pos.y < height )
                     {
                         AIMap[(int)pos.x, (int)pos.y] = soldier.npcInfo;
                         //to paint texture2d AIBitmap
-                        // AIBitmap.SetPixel((int)pos.x, (int)pos.y, new Color(soldier.npcInfo.teamColor.r, soldier.npcInfo.teamColor.g, soldier.npcInfo.teamColor.b, soldier.npcInfo.teamColor.a));
+                         AIBitmap.SetPixel((int)pos.x, (int)pos.y, soldier.npcInfo.teamColor);
                         //  print("paint x: " + (int)pos.x + " y: " + (int)pos.y + "color " + soldier.npcInfo.teamColor.r + " " + soldier.npcInfo.teamColor.g + " " + soldier.npcInfo.teamColor.b);
                     }
                 }
@@ -67,12 +70,27 @@ namespace HillDefence
                     {
                         AIMap[(int)pos.x, (int)pos.y] = tower.npcInfo;
                         //to paint texture2d AIBitmap
-                        // AIBitmap.SetPixel((int)pos.x, (int)pos.y, new Color(tower.npcInfo.teamColor.r, tower.npcInfo.teamColor.g, tower.npcInfo.teamColor.b, tower.npcInfo.teamColor.a));
+                        AIBitmap.SetPixel((int)pos.x, (int)pos.y, tower.npcInfo.teamColor);
                         //  print("paint x: " + (int)pos.x + " y: " + (int)pos.y + "color " + tower.npcInfo.teamColor.r + " " + tower.npcInfo.teamColor.g + " " + tower.npcInfo.teamColor.b);
                     }
                 }
             }
-
+            foreach (Team team in HillDefenceCreator.teams)
+            {
+                if (!team.teamFlag.npcInfo.isDead && team.teamFlag != null)
+                {
+                    Vector2 pos = posToMap(team.teamFlag.transform.position.x, team.teamFlag.transform.position.z);
+                    if (pos.x >= 0 && pos.x < width && pos.y >= 0 && pos.y < height )
+                    {
+                        AIMap[(int)pos.x, (int)pos.y] = team.teamFlag.npcInfo;
+                        //to paint texture2d AIBitmap
+                        AIBitmap.SetPixel((int)pos.x, (int)pos.y, team.teamFlag.npcInfo.teamColor);
+                        //  print("paint x: " + (int)pos.x + " y: " + (int)pos.y + "color " + tower.npcInfo.teamColor.r + " " + tower.npcInfo.teamColor.g + " " + tower.npcInfo.teamColor.b);
+                    }
+                }
+            }
+            AIBitmap.Apply();
+            Graphics.Blit(AIBitmap, AIMapTexture);
         }
 
 

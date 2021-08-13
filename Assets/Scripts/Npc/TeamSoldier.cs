@@ -193,6 +193,7 @@ namespace HillDefence
                 transform.rotation = Quaternion.LookRotation(enemy.transform.position - transform.position);
             }
 
+
             if (isWalking)
             {
                 if (animateStatus != "walking")

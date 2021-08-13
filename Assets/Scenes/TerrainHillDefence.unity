@@ -121,6 +121,12 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!224 &480104080 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 2729608180000937513, guid: cdf3c9339dfd0a44f92e5db13f8dc692,
+    type: 3}
+  m_PrefabInstance: {fileID: 544311611}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &544311611
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -163,6 +169,11 @@ PrefabInstance:
       propertyPath: winText
       value: 
       objectReference: {fileID: 1398536600}
+    - target: {fileID: 2056755335139364350, guid: cdf3c9339dfd0a44f92e5db13f8dc692,
+        type: 3}
+      propertyPath: map
+      value: 
+      objectReference: {fileID: 1291535426}
     - target: {fileID: 2729608180000937513, guid: cdf3c9339dfd0a44f92e5db13f8dc692,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -273,6 +284,11 @@ PrefabInstance:
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 963194227}
+    - target: {fileID: 2729608180000937515, guid: cdf3c9339dfd0a44f92e5db13f8dc692,
+        type: 3}
+      propertyPath: m_PlaneDistance
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2729608180000937516, guid: cdf3c9339dfd0a44f92e5db13f8dc692,
         type: 3}
       propertyPath: m_Name
@@ -476,6 +492,78 @@ MonoBehaviour:
   shiftAdd: 3
   maxShift: 750
   camSens: 0.25
+--- !u!1 &1291535426
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1291535427}
+  - component: {fileID: 1291535429}
+  - component: {fileID: 1291535428}
+  m_Layer: 5
+  m_Name: MiniMap
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1291535427
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1291535426}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0.001447787}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 1712376866}
+  m_Father: {fileID: 480104080}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 300, y: 300}
+  m_Pivot: {x: 1.5, y: 1}
+--- !u!114 &1291535428
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1291535426}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Texture: {fileID: 2800000, guid: 040eab81dfeef6048a70250aaf28dc05, type: 3}
+  m_UVRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+--- !u!222 &1291535429
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1291535426}
+  m_CullTransparentMesh: 0
 --- !u!114 &1398536600 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1398536600, guid: cdf3c9339dfd0a44f92e5db13f8dc692,
@@ -488,6 +576,77 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1712376865
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1712376866}
+  - component: {fileID: 1712376868}
+  - component: {fileID: 1712376867}
+  m_Layer: 5
+  m_Name: Positions
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1712376866
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1712376865}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -0.001447787}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1291535427}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 300.022, y: 149.99773}
+  m_SizeDelta: {x: 300, y: 300}
+  m_Pivot: {x: 1.5, y: 1}
+--- !u!114 &1712376867
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1712376865}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Texture: {fileID: 8400000, guid: b653a3ca0f44e9e4494e3d5d1a62990f, type: 2}
+  m_UVRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+--- !u!222 &1712376868
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1712376865}
+  m_CullTransparentMesh: 0
 --- !u!1 &1908288665447058
 GameObject:
   m_ObjectHideFlags: 0
@@ -671,7 +830,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c00689ca76316904c8b87121a70eb619, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  AIBitmap: {fileID: 0}
+  AIMapTexture: {fileID: 8400000, guid: b653a3ca0f44e9e4494e3d5d1a62990f, type: 2}
   realWidth: 0
   realHeight: 0
   width: 0
