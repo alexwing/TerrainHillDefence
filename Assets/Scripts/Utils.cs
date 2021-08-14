@@ -591,14 +591,11 @@ public class Utils
     {
         Color fillColor = Color.clear;
         Color[] fillPixels = new Color[tex2D.width * tex2D.height];
-
         for (int i = 0; i < fillPixels.Length; i++)
         {
             fillPixels[i] = fillColor;
         }
-
         tex2D.SetPixels(fillPixels);
-        tex2D.Apply();
         return tex2D;
     }
 

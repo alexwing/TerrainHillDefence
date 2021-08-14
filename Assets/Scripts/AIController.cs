@@ -46,7 +46,6 @@ namespace HillDefence
         public void refreshAIMap()
         {
             AIMap = new GameNpc[width, height];
-            AIBitmap = new Texture2D(width, height);
             AIBitmap = Utils.FillAlpha(AIBitmap);
           
             foreach (TeamSoldier soldier in HillDefenceCreator.soldiers)
