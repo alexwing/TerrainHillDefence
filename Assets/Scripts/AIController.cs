@@ -20,6 +20,7 @@ namespace HillDefence
         public int width;
         public int height;
         public static AIController instance;
+        public GameObject playerPoiMap;
 
         void Awake()
         {
@@ -46,7 +47,7 @@ namespace HillDefence
         public void refreshAIMap()
         {
             AIMap = new GameNpc[width, height];
-            AIBitmap = Utils.FillAlpha(AIBitmap);
+            AIBitmap = Utils.FillColorAlpha(AIBitmap);
           
             foreach (TeamSoldier soldier in HillDefenceCreator.soldiers)
             {
@@ -92,6 +93,12 @@ namespace HillDefence
             }
             AIBitmap.Apply();
             Graphics.Blit(AIBitmap, AIMapTexture);
+
+            //update position of playerPoiMap from camera main to aiMap with same position
+            Vector2 pos2 = posToPostionMap(Camera.main.transform.position.x,Camera.main.transform.position.z);
+            playerPoiMap.GetComponent<RectTransform>().localPosition = new Vector3(pos2.x,pos2.y);
+            
+            playerPoiMap.GetComponent<RectTransform>().rotation = new Quaternion(  Camera.main.transform.rotation.x,   Camera.main.transform.rotation.z,0,0);
         }
 
 
@@ -162,6 +169,17 @@ namespace HillDefence
             //  print("x: " + x + " y: " + y + " xMap: " + xMap + " yMap: " + yMap);
             return new Vector2(xMap, yMap);
         }
+
+        public Vector2 posToPostionMap(float x, float y)
+        {
+            float xMapNormalized = Mathf.InverseLerp(0, realWidth, x);
+            float yMapNormalized = Mathf.InverseLerp(0, realHeight, y);
+            int xMap = (int)Mathf.Lerp(0, 100, xMapNormalized);
+            int yMap = (int)Mathf.Lerp(0, 100, yMapNormalized);
+            //  print("x: " + x + " y: " + y + " xMap: " + xMap + " yMap: " + yMap);
+            return new Vector2(xMap-50, yMap-50);
+        }
+
 
         public Vector3 mapToPos(int x, int y)
         {

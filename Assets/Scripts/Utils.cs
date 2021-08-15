@@ -587,15 +587,18 @@ public class Utils
         return false;
     }
 
-    public static Texture2D FillAlpha(Texture2D tex2D)
-    {
-        Color fillColor = Color.clear;
-        Color[] fillPixels = new Color[tex2D.width * tex2D.height];
+    public static Texture2D FillColorAlpha(Texture2D tex2D, Color32? fillColor = null)
+    {   
+        if (fillColor ==null)
+        {
+            fillColor = Color.clear;
+        }
+        Color32[] fillPixels = new Color32[tex2D.width * tex2D.height];
         for (int i = 0; i < fillPixels.Length; i++)
         {
-            fillPixels[i] = fillColor;
+            fillPixels[i] = (Color32) fillColor;
         }
-        tex2D.SetPixels(fillPixels);
+        tex2D.SetPixels32(fillPixels);
         return tex2D;
     }
 
