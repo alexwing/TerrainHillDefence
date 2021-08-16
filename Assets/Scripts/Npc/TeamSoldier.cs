@@ -80,13 +80,15 @@ namespace HillDefence
                 //print("bullet_" + team.teamNumber);
                 if (npcInfo.shootCount >= SceneConfig.SOLDIER.SoldierLife)
                 {
+                    this.name = "death_" + this.name;
                     animator.SetBool("is_run", false);
                     animator.SetBool("is_ataka", false);
                     animator.SetBool("is_hi", false);
                     animator.SetBool("is_death", true);
-                   // animator.SetBool("is_deathEnd", false);
+                    //remove from HillDefenceCreator.soldiers
+                    HillDefenceCreator.soldiers.Remove(gameObject.GetComponent<TeamSoldier>());
+                    //remove from team.soldiers
                     team.soldiers.Remove(gameObject.GetComponent<TeamSoldier>());
-                   // animator.Play("Standing_React_Death_Backward");
                     animateStatus = "death";
                     npcInfo.isDead = true;
                     //remove soldier collider
@@ -116,11 +118,7 @@ namespace HillDefence
         public void death()
         {
             animator.speed = 0;
-            //remove from HillDefenceCreator.soldiers
-            HillDefenceCreator.soldiers.Remove(gameObject.GetComponent<TeamSoldier>());
-            //remove from team.soldiers
-            team.soldiers.Remove(gameObject.GetComponent<TeamSoldier>());
-            this.name = "death_" + this.name;
+         
         }
 
         public void ShootEvent()
@@ -161,6 +159,7 @@ namespace HillDefence
             }
             
         }
+        
         private void UpdateSoldier()
         {
             if (animateStatus == "death")

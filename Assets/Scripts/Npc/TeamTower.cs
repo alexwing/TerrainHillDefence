@@ -17,6 +17,7 @@ namespace HillDefence
 
         // [HideInInspector]
         public GameObject enemy = null;
+        public GameNpc enemyNpc = null;
 
         public void Init()
         {
@@ -32,7 +33,7 @@ namespace HillDefence
         //shoot to enemy with carence 
         public void Shoot()
         {
-            if (enemy != null)
+            if (enemyNpc != null)
             {
                 //shoot carence
                 if (shootTime > SceneConfig.TOWER.shootCarence)
@@ -109,12 +110,12 @@ namespace HillDefence
 
         private void UpdateTower()
         {
-            if (enemy != null)
+            if (enemyNpc != null)
             {
                 Vector3 myPosition = transform.position;
                 float distance = Vector3.Distance(enemy.transform.position, myPosition);
                 //print("distance: " + distance);
-                if (distance < SceneConfig.TOWER.FindEnemyRange )
+                if (distance <= SceneConfig.TOWER.FindEnemyRange )
                 {
                     //rotation lerp only y
                     Quaternion rotation = Quaternion.Lerp(tower.transform.rotation, Quaternion.LookRotation(enemy.transform.position - myPosition), Time.deltaTime * SceneConfig.TOWER.RotationSpeed);

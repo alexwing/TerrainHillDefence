@@ -9,7 +9,7 @@ namespace HillDefence
         public GameNpc npcInfo = new GameNpc();
 
 
-        public GameObject npcToGameObject(GameNpc npc)
+        public static GameObject npcToGameObject(GameNpc npc)
         {
             if (npc == null)
             {
