@@ -200,17 +200,19 @@ namespace HillDefence
         }
 
         // asign a new enemy team to team, not asign is enemy team flag is eliminated
-        public void UpdateEnemyTeam(Team team)
+        public int UpdateEnemyTeam(int teamEnemyNumber)
         {
+            int enemyChanged = -1;
             foreach (Team enemy in HillDefenceCreator.teams)
             {
-                if (enemy.teamFlag != null && enemy.teamNumber != team.teamEnemyNumber)
+                if (enemy.teamFlag != null && enemy.teamNumber != teamEnemyNumber)
                 {
-                    team.enemyTeam = enemy;
+                    enemyChanged = enemy.teamNumber;
                     break;
                 }
             }
             HillDefenceCreator.instance.EvaluateWin();
+            return enemyChanged;
         }
         public Vector2 posToMap(float x, float y)
         {

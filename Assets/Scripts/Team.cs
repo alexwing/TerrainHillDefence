@@ -26,6 +26,7 @@ namespace HillDefence
     {
         public int npcNumber;
         public int teamNumber;
+        public int teamEnemyNumber;
         public Color teamColor;
         public NpcType npcType;
         public bool isDead = false;

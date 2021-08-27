@@ -75,7 +75,6 @@ namespace HillDefence
                                 TeamTower teamTower = newTower.GetComponent<TeamTower>();
                                 if (teamTower != null)
                                 {
-                                    teamTower.setTeam(foundTeamTower);                               
                                     HillDefenceCreator.towers.Add(teamTower);
                                     foundTeamTower.towers.Add(teamTower);
 

@@ -154,7 +154,6 @@ namespace HillDefence
                     GameObject soldier = Instantiate(enemyPrefab, enemyPosition, Quaternion.identity) as GameObject;
 
                     TeamSoldier teamSoldier = soldier.GetComponent<TeamSoldier>();
-                    teamSoldier.setTeam(teams[i]);
                     soldier.name = "Soldier_" + i + "_" + j;
                     teams[i].soldiers.Add(teamSoldier);
                     teams[i].soldiersPosition.Add(enemyPosition);
