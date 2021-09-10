@@ -33,8 +33,10 @@ namespace HillDefence
 
         //create list on team objects
         public static List<Team> teams = new List<Team>();
-        public static List<TeamTower> towers = new List<TeamTower>();
-        public static List<TeamSoldier> soldiers = new List<TeamSoldier>();
+        ///public static List<TeamTower> towers = new List<TeamTower>();
+        //public static List<TeamSoldier> soldiers = new List<TeamSoldier>();
+
+        public static List<NpcInfo> Npcs = new List<NpcInfo>();
 
         [Tooltip("Teams colors.")]
         public Color[] teamsColors;
@@ -97,6 +99,9 @@ namespace HillDefence
                 //distribute the team color in the hills in order
                 team.teamFlag.npcInfo.teamColor = team.teamColor;
                 team.teamFlag.npcInfo.teamNumber = team.teamNumber;
+                team.teamFlag.npcInfo.npcType = NpcType.flag;
+                team.teamFlag.npcInfo.npcObject = instanciateTeamFlag;
+                Npcs.Add(team.teamFlag);
 
                 GetComponent<TargetTerrain>().ModifyTerrain(instanciateTeamFlag, hillSize, 60f, true);
                 // GetComponent<TargetTerrain>().detonationTerrain(instanciateHill, 20f);
@@ -161,14 +166,17 @@ namespace HillDefence
                     teamSoldier.npcInfo.teamNumber = teams[i].teamNumber;
                     teamSoldier.npcInfo.npcNumber = j;
                     teamSoldier.npcInfo.npcType = NpcType.soldier;
-                    soldiers.Add(teamSoldier);
+                    teamSoldier.npcInfo.npcObject = soldier;
+                    //soldiers.Add(teamSoldier);
+                    Npcs.Add(teamSoldier);
+
                     teamSoldier.Init();
 
                 }
             }
 
             //ramdomize the soldiers list
-            soldiers = Shuffle(soldiers);
+           // soldiers = Shuffle(soldiers);
 
         }
 

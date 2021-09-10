@@ -75,7 +75,7 @@ namespace HillDefence
                                 TeamTower teamTower = newTower.GetComponent<TeamTower>();
                                 if (teamTower != null)
                                 {
-                                    HillDefenceCreator.towers.Add(teamTower);
+                                    HillDefenceCreator.Npcs.Add(teamTower);
                                     foundTeamTower.towers.Add(teamTower);
 
                                     teamTower.npcInfo.teamColor = foundTeamTower.teamColor;
@@ -119,10 +119,10 @@ namespace HillDefence
 
             // print ("CreateHealthbars"+HillDefenceCreator.soldiers.Count);
 
-            for (int i = 0; i < HillDefenceCreator.soldiers.Count; i++)
+            /*for (int i = 0; i < HillDefenceCreator.soldiers.Count; i++)
             {
                 CreateHealthbar(HillDefenceCreator.soldiers[i]);
-            }
+            }*/
 
         }
 

@@ -40,10 +40,12 @@ namespace HillDefence
                 if (SceneConfig.FLAG.FlagShootsToWin == flagShootsReceived)
                 {
                     //win a flag 
+                    npcInfo.isDead = true;
                     HillDefence.HillDefenceCreator.teams[collision.gameObject.GetComponent<Bullet>().npcInfo.teamNumber].flagsWinsCount++;
                     Destroy(gameObject);
                     TargetTerrain.instance.ModifyTerrain(gameObject, 1000, 1000,false);
                     TargetTerrain.instance.DetonationTerrain(collision.gameObject, 1000);
+                    HillDefenceCreator.instance.EvaluateWin();
                 }
                 Destroy(collision.gameObject);
 

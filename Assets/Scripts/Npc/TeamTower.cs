@@ -74,7 +74,7 @@ namespace HillDefence
                     // team.soldiers.Remove(gameObject);
                     npcInfo.isDead = true;
                     HillDefenceCreator.teams[npcInfo.teamNumber].towers.Remove(gameObject.GetComponent<TeamTower>());
-                    HillDefenceCreator.towers.Remove(gameObject.GetComponent<TeamTower>());
+                    HillDefenceCreator.Npcs.Remove(gameObject.GetComponent<TeamTower>());
                     Destroy(gameObject);
                     TargetTerrain.instance.ModifyTerrain(collision.gameObject, 15, 15, false);
                     TargetTerrain.instance.DetonationTerrain(collision.gameObject, 15);
@@ -90,7 +90,7 @@ namespace HillDefence
         {
             if (enemy == null)
             {
-                GameNpc npcEnemy = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.FindRange, NpcType.soldier);
+                GameNpc npcEnemy = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.TOWER.FindEnemyRange, NpcType.soldier);
                 if (npcEnemy != null)
                 {
                     // print(this.name + " Enemy of " +npcEnemy.npcType+ " " + npcEnemy.teamNumber + " " +npcEnemy.npcNumber + " " + npcEnemy.npcType);

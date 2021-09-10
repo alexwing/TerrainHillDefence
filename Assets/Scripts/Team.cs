@@ -31,6 +31,8 @@ namespace HillDefence
         public NpcType npcType;
         public bool isDead = false;
         public int shootCount = 0;
+
+        public GameObject npcObject;
     }
 
     public enum NpcType
