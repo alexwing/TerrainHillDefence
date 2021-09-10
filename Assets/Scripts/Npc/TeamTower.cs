@@ -12,20 +12,15 @@ namespace HillDefence
         public SkinnedMeshRenderer towerMaterial;
         private float shootTime = 0;
         public AudioClip shootClip;
-        public AudioClip deathClip;
 
         // [HideInInspector]
-        public GameObject enemy = null;
         public GameNpc enemyNpc = null;
 
         public void Init()
         {
-            if (npcInfo != null)
-            {
-                Utils.ChangeColor(towerMaterial, npcInfo.teamColor);
-                InvokeRepeating("UpdateTower", Random.Range(0, 1f / SceneConfig.TOWER.TowerFrameRate), 1f / SceneConfig.TOWER.TowerFrameRate);
-                InvokeRepeating("findEnemy", Random.Range(0, 1f / SceneConfig.TOWER.FindEnemyRange), 1f / SceneConfig.TOWER.FindEnemyRange);
-            }
+            Utils.ChangeColor(towerMaterial,HillDefenceCreator.teams[npcInfo.teamNumber].teamColor);
+            InvokeRepeating("UpdateTower", Random.Range(0, 1f / SceneConfig.TOWER.TowerFrameRate), 1f / SceneConfig.TOWER.TowerFrameRate);
+            InvokeRepeating("findEnemy", Random.Range(0, 1f / SceneConfig.TOWER.FindEnemyRange), 1f / SceneConfig.TOWER.FindEnemyRange);
 
         }
 
@@ -34,13 +29,18 @@ namespace HillDefence
         {
             if (enemyNpc != null)
             {
+                if (enemyNpc.isDead)
+                {
+                    enemyNpc = null;
+                    return;
+                }
                 //shoot carence
                 if (shootTime > SceneConfig.TOWER.shootCarence)
                 {
                     // print("shootTime > shootCarence " + shootTime + " > " + shootCarence);
                     shootTime = 0;
                     //shoot
-                    Vector3 shootTargetPosition = enemy.transform.position;
+                    Vector3 shootTargetPosition = enemyNpc.npcObject.transform.position;
                     shootTargetPosition.y += SceneConfig.SOLDIER.shootTargetHeight;
                     Vector3 dir = (shootTargetPosition - shootInitPosition.transform.position).normalized;
                     Vector3 shootPos = shootInitPosition.transform.position + dir;
@@ -58,7 +58,6 @@ namespace HillDefence
             shootTime += Time.deltaTime;
 
         }
-
 
         void OnTriggerEnter(Collider collision)
         {
@@ -88,18 +87,9 @@ namespace HillDefence
         //find nearest enemy
         public void findEnemy()
         {
-            if (enemy == null)
+            if (enemyNpc == null)
             {
-                GameNpc npcEnemy = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.TOWER.FindEnemyRange, NpcType.soldier);
-                if (npcEnemy != null)
-                {
-                    // print(this.name + " Enemy of " +npcEnemy.npcType+ " " + npcEnemy.teamNumber + " " +npcEnemy.npcNumber + " " + npcEnemy.npcType);
-                    enemy = npcToGameObject(npcEnemy);
-                }
-                else
-                {
-                    enemy = null;
-                }
+                enemyNpc = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.TOWER.FindEnemyRange, NpcType.Any);
             }
         }
 
@@ -107,14 +97,18 @@ namespace HillDefence
         {
             if (enemyNpc != null)
             {
-                Vector3 myPosition = transform.position;
-                float distance = Vector3.Distance(enemy.transform.position, myPosition);
-                //print("distance: " + distance);
-                if (distance <= SceneConfig.TOWER.FindEnemyRange )
+                if (enemyNpc.isDead)
                 {
-                    //rotation lerp only y
-                    Quaternion rotation = Quaternion.Lerp(tower.transform.rotation, Quaternion.LookRotation(enemy.transform.position - myPosition), Time.deltaTime * SceneConfig.TOWER.RotationSpeed);
-                    tower.transform.rotation = new Quaternion(tower.transform.rotation.x, rotation.y, tower.transform.rotation.z, tower.transform.rotation.w);
+                    enemyNpc = null;
+                    return;
+
+                }
+                //rotation lerp only y
+                Quaternion rotation = Quaternion.Lerp(tower.transform.rotation, Quaternion.LookRotation(enemyNpc.npcObject.transform.position - transform.position), Time.deltaTime * SceneConfig.TOWER.RotationSpeed);
+                tower.transform.rotation = new Quaternion(rotation.x, rotation.y, tower.transform.rotation.z, tower.transform.rotation.w);
+                float distance = Vector3.Distance(enemyNpc.npcObject.transform.position, transform.position);
+                if (distance <= SceneConfig.TOWER.FindEnemyRange)
+                {
                     Shoot();
                 }
             }

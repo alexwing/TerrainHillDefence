@@ -28,13 +28,8 @@ namespace HillDefence
         [Header("Effect")]
         [SerializeField] private GameObject[] _magicArray;
 
-        // list of all hills postions
-        private List<Vector3> hillPositions = new List<Vector3>();
 
-        //create list on team objects
         public static List<Team> teams = new List<Team>();
-        ///public static List<TeamTower> towers = new List<TeamTower>();
-        //public static List<TeamSoldier> soldiers = new List<TeamSoldier>();
 
         public static List<NpcInfo> Npcs = new List<NpcInfo>();
 
@@ -52,7 +47,6 @@ namespace HillDefence
             else if (instance != this)
             {
                 Destroy(gameObject);
-
             }
         }
 
@@ -66,6 +60,8 @@ namespace HillDefence
         }
         void SpawnHills()
         {
+            
+             List<Vector3> hillPositions = new List<Vector3>();
             // Get the terrain
             terrain = GetComponent<Terrain>();
 
@@ -97,17 +93,16 @@ namespace HillDefence
                 instanciateTeamFlag.name = "Flag_" + i;
 
                 //distribute the team color in the hills in order
-                team.teamFlag.npcInfo.teamColor = team.teamColor;
                 team.teamFlag.npcInfo.teamNumber = team.teamNumber;
                 team.teamFlag.npcInfo.npcType = NpcType.flag;
                 team.teamFlag.npcInfo.npcObject = instanciateTeamFlag;
                 Npcs.Add(team.teamFlag);
+                //print teamcolor
+                print(team.teamColor);
+
 
                 GetComponent<TargetTerrain>().ModifyTerrain(instanciateTeamFlag, hillSize, 60f, true);
-                // GetComponent<TargetTerrain>().detonationTerrain(instanciateHill, 20f);
             }
-
-
 
         }
         void SpawnEnemyTeam()
@@ -127,22 +122,15 @@ namespace HillDefence
                         {
                             minimalDistance = distance;
                             teams[i].enemyTeam = teams[j];
-                            // print(i + " " + j + " " + minimalDistance);
                         }
                     }
                 }
             }
-          /*  for (int i = 0; i < teams.Count; i++)
-            {
-                print(teams[i].teamNumber + " is enemy of " + teams[i].enemyTeam.teamNumber);
-            }*/
         }
-
-
-
 
         void SpawnSoldiers()
         {
+             List<Vector3> hillPositions = new List<Vector3>();
             //spawn soldier
             for (int i = 0; i < teams.Count; i++)
             {
@@ -160,23 +148,17 @@ namespace HillDefence
 
                     TeamSoldier teamSoldier = soldier.GetComponent<TeamSoldier>();
                     soldier.name = "Soldier_" + i + "_" + j;
-                    teams[i].soldiers.Add(teamSoldier);
-                    teams[i].soldiersPosition.Add(enemyPosition);
-                    teamSoldier.npcInfo.teamColor = teams[i].teamColor;
+                    teams[i].soldiers.Add(teamSoldier);                
                     teamSoldier.npcInfo.teamNumber = teams[i].teamNumber;
                     teamSoldier.npcInfo.npcNumber = j;
                     teamSoldier.npcInfo.npcType = NpcType.soldier;
                     teamSoldier.npcInfo.npcObject = soldier;
-                    //soldiers.Add(teamSoldier);
                     Npcs.Add(teamSoldier);
 
                     teamSoldier.Init();
 
                 }
             }
-
-            //ramdomize the soldiers list
-           // soldiers = Shuffle(soldiers);
 
         }
 
@@ -213,8 +195,5 @@ namespace HillDefence
                 }
             }
         }
-
-
     }
-
 }

@@ -6,7 +6,6 @@ public static class SceneConfig
     public static bool Debug = false;
 
     public readonly static int FindSizeMap = 180;
-    public readonly static int NpcFindCount = 5;
     public readonly static float MapRefreshRate = 25f;
     public static class FLAG
     {
@@ -15,8 +14,8 @@ public static class SceneConfig
     }
     public static class TOWER
     {
-        public static float RotationSpeed = 14f;
-        public readonly static int FindEnemyRange = 500;
+        public static float RotationSpeed = 25f;
+        public readonly static float FindEnemyRange = 15000;
         public readonly static int ShootMaxDistance = 400;
         public readonly static float TowerFrameRate = 25f;
         public readonly static int TowerLife = 5;

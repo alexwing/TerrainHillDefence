@@ -13,8 +13,6 @@ namespace HillDefence
         private float shootTime = 0;
 
         public AudioClip shootClip;
-        public AudioClip deathClip;
-
         private float AttackDistance = 0f;
 
         // [HideInInspector]
@@ -33,9 +31,10 @@ namespace HillDefence
         {
             animator.Play("Idle", -1, Random.Range(0.0f, 1.0f));
             animateStatus = "idle";
-            Utils.ChangeColor(body.GetComponent<Renderer>(), npcInfo.teamColor);
-            Utils.ChangeColor(head.GetComponent<Renderer>(), npcInfo.teamColor);
-            Utils.ChangeColor(arms.GetComponent<Renderer>(), npcInfo.teamColor);
+            Color color = HillDefenceCreator.teams[npcInfo.teamNumber].teamColor;
+            Utils.ChangeColor(body.GetComponent<Renderer>(), color);
+            Utils.ChangeColor(head.GetComponent<Renderer>(), color);
+            Utils.ChangeColor(arms.GetComponent<Renderer>(), color);
             InvokeRepeating("UpdateSoldier", Random.Range(0, 1f / SceneConfig.SOLDIER.SoldierFrameRate), 1f / SceneConfig.SOLDIER.SoldierFrameRate);
             InvokeRepeating("findEnemy", Random.Range(0, 1f / SceneConfig.SOLDIER.SoldierFindFrameRate), 1f / SceneConfig.SOLDIER.SoldierFindFrameRate);
         }

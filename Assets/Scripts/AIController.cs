@@ -61,7 +61,7 @@ namespace HillDefence
                         {
                             case NpcType.soldier:
                                 //   AIMap[(int)pos.x, (int)pos.y] = npc.npcInfo;
-                                AIBitmap.SetPixel((int)pos.x, (int)pos.y, npc.npcInfo.teamColor);
+                                AIBitmap.SetPixel((int)pos.x, (int)pos.y, HillDefenceCreator.teams[npc.npcInfo.teamNumber].teamColor);
                                 break;
                             case NpcType.tower:
                                 //   AIMap[(int)pos.x, (int)pos.y] = npc.npcInfo;
@@ -69,7 +69,7 @@ namespace HillDefence
                                 {
                                     for (int j = 0; j <= 1; j++)
                                     {
-                                        AIBitmap.SetPixel((int)pos.x + i, (int)pos.y + j, npc.npcInfo.teamColor);
+                                        AIBitmap.SetPixel((int)pos.x + i, (int)pos.y + j, HillDefenceCreator.teams[npc.npcInfo.teamNumber].teamColor);
                                     }
                                 }
                                 break;
@@ -81,7 +81,7 @@ namespace HillDefence
                                     {
                                         if (i != 0 || j != 0)
                                         {
-                                            AIBitmap.SetPixel((int)pos.x + i, (int)pos.y + j, npc.npcInfo.teamColor);
+                                            AIBitmap.SetPixel((int)pos.x + i, (int)pos.y + j,  HillDefenceCreator.teams[npc.npcInfo.teamNumber].teamColor);
                                         }
                                     }
                                 }
@@ -123,51 +123,8 @@ namespace HillDefence
             playerPoiMap.GetComponent<RectTransform>().localPosition = new Vector3(pos2.x, pos2.y);
 
             playerPoiMap.GetComponent<RectTransform>().rotation = new Quaternion(Camera.main.transform.rotation.x, Camera.main.transform.rotation.z, 0, 0);
-            // AsignEnemies();
         }
-        /*
-                public void AsignEnemies()
-                {
-                    //find all soldiers
-                    foreach (TeamSoldier soldier in HillDefenceCreator.soldiers)
-                    {
-                        if (!soldier.npcInfo.isDead && soldier != null && (soldier.enemyNpc == null || soldier.enemyNpc.npcType == NpcType.flag))
-                        {
-                            GameNpc findEnemyNpc = null;
-                            Vector3 pos = posToMap(soldier.transform.position.x, soldier.transform.position.z);
-                            if (soldier.enemyNpc == null || soldier.enemyNpc.npcType == NpcType.flag)
-                            {
-                                findEnemyNpc = getNearNpc(pos, soldier.npcInfo.teamNumber, SceneConfig.SOLDIER.FindEnemyRange);
-                            }
-                            if (findEnemyNpc == null && (soldier.enemyNpc == null || soldier.enemyNpc.isDead))
-                            {
-                                findEnemyNpc = getNearNpc(pos, soldier.npcInfo.teamNumber, width, NpcType.flag);
-                            }
-                            if (findEnemyNpc != null)
-                            {
-                                soldier.enemyNpc = findEnemyNpc;
-                                soldier.enemy = NpcInfo.npcToGameObject(findEnemyNpc);
-                            }
-                        }
-                    }
-                    foreach (TeamTower tower in HillDefenceCreator.towers)
-                    {
-                        if (!tower.npcInfo.isDead && tower != null && tower.enemyNpc == null)
-                        {
-                            Vector3 pos = posToMap(tower.transform.position.x, tower.transform.position.z);
-                            tower.enemyNpc = getNearNpc(pos, tower.npcInfo.teamNumber, SceneConfig.TOWER.FindEnemyRange, NpcType.soldier);
-                            tower.enemy = NpcInfo.npcToGameObject(tower.enemyNpc);
-                        }
-                    }
-
-
-                }
-        */
-        private void EvaluateTarget(GameNpc target)
-        {
-            if (target != null)
-                Console.Write("npc: " + target.npcType + " number: " + target.npcNumber + " team: " + target.teamNumber + " enemy: " + target.teamEnemyNumber);
-        }
+        
         public GameNpc getNearNpc(Vector3 pos, int teamNumber, float findRange = -1, NpcType npcTypeToFind = NpcType.Any)
         {
             GameNpc bestTarget = null;

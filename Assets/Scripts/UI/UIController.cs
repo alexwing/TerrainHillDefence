@@ -50,24 +50,16 @@ namespace HillDefence
                     if (hit.collider.gameObject == anchorToTerrain.gameObject)
                     {
                         //find the near flag tower in the terrain
-                        Team foundTeamTower = null;
-                        foreach (Team team in HillDefenceCreator.teams)
-                        {
-                            if (team.teamFlag)
-                            {
-                                if (Vector3.Distance(hit.point, team.teamFlag.transform.position) < SceneConfig.SOLDIER.FindEnemyRange)
-                                {
-                                    foundTeamTower = team;
-                                }
-                            }
-                        }
+                        GameNpc foundTeamTower = null;
+                        
+                        foundTeamTower = AIController.instance.getNearNpc(hit.point,-1,-1,NpcType.flag);
 
                         cursorPointer.SetActive(true);
                         //  Debug.Log("position x: " + hit.transform.position.x + " position z: " + hit.transform.position.z);
                         cursorPointer.transform.position = hit.point;
                         if (foundTeamTower!=null)
                         {
-                            Utils.ChangeColor(cursorPointer.GetComponent<TeamTower>().towerMaterial,foundTeamTower.teamColor);
+                            Utils.ChangeColor(cursorPointer.GetComponent<TeamTower>().towerMaterial,HillDefenceCreator.teams[foundTeamTower.teamNumber].teamColor);
                             if (Utils.DoubleClick())
                             {
                                 //instanciate a new cursor pointer
@@ -76,12 +68,11 @@ namespace HillDefence
                                 if (teamTower != null)
                                 {
                                     HillDefenceCreator.Npcs.Add(teamTower);
-                                    foundTeamTower.towers.Add(teamTower);
-
-                                    teamTower.npcInfo.teamColor = foundTeamTower.teamColor;
+                                    HillDefenceCreator.teams[foundTeamTower.teamNumber].towers.Add(teamTower);
                                     teamTower.npcInfo.teamNumber = foundTeamTower.teamNumber;
-                                    teamTower.npcInfo.npcNumber = foundTeamTower.towers.Count-1;
+                                    teamTower.npcInfo.npcNumber =  HillDefenceCreator.teams[foundTeamTower.teamNumber].towers.Count-1;
                                     teamTower.npcInfo.npcType = NpcType.tower;
+                                    teamTower.npcInfo.npcObject = teamTower.gameObject;
 
                                     teamTower.name = "Tower_" + teamTower.npcInfo.teamNumber + "_" + teamTower.npcInfo.npcNumber;
                                     teamTower.Init();                                

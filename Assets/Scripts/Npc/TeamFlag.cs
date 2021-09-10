@@ -17,8 +17,8 @@ namespace HillDefence
         {
             // changeFlagColor(teamColor);
 
-            Utils.ChangeColor(flag.GetComponent<Renderer>(), npcInfo.teamColor);
-            Utils.ChangeColor(flag.GetComponent<Renderer>(), Utils.Darken(npcInfo.teamColor, 0.75f), "_EmissionColor");
+            Utils.ChangeColor(flag.GetComponent<Renderer>(), HillDefenceCreator.teams[npcInfo.teamNumber].teamColor);
+            Utils.ChangeColor(flag.GetComponent<Renderer>(), Utils.Darken(HillDefenceCreator.teams[npcInfo.teamNumber].teamColor, 0.75f), "_EmissionColor");
         }
 
         // change the color of the flag

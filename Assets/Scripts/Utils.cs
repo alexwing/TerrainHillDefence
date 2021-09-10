@@ -535,7 +535,7 @@ public class Utils
                         position = auxPosition;
 
                         isInRange = true;
-                        Debug.Log("Can't find a position for the hill with this hills Distance between: " + auxDistance);
+                       // Debug.LogWarning("Can't find a position for the hill with this hills Distance between: " + auxDistance);
                     }
                 }
             }
