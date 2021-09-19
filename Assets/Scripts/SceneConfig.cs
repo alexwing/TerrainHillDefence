@@ -21,6 +21,8 @@ public static class SceneConfig
         public readonly static int TowerLife = 5;
         public readonly static float shootCarence = 0.75f;
         public readonly static float shootSpeed = 100f;
+        public readonly static float shootTargetHeight = 0f;
+        public readonly static float RotationAngleMinToShoot = 10f;
     }
     public static class SOLDIER
     {
@@ -37,6 +39,14 @@ public static class SceneConfig
         public readonly static float shootSpeed = 100f;
         public readonly static float shootTargetHeight = 1.75f;
 
+    }
+
+    public static class TERRAIN
+    {
+        public static int detonationBulletSize = 5;
+        public static int detonationFlagSize = 20;
+        public static int explosionLife = 10;
+        public static int explosionBulletLife = 10;
     }
 
 }

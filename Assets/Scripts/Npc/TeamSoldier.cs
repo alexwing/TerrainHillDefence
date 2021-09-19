@@ -9,14 +9,10 @@ namespace HillDefence
         public GameObject body;
         public GameObject head;
         public GameObject arms;
-        public GameObject shootInitPosition;
-        private float shootTime = 0;
 
-        public AudioClip shootClip;
         private float AttackDistance = 0f;
 
         // [HideInInspector]
-        public GameNpc enemyNpc = null;
         private Animator animator;
         private bool isWalking = false;
         private string animateStatus = "";
@@ -37,40 +33,6 @@ namespace HillDefence
             Utils.ChangeColor(arms.GetComponent<Renderer>(), color);
             InvokeRepeating("UpdateSoldier", Random.Range(0, 1f / SceneConfig.SOLDIER.SoldierFrameRate), 1f / SceneConfig.SOLDIER.SoldierFrameRate);
             InvokeRepeating("findEnemy", Random.Range(0, 1f / SceneConfig.SOLDIER.SoldierFindFrameRate), 1f / SceneConfig.SOLDIER.SoldierFindFrameRate);
-        }
-
-        //shoot to enemy with carence 
-        public void Shoot()
-        {
-            if (enemyNpc != null)
-            {
-                if (enemyNpc.isDead)
-                {
-                    enemyNpc = null;
-                    return;
-                }
-                //shoot carence
-                if (shootTime > SceneConfig.SOLDIER.shootCarence)
-                {
-                    shootTime = 0;
-                    //add shootTargetHeight to the position of the shootInitPosition
-                    Vector3 shootTargetPosition = enemyNpc.npcObject.transform.position;
-                    shootTargetPosition.y += SceneConfig.SOLDIER.shootTargetHeight;
-                    Vector3 dir = (shootTargetPosition - shootInitPosition.transform.position).normalized;
-                    Vector3 shootPos = shootInitPosition.transform.position + dir;
-                    GameObject shootSend = Instantiate(HillDefenceCreator.teams[npcInfo.teamNumber].bulletPrefab, shootPos, Quaternion.identity);
-                    //move bullet to enemy
-                    shootSend.GetComponent<Rigidbody>().velocity = dir * SceneConfig.SOLDIER.shootSpeed;
-                    Bullet bullet = shootSend.GetComponent<Bullet>();
-                    bullet.origin = shootPos;
-                    bullet.npcInfo = npcInfo;
-                    shootSend.name = "bullet_" + npcInfo.teamNumber;
-                    shootSend.gameObject.tag = "bullet";
-                    //  print("velocity" +shootSend.GetComponent<Rigidbody>().velocity);
-
-                    Utils.PlaySound(shootClip, transform, Camera.main.transform, SceneConfig.SOLDIER.ShootMaxDistance);
-                }
-            }
         }
 
         void OnTriggerEnter(Collider collision)
@@ -122,16 +84,12 @@ namespace HillDefence
         public void death()
         {
             animator.speed = 0;
-
-        }
+         }
 
         public void ShootEvent()
         {
-            //step
-            Shoot();
+             Shoot(SceneConfig.SOLDIER.shootCarence, SceneConfig.SOLDIER.shootSpeed,SceneConfig.SOLDIER.ShootMaxDistance,SceneConfig.SOLDIER.shootTargetHeight);
         }
-
-
 
         //find nearest enemy
         public void findEnemy()
@@ -187,7 +145,7 @@ namespace HillDefence
                 {
                     enemyNpc = null;
                     return;
-                } 
+                }
                 Vector3 myPosition = transform.position;
                 float distance = Vector3.Distance(enemyNpc.npcObject.transform.position, myPosition);
                 //print("distance: " + distance);

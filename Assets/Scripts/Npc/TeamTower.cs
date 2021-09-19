@@ -7,56 +7,14 @@ namespace HillDefence
     public class TeamTower : NpcInfo
     {
         public GameObject tower;
-        public GameObject shootInitPosition;
         // material to change color of the tower gun
         public SkinnedMeshRenderer towerMaterial;
-        private float shootTime = 0;
-        public AudioClip shootClip;
-
-        // [HideInInspector]
-        public GameNpc enemyNpc = null;
 
         public void Init()
         {
-            Utils.ChangeColor(towerMaterial,HillDefenceCreator.teams[npcInfo.teamNumber].teamColor);
+            Utils.ChangeColor(towerMaterial, HillDefenceCreator.teams[npcInfo.teamNumber].teamColor);
             InvokeRepeating("UpdateTower", Random.Range(0, 1f / SceneConfig.TOWER.TowerFrameRate), 1f / SceneConfig.TOWER.TowerFrameRate);
             InvokeRepeating("findEnemy", Random.Range(0, 1f / SceneConfig.TOWER.FindEnemyRange), 1f / SceneConfig.TOWER.FindEnemyRange);
-
-        }
-
-        //shoot to enemy with carence 
-        public void Shoot()
-        {
-            if (enemyNpc != null)
-            {
-                if (enemyNpc.isDead)
-                {
-                    enemyNpc = null;
-                    return;
-                }
-                //shoot carence
-                if (shootTime > SceneConfig.TOWER.shootCarence)
-                {
-                    // print("shootTime > shootCarence " + shootTime + " > " + shootCarence);
-                    shootTime = 0;
-                    //shoot
-                    Vector3 shootTargetPosition = enemyNpc.npcObject.transform.position;
-                    shootTargetPosition.y += SceneConfig.SOLDIER.shootTargetHeight;
-                    Vector3 dir = (shootTargetPosition - shootInitPosition.transform.position).normalized;
-                    Vector3 shootPos = shootInitPosition.transform.position + dir;
-                    GameObject shootSend = Instantiate(HillDefenceCreator.teams[npcInfo.teamNumber].bulletPrefab, shootPos, Quaternion.identity);
-                    //move bullet to enemy
-                    shootSend.GetComponent<Rigidbody>().velocity = dir * SceneConfig.TOWER.shootSpeed;
-                    Bullet bullet = shootSend.GetComponent<Bullet>();
-                    bullet.origin = shootPos;
-                    bullet.npcInfo = npcInfo;
-                    shootSend.name = "bullet_" + npcInfo.teamNumber;
-                    shootSend.gameObject.tag = "bullet";
-                    Utils.PlaySound(shootClip, transform, Camera.main.transform, SceneConfig.TOWER.ShootMaxDistance);
-                }
-            }
-            shootTime += Time.deltaTime;
-
         }
 
         void OnTriggerEnter(Collider collision)
@@ -70,7 +28,6 @@ namespace HillDefence
 
                 if (npcInfo.shootCount >= SceneConfig.TOWER.TowerLife)
                 {
-                    // team.soldiers.Remove(gameObject);
                     npcInfo.isDead = true;
                     HillDefenceCreator.teams[npcInfo.teamNumber].towers.Remove(gameObject.GetComponent<TeamTower>());
                     HillDefenceCreator.Npcs.Remove(gameObject.GetComponent<TeamTower>());
@@ -95,6 +52,7 @@ namespace HillDefence
 
         private void UpdateTower()
         {
+            shootTime += Time.deltaTime;
             if (enemyNpc != null)
             {
                 if (enemyNpc.isDead)
@@ -109,8 +67,15 @@ namespace HillDefence
                 float distance = Vector3.Distance(enemyNpc.npcObject.transform.position, transform.position);
                 if (distance <= SceneConfig.TOWER.FindEnemyRange)
                 {
-                    Shoot();
+                    //check rotation is near to enemy
+                    if (Vector3.Angle(enemyNpc.npcObject.transform.position - transform.position, transform.forward) < SceneConfig.TOWER.RotationAngleMinToShoot)
+                    {
+                        Shoot(SceneConfig.TOWER.shootCarence, SceneConfig.TOWER.shootSpeed, SceneConfig.TOWER.ShootMaxDistance, SceneConfig.TOWER.shootTargetHeight);
+                    }else{
+                        Debug.Log("Tower is not near to enemy");
+                    }
                 }
+
             }
         }
     }
