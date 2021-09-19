@@ -14,7 +14,9 @@ namespace HillDefence
 
         public Transform healthLayoutHolder;
         public GameObject healthLayout;
-        public GameObject map; 
+        public GameObject map;
+
+        public bool isMapVisible = false;
 
 
 
@@ -34,14 +36,16 @@ namespace HillDefence
 
         private void Update()
         {
-            //double click
+            //show/hide map
             if (Input.GetKeyUp(KeyCode.M))
             {
-                map.SetActive(!map.activeSelf);
+                isMapVisible = !isMapVisible;
+                map.SetActive(isMapVisible);
+                MapController.instance.UIMapSetActive(isMapVisible);
             }
 
-                //raycast mouse cursor to objetct pointer in terrain
-                if (Input.GetMouseButton(0) && anchorToTerrain)
+            //raycast mouse cursor to objetct pointer in terrain
+            if (Input.GetMouseButton(0) && anchorToTerrain)
             {
                 RaycastHit hit;
 
@@ -51,15 +55,15 @@ namespace HillDefence
                     {
                         //find the near flag tower in the terrain
                         GameNpc foundTeamTower = null;
-                        
-                        foundTeamTower = AIController.instance.getNearNpc(hit.point,-1,-1,NpcType.flag);
+
+                        foundTeamTower = AIController.instance.getNearNpc(hit.point, -1, -1, NpcType.flag);
 
                         cursorPointer.SetActive(true);
                         //  Debug.Log("position x: " + hit.transform.position.x + " position z: " + hit.transform.position.z);
                         cursorPointer.transform.position = hit.point;
-                        if (foundTeamTower!=null)
+                        if (foundTeamTower != null)
                         {
-                            Utils.ChangeColor(cursorPointer.GetComponent<TeamTower>().towerMaterial,HillDefenceCreator.teams[foundTeamTower.teamNumber].teamColor);
+                            Utils.ChangeColor(cursorPointer.GetComponent<TeamTower>().towerMaterial, HillDefenceCreator.teams[foundTeamTower.teamNumber].teamColor);
                             if (Utils.DoubleClick())
                             {
                                 //instanciate a new cursor pointer
@@ -70,17 +74,19 @@ namespace HillDefence
                                     HillDefenceCreator.Npcs.Add(teamTower);
                                     HillDefenceCreator.teams[foundTeamTower.teamNumber].towers.Add(teamTower);
                                     teamTower.npcInfo.teamNumber = foundTeamTower.teamNumber;
-                                    teamTower.npcInfo.npcNumber =  HillDefenceCreator.teams[foundTeamTower.teamNumber].towers.Count-1;
+                                    teamTower.npcInfo.npcNumber = HillDefenceCreator.teams[foundTeamTower.teamNumber].towers.Count - 1;
                                     teamTower.npcInfo.npcType = NpcType.tower;
                                     teamTower.npcInfo.npcObject = teamTower.gameObject;
 
                                     teamTower.name = "Tower_" + teamTower.npcInfo.teamNumber + "_" + teamTower.npcInfo.npcNumber;
-                                    teamTower.Init();                                
-                                    
+                                    teamTower.Init();
+
                                 }
                             }
-                        }else{
-                             Utils.ChangeColor(cursorPointer.GetComponent<TeamTower>().towerMaterial, Color.black);
+                        }
+                        else
+                        {
+                            Utils.ChangeColor(cursorPointer.GetComponent<TeamTower>().towerMaterial, Color.black);
                         }
                     }
                 }
