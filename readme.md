@@ -10,7 +10,6 @@ Unity 2019.4.1f1
 
 ## Controls
 
-
 - WASD : basic movement
 - SHIFT : Makes camera accelerate
 - Mouse : Mouse look
@@ -18,6 +17,7 @@ Unity 2019.4.1f1
 - mouse click right: set lock/unlock movement 
 - mouse click left: Show the tower to place it on the terrain (The tower is painted in the color of the team of the nearest tower, if it is far from the tower it will be painted black and cannot be instantiated.)
 - mouse double click left: Placing the tower on the terrain.
+- M : Show/hide minimap.
   
 ## Implemented
 
@@ -37,6 +37,10 @@ Unity 2019.4.1f1
 
 * Improve the soldiers AI, take into account the soldiers of other teams.
 
+* add minimap on keypress M
+  
+* Improve the initial and find enemy performance 
+
 ## TO DO
 
 * Improve the movement of soldiers to avoid colliding with turrets.
@@ -46,8 +50,6 @@ Unity 2019.4.1f1
 * Show the percentage of available health for each soldier.
 
 * Create a UI with information about the game and the winner.
-
-* Improve the initial and find enemy performance 
 
 ## Code description
 
@@ -61,8 +63,19 @@ Unity 2019.4.1f1
 
 - TargetTerrain: Generate the hills that cover the target of the flag. It receives collisions from soldiers' shots and modifies the terrain and generates explosions.
 
+- MapController: Paint minimap and the player camera position.
+
+- AiController: FindEnemy logic.
+
+
 ## Change log
 
+* 2021-09-19 Separte to MapController from AIController
+* 2021-09-11 fix tower instanciate and find enemy
+* 2021-09-11 fix tower instanciate and find enemy
+* 2021-09-10 improve and fix AI npc enemies
+* 2021-08-15 add player position on minimap
+* 2021-08-13 add minimap
 * 2021-08-08 Improve the soldiers AI, take into account the soldiers of other teams.
 * 2021-08-07 Creater towers defence near the flag base with mouse double click
 * 2021-08-05 ramdomize the soldiers list
