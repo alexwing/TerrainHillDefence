@@ -37,7 +37,7 @@ namespace HillDefence
             if (collision.gameObject.tag == "bullet" && "bullet" + npcInfo.teamNumber != collision.gameObject.name)
             {
                 flagShootsReceived++;
-                if (SceneConfig.FLAG.FlagShootsToWin == flagShootsReceived)
+                if (SceneConfig.FLAG.Lives == flagShootsReceived)
                 {
                     //win a flag 
                     npcInfo.isDead = true;

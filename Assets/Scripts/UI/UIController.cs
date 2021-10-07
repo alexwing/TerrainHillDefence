@@ -71,8 +71,6 @@ namespace HillDefence
                                 TeamTower teamTower = newTower.GetComponent<TeamTower>();
                                 if (teamTower != null)
                                 {
-                                    HillDefenceCreator.Npcs.Add(teamTower);
-                                    HillDefenceCreator.teams[foundTeamTower.teamNumber].towers.Add(teamTower);
                                     teamTower.npcInfo.teamNumber = foundTeamTower.teamNumber;
                                     teamTower.npcInfo.npcNumber = HillDefenceCreator.teams[foundTeamTower.teamNumber].towers.Count - 1;
                                     teamTower.npcInfo.npcType = NpcType.tower;
@@ -80,6 +78,8 @@ namespace HillDefence
 
                                     teamTower.name = "Tower_" + teamTower.npcInfo.teamNumber + "_" + teamTower.npcInfo.npcNumber;
                                     teamTower.Init();
+                                    HillDefenceCreator.teams[foundTeamTower.teamNumber].towers.Add(teamTower);
+                                    HillDefenceCreator.Npcs.Add(teamTower);
 
                                 }
                             }

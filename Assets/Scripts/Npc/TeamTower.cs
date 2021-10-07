@@ -26,7 +26,7 @@ namespace HillDefence
             if (collision.gameObject.tag == "bullet" && "bullet_" + npcInfo.teamNumber != collision.gameObject.name)
             {
 
-                if (npcInfo.shootCount >= SceneConfig.TOWER.TowerLife)
+                if (npcInfo.shootCount >= SceneConfig.TOWER.Lives)
                 {
                     npcInfo.isDead = true;
                     HillDefenceCreator.teams[npcInfo.teamNumber].towers.Remove(gameObject.GetComponent<TeamTower>());
@@ -78,11 +78,8 @@ namespace HillDefence
                     if (Vector3.Angle(enemyNpc.npcObject.transform.position - transform.position, transform.forward) < SceneConfig.TOWER.RotationAngleMinToShoot)
                     {
                         Shoot(SceneConfig.TOWER.shootCarence, SceneConfig.TOWER.shootSpeed, SceneConfig.TOWER.ShootMaxDistance, SceneConfig.TOWER.shootTargetHeight);
-                    }
-                    else
-                    {
-                        Debug.Log("Tower is not near to enemy");
-                    }
+                        Debug.Log("Tower is shoting");
+                    }      
                 }
 
             }

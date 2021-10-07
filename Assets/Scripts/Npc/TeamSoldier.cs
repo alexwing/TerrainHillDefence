@@ -45,7 +45,7 @@ namespace HillDefence
             {
                 TargetTerrain.instance.DetonationBullet(collision.gameObject);
                 //print("bullet_" + team.teamNumber);
-                if (npcInfo.shootCount >= SceneConfig.SOLDIER.SoldierLife && !npcInfo.isDead)
+                if (npcInfo.shootCount >= SceneConfig.SOLDIER.Lives && !npcInfo.isDead)
                 {
 
                     npcInfo.isDead = true;
@@ -85,11 +85,11 @@ namespace HillDefence
         public void death()
         {
             animator.speed = 0;
-         }
+        }
 
         public void ShootEvent()
         {
-             Shoot(SceneConfig.SOLDIER.shootCarence, SceneConfig.SOLDIER.shootSpeed,SceneConfig.SOLDIER.ShootMaxDistance,SceneConfig.SOLDIER.shootTargetHeight);
+            Shoot(SceneConfig.SOLDIER.shootCarence, SceneConfig.SOLDIER.shootSpeed, SceneConfig.SOLDIER.ShootMaxDistance, SceneConfig.SOLDIER.shootTargetHeight);
         }
 
         //find nearest enemy
@@ -135,11 +135,14 @@ namespace HillDefence
 
         private void UpdateSoldier()
         {
+            Vector3 beforePosition = transform.position;
             if (animateStatus == "death")
             {
                 return;
             }
             shootTime += Time.deltaTime;
+            float y = Terrain.activeTerrain.SampleHeight(transform.position);
+            transform.position = new Vector3(transform.position.x, y, transform.position.z);
             if (enemyNpc != null)
             {
                 if (enemyNpc.isDead)
@@ -150,49 +153,68 @@ namespace HillDefence
                 Vector3 myPosition = transform.position;
                 float distance = Vector3.Distance(enemyNpc.npcObject.transform.position, myPosition);
                 //print("distance: " + distance);
-                if (distance > SceneConfig.SOLDIER.AttackRange + AttackDistance)
+                if (distance > SceneConfig.SOLDIER.AttackRange + AttackDistance && enemyNpc != null)
                 {
                     //Lerp to enemy flag ajust to frame rate
+                    //before position;
                     transform.position = Vector3.Lerp(transform.position, enemyNpc.npcObject.transform.position, Time.deltaTime * SceneConfig.SOLDIER.SoldierVelocity * (1f / SceneConfig.SOLDIER.SoldierFrameRate));
+
+
                     isWalking = true;
                 }
                 else
                 {
-                    // Shoot();
-                    animator.SetBool("is_run", false);
-                    animator.SetBool("is_ataka", true);
-                    animator.SetBool("is_hi", false);
-                    animator.SetBool("is_death", false);
-                    isWalking = false;
+                    is_ataka();
                 }
-                float y = Terrain.activeTerrain.SampleHeight(transform.position);
-                transform.position = new Vector3(transform.position.x, y, transform.position.z);
                 transform.rotation = Quaternion.LookRotation(enemyNpc.npcObject.transform.position - transform.position);
             }
-
 
             if (isWalking)
             {
                 if (animateStatus != "walking")
                 {
-                    animator.SetBool("is_run", true);
-                    animator.SetBool("is_ataka", false);
-                    animator.SetBool("is_hi", false);
-                    animator.SetBool("is_death", false);
-                    animateStatus = "walking";
+                    is_walking();
                 }
+                //walking velocity
+                 animator.speed = SceneConfig.SOLDIER.SoldierWalkAnimationVelocity + Mathf.Round((new Vector2(beforePosition.x, beforePosition.z) - new Vector2(transform.position.x, transform.position.z)).sqrMagnitude);                                
+                
             }
             else
             {
+                animator.speed = 1;
                 if (animateStatus != "idle")
                 {
-                    animator.SetBool("is_run", false);
-                    animator.SetBool("is_ataka", false);
-                    animator.SetBool("is_hi", true);
-                    animator.SetBool("is_death", false);
-                    animateStatus = "idle";
+                    is_idle();
                 }
             }
+
+
+        }
+
+        private void is_walking()
+        {
+            animator.SetBool("is_run", true);
+            animator.SetBool("is_ataka", false);
+            animator.SetBool("is_hi", false);
+            animator.SetBool("is_death", false);
+            animateStatus = "walking";
+        }
+
+        void is_ataka()
+        {
+            animator.SetBool("is_run", false);
+            animator.SetBool("is_ataka", true);
+            animator.SetBool("is_hi", false);
+            animator.SetBool("is_death", false);
+            isWalking = false;
+        }
+        private void is_idle()
+        {
+            animator.SetBool("is_run", false);
+            animator.SetBool("is_ataka", false);
+            animator.SetBool("is_hi", true);
+            animator.SetBool("is_death", false);
+            animateStatus = "idle";
         }
     }
 }
