@@ -43,6 +43,7 @@ namespace HillDefence
             }
             if (collision.gameObject.tag == "bullet" && "bullet_" + npcInfo.teamNumber != collision.gameObject.name)
             {
+                TargetTerrain.instance.DetonationBullet(collision.gameObject);
                 //print("bullet_" + team.teamNumber);
                 if (npcInfo.shootCount >= SceneConfig.SOLDIER.SoldierLife && !npcInfo.isDead)
                 {

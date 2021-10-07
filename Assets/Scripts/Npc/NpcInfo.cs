@@ -43,18 +43,18 @@ namespace HillDefence
         }
 
         //shoot to enemy with carence 
-        public void Shoot(float carence,float speed, int maxDistance,float targetHeight)
+        public void Shoot(float carence, float speed, int maxDistance, float targetHeight)
         {
-            if (enemyNpc != null)
+            //shoot carence
+            if (shootTime > carence)
             {
-                if (enemyNpc.isDead)
+                if (enemyNpc != null)
                 {
-                    enemyNpc = null;
-                    return;
-                }
-                //shoot carence
-                if (shootTime > carence)
-                {
+                    if (enemyNpc.isDead)
+                    {
+                        enemyNpc = null;
+                        return;
+                    }
                     shootTime = 0;
                     //add shootTargetHeight to the position of the shootInitPosition
                     Vector3 shootTargetPosition = enemyNpc.npcObject.transform.position;

@@ -11,12 +11,7 @@ namespace HillDefence
         public GameObject detonationPrefab;
 
         [Header("Terrain Destrucion")]
-        //  [Tooltip("Height of terrain destruction")]
-        // [Range(0f, 40f)]
-        //  public float terrainDestructHeight = 20f;
-        [Tooltip("Width of terrain destruction")]
-        [Range(0f, 50f)]
-        public float terrainDestructWidth = 10f;
+
         [Tooltip("Ramdom explosion particles system")]
         [Range(0f, 1f)]
         public float ramdomExplosion = 1.0f;
@@ -63,11 +58,6 @@ namespace HillDefence
 
         public void ModifyTerrain(GameObject collision, float destructionSize, float destructionIntensity, bool type = false)
         {
-
-            float normalizedValue = Mathf.InverseLerp(0, 100, destructionSize);
-            //  int brushSize = (int) Mathf.Lerp(0, Listbrush.Length-1, normalizedValue);
-            int brushSize = (int)Mathf.Lerp(0, terrainDestructWidth, normalizedValue);
-
             Terrain terr = GetComponent<Terrain>();
             // get the normalized position of this game object relative to the terrain
             Vector3 tempCoord = (collision.transform.position - terr.gameObject.transform.position);
@@ -81,7 +71,7 @@ namespace HillDefence
             coord.z = tempCoord.z / terr.terrainData.size.z;
 
             //int size = brush.width;
-            int size = brushSize;
+            int size = (int) destructionSize;
             int offset = Mathf.RoundToInt(size / 2);
 
             int x = (int)(coord.x * hmWidth) - offset;
@@ -135,17 +125,19 @@ namespace HillDefence
 
         public void DetonationTerrain(GameObject collision, float destructionSize)
         {
+
+           // detonationPrefab.transform.localScale = new Vector3(destructionSize, destructionSize, destructionSize);
+     //      GameObject detonation = Instantiate(detonationPrefab, collision.transform.position, Quaternion.identity) as GameObject;
             Destroy(Instantiate(detonationPrefab, collision.transform.position, Quaternion.identity), SceneConfig.TERRAIN.explosionLife);
-            float normalizedValue = Mathf.InverseLerp(0, 100, destructionSize);
-            float explosionSize = Mathf.Lerp(0, terrainDestructWidth, normalizedValue);
+
             GameObject _currentEffect = Instantiate(collision.gameObject, collision.transform.position, Quaternion.identity);
 
             for (int i = 0; i < _currentEffect.transform.childCount; i++)
             {
-                _currentEffect.transform.GetChild(i).transform.localScale = new Vector3(explosionSize, explosionSize, explosionSize) * 0.1f;
+                _currentEffect.transform.GetChild(i).transform.localScale = new Vector3(destructionSize, destructionSize, destructionSize) * 0.1f;
             }
             Destroy(_currentEffect, 0.5f);
-            for (int i = 0; i < explosionSize; i++)
+            for (int i = 0; i < destructionSize; i++)
             {
                 Destroy(Instantiate(detonationPrefab, Utils.RandomNearPosition(collision.transform, ramdomExplosion, 0f, ramdomExplosion).position, Quaternion.identity), SceneConfig.TERRAIN.explosionLife);
             }

@@ -43,8 +43,8 @@ namespace HillDefence
                     npcInfo.isDead = true;
                     HillDefence.HillDefenceCreator.teams[collision.gameObject.GetComponent<Bullet>().npcInfo.teamNumber].flagsWinsCount++;
                     Destroy(gameObject);
-                    TargetTerrain.instance.ModifyTerrain(gameObject, 1000, 1000,false);
-                    TargetTerrain.instance.DetonationTerrain(collision.gameObject, 1000);
+                    TargetTerrain.instance.ModifyTerrain(gameObject, 80, 1000,false);
+                    TargetTerrain.instance.DetonationTerrain(collision.gameObject, 50);
                     HillDefenceCreator.instance.EvaluateWin();
                 }
                 Destroy(collision.gameObject);

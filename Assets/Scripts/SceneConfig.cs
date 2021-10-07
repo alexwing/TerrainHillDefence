@@ -22,7 +22,11 @@ public static class SceneConfig
         public readonly static float shootCarence = 0.75f;
         public readonly static float shootSpeed = 100f;
         public readonly static float shootTargetHeight = 0f;
-        public readonly static float RotationAngleMinToShoot = 10f;
+        public readonly static float RotationAngleMinToShoot = 20f;
+        
+        
+        public readonly static float DestrucionTerrainSize = 15f;
+        
     }
     public static class SOLDIER
     {

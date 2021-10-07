@@ -32,8 +32,8 @@ namespace HillDefence
                     HillDefenceCreator.teams[npcInfo.teamNumber].towers.Remove(gameObject.GetComponent<TeamTower>());
                     HillDefenceCreator.Npcs.Remove(gameObject.GetComponent<TeamTower>());
                     Destroy(gameObject);
-                    TargetTerrain.instance.ModifyTerrain(collision.gameObject, 15, 15, false);
-                    TargetTerrain.instance.DetonationTerrain(collision.gameObject, 15);
+                    TargetTerrain.instance.ModifyTerrain(collision.gameObject, SceneConfig.TOWER.DestrucionTerrainSize, SceneConfig.TOWER.DestrucionTerrainSize, false);
+                    TargetTerrain.instance.DetonationTerrain(collision.gameObject, SceneConfig.TOWER.DestrucionTerrainSize);
                 }
                 Destroy(collision.gameObject);
                 npcInfo.shootCount++;
@@ -47,6 +47,13 @@ namespace HillDefence
             if (enemyNpc == null)
             {
                 enemyNpc = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.TOWER.FindEnemyRange, NpcType.Any);
+            }
+            else
+            {
+                if (enemyNpc.isDead)
+                {
+                    enemyNpc = null;
+                }
             }
         }
 
@@ -71,7 +78,9 @@ namespace HillDefence
                     if (Vector3.Angle(enemyNpc.npcObject.transform.position - transform.position, transform.forward) < SceneConfig.TOWER.RotationAngleMinToShoot)
                     {
                         Shoot(SceneConfig.TOWER.shootCarence, SceneConfig.TOWER.shootSpeed, SceneConfig.TOWER.ShootMaxDistance, SceneConfig.TOWER.shootTargetHeight);
-                    }else{
+                    }
+                    else
+                    {
                         Debug.Log("Tower is not near to enemy");
                     }
                 }
