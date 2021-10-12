@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
-
-public static class SceneConfig
+﻿public static class SceneConfig
 {
     public static bool Debug = false;
 
@@ -22,7 +19,7 @@ public static class SceneConfig
         public readonly static float shootCarence = 1.75f;
         public readonly static float shootSpeed = 100f;
         public readonly static float shootTargetHeight = 1.75f;
-        public readonly static float RotationAngleMinToShoot = 20f;
+        public readonly static float RotationAngleMinToShoot = 120f;
         public readonly static float DestrucionTerrainSize = 15f;
 
     }

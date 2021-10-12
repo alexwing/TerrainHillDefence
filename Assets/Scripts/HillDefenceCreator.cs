@@ -98,10 +98,7 @@ namespace HillDefence
                 team.teamFlag.npcInfo.npcType = NpcType.flag;
                 team.teamFlag.npcInfo.npcObject = instanciateTeamFlag;
                 Npcs.Add(team.teamFlag);
-                //print teamcolor
-                print(team.teamColor);
-
-
+                
                 GetComponent<TargetTerrain>().ModifyTerrain(instanciateTeamFlag, hillSize, 60f, true);
             }
 

@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 namespace HillDefence
 {
     public class TeamFlag : NpcInfo
@@ -8,15 +6,12 @@ namespace HillDefence
         // material to change color of the flag
         public GameObject flag;
 
-
-
         int flagShootsReceived;
 
         // Use this for initialization
         void Start()
         {
             // changeFlagColor(teamColor);
-
             Utils.ChangeColor(flag.GetComponent<Renderer>(), HillDefenceCreator.teams[npcInfo.teamNumber].teamColor);
             Utils.ChangeColor(flag.GetComponent<Renderer>(), Utils.Darken(HillDefenceCreator.teams[npcInfo.teamNumber].teamColor, 0.75f), "_EmissionColor");
         }
@@ -43,7 +38,7 @@ namespace HillDefence
                     npcInfo.isDead = true;
                     HillDefence.HillDefenceCreator.teams[collision.gameObject.GetComponent<Bullet>().npcInfo.teamNumber].flagsWinsCount++;
                     Destroy(gameObject);
-                    TargetTerrain.instance.ModifyTerrain(gameObject, 80, 1000,false);
+                    TargetTerrain.instance.ModifyTerrain(gameObject, 80, 1000, false);
                     TargetTerrain.instance.DetonationTerrain(collision.gameObject, 50);
                     HillDefenceCreator.instance.EvaluateWin();
                 }

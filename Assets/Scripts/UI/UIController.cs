@@ -59,6 +59,9 @@ namespace HillDefence
                         foundTeamTower = AIController.instance.getNearNpc(hit.point, -1, -1, NpcType.flag);
 
                         cursorPointer.SetActive(true);
+                        //disable cursorPointer collider
+                        cursorPointer.GetComponent<BoxCollider>().enabled = false;
+
                         //  Debug.Log("position x: " + hit.transform.position.x + " position z: " + hit.transform.position.z);
                         cursorPointer.transform.position = hit.point;
                         if (foundTeamTower != null)
@@ -69,6 +72,7 @@ namespace HillDefence
                                 //instanciate a new cursor pointer
                                 GameObject newTower = Instantiate(cursorPointer, hit.point, Quaternion.identity) as GameObject;
                                 TeamTower teamTower = newTower.GetComponent<TeamTower>();
+                                teamTower.GetComponent<BoxCollider>().enabled = true;
                                 if (teamTower != null)
                                 {
                                     teamTower.npcInfo.teamNumber = foundTeamTower.teamNumber;

@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
 
 
 namespace HillDefence
@@ -25,7 +24,7 @@ namespace HillDefence
             }
             if (collision.gameObject.tag == "bullet" && "bullet_" + npcInfo.teamNumber != collision.gameObject.name)
             {
-
+                TargetTerrain.instance.DetonationBullet(collision.gameObject);
                 if (npcInfo.shootCount >= SceneConfig.TOWER.Lives)
                 {
                     npcInfo.isDead = true;
@@ -34,6 +33,10 @@ namespace HillDefence
                     Destroy(gameObject);
                     TargetTerrain.instance.ModifyTerrain(collision.gameObject, SceneConfig.TOWER.DestrucionTerrainSize, SceneConfig.TOWER.DestrucionTerrainSize, false);
                     TargetTerrain.instance.DetonationTerrain(collision.gameObject, SceneConfig.TOWER.DestrucionTerrainSize);
+                } else{
+                    //atack to the shotting bullet enemy
+                    Bullet findAttackingME = collision.gameObject.GetComponent<Bullet>();
+                    enemyNpc = findAttackingME!=null && findAttackingME.npcInfo.teamNumber != npcInfo.teamNumber && !npcInfo.isDead ? findAttackingME.npcInfo : enemyNpc;
                 }
                 Destroy(collision.gameObject);
                 npcInfo.shootCount++;
@@ -66,7 +69,6 @@ namespace HillDefence
                 {
                     enemyNpc = null;
                     return;
-
                 }
                 //rotation lerp only y
                 Quaternion rotation = Quaternion.Lerp(tower.transform.rotation, Quaternion.LookRotation(enemyNpc.npcObject.transform.position - transform.position), Time.deltaTime * SceneConfig.TOWER.RotationSpeed);
@@ -77,8 +79,7 @@ namespace HillDefence
                     //check rotation is near to enemy
                     if (Vector3.Angle(enemyNpc.npcObject.transform.position - transform.position, transform.forward) < SceneConfig.TOWER.RotationAngleMinToShoot)
                     {
-                        Shoot(SceneConfig.TOWER.shootCarence, SceneConfig.TOWER.shootSpeed, SceneConfig.TOWER.ShootMaxDistance, SceneConfig.TOWER.shootTargetHeight);
-                        Debug.Log("Tower is shoting");
+                        Shoot(SceneConfig.TOWER.shootCarence, SceneConfig.TOWER.shootSpeed, SceneConfig.TOWER.ShootMaxDistance, SceneConfig.TOWER.shootTargetHeight);                      
                     }      
                 }
 

@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections.Generic;
 
 
 namespace HillDefence
@@ -10,6 +9,7 @@ namespace HillDefence
 
         public GameNpc enemyNpc = null;
 
+        [HideInInspector]
         public float shootTime = 0;
 
 
@@ -48,14 +48,16 @@ namespace HillDefence
             //shoot carence
             if (shootTime > carence)
             {
+
                 if (enemyNpc != null)
-                {
+                {                  
                     if (enemyNpc.isDead)
                     {
                         enemyNpc = null;
                         return;
                     }
                     shootTime = 0;
+                   
                     //add shootTargetHeight to the position of the shootInitPosition
                     Vector3 shootTargetPosition = enemyNpc.npcObject.transform.position;
                     shootTargetPosition.y += targetHeight;
@@ -70,6 +72,7 @@ namespace HillDefence
                     shootSend.name = "bullet_" + npcInfo.teamNumber;
                     shootSend.gameObject.tag = "bullet";
                     //  print("velocity" +shootSend.GetComponent<Rigidbody>().velocity);
+
 
                     Utils.PlaySound(shootClip, transform, Camera.main.transform, maxDistance);
                 }

@@ -50,10 +50,7 @@ namespace HillDefence
 
                     npcInfo.isDead = true;
                     this.name = "death_" + this.name;
-                    animator.SetBool("is_run", false);
-                    animator.SetBool("is_ataka", false);
-                    animator.SetBool("is_hi", false);
-                    animator.SetBool("is_death", true);
+                    is_death();
                     //remove from HillDefenceCreator.soldiers
                     HillDefenceCreator.Npcs.Remove(gameObject.GetComponent<TeamSoldier>());
                     //remove from team.soldiers
@@ -66,15 +63,8 @@ namespace HillDefence
                 else
                 {
                     //atack to the shotting bullet enemy
-                    NpcInfo npcEnemy = collision.gameObject.GetComponent<NpcInfo>();
-                    if (npcEnemy != null)
-                    {
-                        if (npcEnemy.npcInfo.teamNumber != npcInfo.teamNumber)
-                        {
-                            print(this.name + " Enemy of " + npcEnemy.npcInfo.npcType + " " + npcEnemy.npcInfo.teamNumber + " " + npcEnemy.npcInfo.npcNumber);
-                            enemyNpc = npcEnemy.npcInfo;
-                        }
-                    }
+                    Bullet findAttackingME = collision.gameObject.GetComponent<Bullet>();
+                    enemyNpc = findAttackingME!=null && findAttackingME.npcInfo.teamNumber != npcInfo.teamNumber && !npcInfo.isDead ? findAttackingME.npcInfo : enemyNpc;
                 }
 
                 npcInfo.shootCount++;
@@ -82,6 +72,7 @@ namespace HillDefence
 
             }
         }
+
         public void death()
         {
             animator.speed = 0;
@@ -99,36 +90,32 @@ namespace HillDefence
             if (enemyNpc == null)
             {
                 //find nearest enemy
-                GameNpc npcEnemy = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.SOLDIER.FindEnemyRange, NpcType.soldier);
-                if (npcEnemy != null)
-                {
-                    // print(this.name + " Enemy of " +npcEnemy.npcType+ " " + npcEnemy.teamNumber + " " +npcEnemy.npcNumber + " " + npcEnemy.npcType);
-                    enemyNpc = npcEnemy;
+                GameNpc findNpcEnemy = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.SOLDIER.FindEnemyRange, NpcType.soldier);
+                if (findNpcEnemy != null)
+                {                    
+                    enemyNpc = findNpcEnemy;
                 }
                 else
                 {
                     //find enemy flag
-                    npcEnemy = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, -1, NpcType.flag);
-                    if (npcEnemy != null)
-                    {
-                        enemyNpc = npcEnemy;
-                    }
+                    findNpcEnemy = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, -1, NpcType.flag);
+                    enemyNpc = findNpcEnemy != null ? findNpcEnemy : enemyNpc;
                 }
 
             }
             else
             {
-                if (enemyNpc.npcType == NpcType.flag)
-                {
-                    GameNpc npcEnemy = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.SOLDIER.FindEnemyRange, NpcType.soldier);
-                    if (npcEnemy != null)
-                    {
-                        enemyNpc = npcEnemy;
-                    }
-                }
                 if (enemyNpc.isDead)
                 {
                     enemyNpc = null;
+                }
+                else
+                {
+                    if (enemyNpc.npcType == NpcType.flag)
+                    {
+                        GameNpc findNpcEnemy = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.SOLDIER.FindEnemyRange, NpcType.soldier);
+                        enemyNpc = findNpcEnemy != null ? findNpcEnemy : enemyNpc;
+                    }
                 }
             }
         }
@@ -145,7 +132,7 @@ namespace HillDefence
             transform.position = new Vector3(transform.position.x, y, transform.position.z);
             if (enemyNpc != null)
             {
-                if (enemyNpc.isDead)
+                if (enemyNpc.isDead || enemyNpc.npcObject == null)
                 {
                     enemyNpc = null;
                     return;
@@ -190,6 +177,15 @@ namespace HillDefence
 
 
         }
+
+        private void is_death()
+        {
+            animator.speed = 2;
+            animator.SetBool("is_run", false);
+            animator.SetBool("is_ataka", false);
+            animator.SetBool("is_hi", false);
+            animator.SetBool("is_death", true);
+        }        
 
         private void is_walking()
         {
