@@ -47,18 +47,7 @@ namespace HillDefence
                 //print("bullet_" + team.teamNumber);
                 if (npcInfo.shootCount >= SceneConfig.SOLDIER.Lives && !npcInfo.isDead)
                 {
-
-                    npcInfo.isDead = true;
-                    this.name = "death_" + this.name;
-                    is_death();
-                    //remove from HillDefenceCreator.soldiers
-                    HillDefenceCreator.Npcs.Remove(gameObject.GetComponent<TeamSoldier>());
-                    //remove from team.soldiers
-                    HillDefenceCreator.teams[npcInfo.teamNumber].soldiers.Remove(gameObject.GetComponent<TeamSoldier>());
-                    animateStatus = "death";
-                    //remove soldier collider
-                    Destroy(this.GetComponent<BoxCollider>());
-
+                    deathNPC();
                 }
                 else
                 {
@@ -73,6 +62,24 @@ namespace HillDefence
             }
         }
 
+        public void deathNPC()
+        {
+            npcInfo.isDead = true;
+            this.name = "death_" + this.name;
+            is_death();
+            //remove from HillDefenceCreator.soldiers
+            HillDefenceCreator.Npcs.Remove(gameObject.GetComponent<TeamSoldier>());
+            //remove from team.soldiers
+            HillDefenceCreator.teams[npcInfo.teamNumber].soldiers.Remove(gameObject.GetComponent<TeamSoldier>());
+            animateStatus = "death";
+            //remove soldier collider
+            Destroy(this.GetComponent<BoxCollider>());
+            //remove InvokeRepeatings UpdateSoldier findEnemy
+            CancelInvoke("UpdateSoldier");
+            CancelInvoke("findEnemy");        
+            
+        }
+
         public void death()
         {
             animator.speed = 0;
@@ -83,7 +90,6 @@ namespace HillDefence
             Shoot(SceneConfig.SOLDIER.shootCarence, SceneConfig.SOLDIER.shootSpeed, SceneConfig.SOLDIER.ShootMaxDistance, SceneConfig.SOLDIER.shootTargetHeight);
         }
 
-        //find nearest enemy
         public void findEnemy()
         {
             //if not enemy
@@ -122,6 +128,14 @@ namespace HillDefence
 
         private void UpdateSoldier()
         {
+
+            //is team flag is destroit
+            if (HillDefenceCreator.teams[npcInfo.teamNumber].teamFlag.npcInfo.isDead && !npcInfo.isDead)
+            {
+                deathNPC();
+                return;
+            }
+                    
             Vector3 beforePosition = transform.position;
             if (animateStatus == "death")
             {

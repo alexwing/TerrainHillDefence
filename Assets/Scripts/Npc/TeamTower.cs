@@ -27,13 +27,10 @@ namespace HillDefence
                 TargetTerrain.instance.DetonationBullet(collision.gameObject);
                 if (npcInfo.shootCount >= SceneConfig.TOWER.Lives)
                 {
-                    npcInfo.isDead = true;
-                    HillDefenceCreator.teams[npcInfo.teamNumber].towers.Remove(gameObject.GetComponent<TeamTower>());
-                    HillDefenceCreator.Npcs.Remove(gameObject.GetComponent<TeamTower>());
-                    Destroy(gameObject);
-                    TargetTerrain.instance.ModifyTerrain(collision.gameObject, SceneConfig.TOWER.DestrucionTerrainSize, SceneConfig.TOWER.DestrucionTerrainSize, false);
-                    TargetTerrain.instance.DetonationTerrain(collision.gameObject, SceneConfig.TOWER.DestrucionTerrainSize);
-                } else{
+                    deathNPC(collision.gameObject);
+                }
+                else
+                {
                     //atack to the shotting bullet enemy
                     Bullet findAttackingME = collision.gameObject.GetComponent<Bullet>();
                     enemyNpc = findAttackingME!=null && findAttackingME.npcInfo.teamNumber != npcInfo.teamNumber && !npcInfo.isDead ? findAttackingME.npcInfo : enemyNpc;
@@ -44,20 +41,22 @@ namespace HillDefence
             }
         }
 
+        public void deathNPC(GameObject collision)
+        {
+            npcInfo.isDead = true;
+            HillDefenceCreator.teams[npcInfo.teamNumber].towers.Remove(gameObject.GetComponent<TeamTower>());
+            HillDefenceCreator.Npcs.Remove(gameObject.GetComponent<TeamTower>());
+            Destroy(gameObject);
+            TargetTerrain.instance.ModifyTerrain(collision, SceneConfig.TOWER.DestrucionTerrainSize, SceneConfig.TOWER.DestrucionTerrainSize, false);
+            TargetTerrain.instance.DetonationTerrain(collision, SceneConfig.TOWER.DestrucionTerrainSize);
+            CancelInvoke("UpdateTower");
+            CancelInvoke("findEnemy");                
+        }
+
         //find nearest enemy
         public void findEnemy()
         {
-            if (enemyNpc == null)
-            {
-                enemyNpc = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.TOWER.FindEnemyRange, NpcType.Any);
-            }
-            else
-            {
-                if (enemyNpc.isDead)
-                {
-                    enemyNpc = null;
-                }
-            }
+            enemyNpc = enemyNpc == null || enemyNpc.isDead ? AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.TOWER.FindEnemyRange, NpcType.Any) : null;
         }
 
         private void UpdateTower()
@@ -83,6 +82,11 @@ namespace HillDefence
                     }      
                 }
 
+            }
+            //is team flag is destroit
+            if (HillDefenceCreator.teams[npcInfo.teamNumber].teamFlag.npcInfo.isDead)
+            {
+                deathNPC(this.gameObject);
             }
         }
     }

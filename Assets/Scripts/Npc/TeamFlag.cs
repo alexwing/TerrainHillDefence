@@ -32,19 +32,23 @@ namespace HillDefence
             if (collision.gameObject.tag == "bullet" && "bullet" + npcInfo.teamNumber != collision.gameObject.name)
             {
                 flagShootsReceived++;
-                if (SceneConfig.FLAG.Lives == flagShootsReceived)
+                if (SceneConfig.FLAG.Lives <= flagShootsReceived)
                 {
                     //win a flag 
-                    npcInfo.isDead = true;
-                    HillDefence.HillDefenceCreator.teams[collision.gameObject.GetComponent<Bullet>().npcInfo.teamNumber].flagsWinsCount++;
-                    Destroy(gameObject);
-                    TargetTerrain.instance.ModifyTerrain(gameObject, 80, 1000, false);
-                    TargetTerrain.instance.DetonationTerrain(collision.gameObject, 50);
-                    HillDefenceCreator.instance.EvaluateWin();
+                    deathNPC(collision.gameObject);
                 }
                 Destroy(collision.gameObject);
 
             }
+        }
+        public void deathNPC(GameObject collision)
+        {
+            npcInfo.isDead = true;
+            HillDefence.HillDefenceCreator.teams[collision.GetComponent<Bullet>().npcInfo.teamNumber].flagsWinsCount++;
+            Destroy(gameObject);
+            TargetTerrain.instance.ModifyTerrain(gameObject, 80, 1000, false);
+            TargetTerrain.instance.DetonationTerrain(collision, 50);
+            HillDefenceCreator.instance.EvaluateWin();
         }
     }
 

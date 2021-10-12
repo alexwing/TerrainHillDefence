@@ -57,12 +57,12 @@ namespace HillDefence
             SpawnSoldiers();
             // UIController.instance.CreateHealthbars();         
             AIController.instance.Init((int)terrain.terrainData.size.x);
-            MapController.instance.Init((int)terrain.terrainData.size.x,SceneConfig.FindSizeMap);
+            MapController.instance.Init((int)terrain.terrainData.size.x, SceneConfig.FindSizeMap);
         }
         void SpawnHills()
         {
-            
-             List<Vector3> hillPositions = new List<Vector3>();
+
+            List<Vector3> hillPositions = new List<Vector3>();
             // Get the terrain
             terrain = GetComponent<Terrain>();
 
@@ -98,7 +98,7 @@ namespace HillDefence
                 team.teamFlag.npcInfo.npcType = NpcType.flag;
                 team.teamFlag.npcInfo.npcObject = instanciateTeamFlag;
                 Npcs.Add(team.teamFlag);
-                
+
                 GetComponent<TargetTerrain>().ModifyTerrain(instanciateTeamFlag, hillSize, 60f, true);
             }
 
@@ -128,7 +128,7 @@ namespace HillDefence
 
         void SpawnSoldiers()
         {
-             List<Vector3> hillPositions = new List<Vector3>();
+            List<Vector3> hillPositions = new List<Vector3>();
             //spawn soldier
             for (int i = 0; i < teams.Count; i++)
             {
@@ -146,7 +146,7 @@ namespace HillDefence
 
                     TeamSoldier teamSoldier = soldier.GetComponent<TeamSoldier>();
                     soldier.name = "Soldier_" + i + "_" + j;
-                    teams[i].soldiers.Add(teamSoldier);                
+                    teams[i].soldiers.Add(teamSoldier);
                     teamSoldier.npcInfo.teamNumber = teams[i].teamNumber;
                     teamSoldier.npcInfo.npcNumber = j;
                     teamSoldier.npcInfo.npcType = NpcType.soldier;
@@ -161,7 +161,7 @@ namespace HillDefence
         }
 
 
-        public  List<TeamSoldier> Shuffle(List<TeamSoldier> list)
+        public List<TeamSoldier> Shuffle(List<TeamSoldier> list)
         {
             int n = list.Count;
             while (n > 1)
@@ -180,7 +180,7 @@ namespace HillDefence
             Team win = null;
             foreach (Team team in teams)
             {
-                if (team.teamFlag != null)
+                if (!team.teamFlag.npcInfo.isDead)
                 {
                     countPendingTeams++;
                     win = team;
@@ -188,9 +188,8 @@ namespace HillDefence
             }
             if (countPendingTeams == 1)
             {
-                {
-                    UIController.instance.ShowWin(win);
-                }
+                UIController.instance.ShowWin(win);
+
             }
         }
     }
