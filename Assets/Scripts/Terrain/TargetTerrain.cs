@@ -71,20 +71,34 @@ namespace HillDefence
             coord.z = tempCoord.z / terr.terrainData.size.z;
 
             //int size = brush.width;
-            int size = (int) destructionSize;
+            int size = (int)destructionSize;
             int offset = Mathf.RoundToInt(size / 2);
 
             int x = (int)(coord.x * hmWidth) - offset;
             int y = (int)(coord.z * hmHeight) - offset;
 
 
-            float[,] areaT;
+            float[,] areaT = new float[size, size];
+
+
+            x = x < 0 ? 0 : x;
+            y = y < 0 ? 0 : y;
+            int sizex = x + size > hmWidth ? hmWidth - x : size;
+            int sizey = y + size > hmHeight ? hmHeight - y : size;
             try
             {
-                areaT = terr.terrainData.GetHeights(x, y, size, size);
-                for (int i = 0; i < size; i++)
+                areaT = terr.terrainData.GetHeights(x, y, sizex, sizey);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("GetHeights" + e.Message.ToString());
+            }
+
+            for (int i = 0; i < areaT.GetLength(0); i++)
+            {
+                for (int j = 0; j < areaT.GetLength(1); j++)
                 {
-                    for (int j = 0; j < size; j++)
+                    try
                     {
                         float texPixel = GetBeizer(i, j, size);
                         if (type)
@@ -95,15 +109,22 @@ namespace HillDefence
                         {
                             areaT[i, j] -= texPixel / 100 * destructionIntensity;
                         }
-
-                        //areaT[i, j] = 0;
                     }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogError("areaT[i, j]" + e.Message.ToString());
+                    }
+
+                    //areaT[i, j] = 0;
                 }
+            }
+            try
+            {
                 terr.terrainData.SetHeights(x, y, areaT);
             }
             catch (System.Exception e)
             {
-                Debug.LogError(e.Message.ToString());
+                Debug.LogError("SetHeights " + e.Message.ToString());
             }
         }
         private float GetBeizer(int i, int j, int size)
@@ -126,8 +147,8 @@ namespace HillDefence
         public void DetonationTerrain(GameObject collision, float destructionSize)
         {
 
-           // detonationPrefab.transform.localScale = new Vector3(destructionSize, destructionSize, destructionSize);
-     //      GameObject detonation = Instantiate(detonationPrefab, collision.transform.position, Quaternion.identity) as GameObject;
+            // detonationPrefab.transform.localScale = new Vector3(destructionSize, destructionSize, destructionSize);
+            //      GameObject detonation = Instantiate(detonationPrefab, collision.transform.position, Quaternion.identity) as GameObject;
             Destroy(Instantiate(detonationPrefab, collision.transform.position, Quaternion.identity), SceneConfig.TERRAIN.explosionLife);
 
             GameObject _currentEffect = Instantiate(collision.gameObject, collision.transform.position, Quaternion.identity);

@@ -50,14 +50,14 @@ namespace HillDefence
             {
 
                 if (enemyNpc != null)
-                {                  
+                {
                     if (enemyNpc.isDead)
                     {
                         enemyNpc = null;
                         return;
                     }
                     shootTime = 0;
-                   
+
                     //add shootTargetHeight to the position of the shootInitPosition
                     Vector3 shootTargetPosition = enemyNpc.npcObject.transform.position;
                     shootTargetPosition.y += targetHeight;
