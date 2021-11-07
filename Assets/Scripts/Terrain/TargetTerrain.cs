@@ -12,10 +12,6 @@ namespace HillDefence
 
         [Header("Terrain Destrucion")]
 
-        [Tooltip("Ramdom explosion particles system")]
-        [Range(0f, 1f)]
-        public float ramdomExplosion = 1.0f;
-
 
         [Tooltip("Up true Down False")]
         public bool UpOrDown = false;
@@ -147,9 +143,11 @@ namespace HillDefence
         public void DetonationTerrain(GameObject collision, float destructionSize)
         {
 
-            // detonationPrefab.transform.localScale = new Vector3(destructionSize, destructionSize, destructionSize);
-            //      GameObject detonation = Instantiate(detonationPrefab, collision.transform.position, Quaternion.identity) as GameObject;
-            Destroy(Instantiate(detonationPrefab, collision.transform.position, Quaternion.identity), SceneConfig.TERRAIN.explosionLife);
+            GameObject detonation = Instantiate(detonationPrefab, collision.transform.position, Quaternion.identity) as GameObject;
+            detonation.transform.localScale = new Vector3(destructionSize, destructionSize, destructionSize);
+            Destroy(detonation, SceneConfig.TERRAIN.explosionLife);
+
+           // Destroy(Instantiate(detonationPrefab, collision.transform.position, Quaternion.identity), SceneConfig.TERRAIN.explosionLife);
 
             GameObject _currentEffect = Instantiate(collision.gameObject, collision.transform.position, Quaternion.identity);
 
@@ -158,11 +156,11 @@ namespace HillDefence
                 _currentEffect.transform.GetChild(i).transform.localScale = new Vector3(destructionSize, destructionSize, destructionSize) * 0.1f;
             }
             Destroy(_currentEffect, 0.5f);
-            for (int i = 0; i < destructionSize; i++)
+            for (int i = 0; i < destructionSize*2; i++)
             {
-                Destroy(Instantiate(detonationPrefab, Utils.RandomNearPosition(collision.transform, ramdomExplosion, 0f, ramdomExplosion).position, Quaternion.identity), SceneConfig.TERRAIN.explosionLife);
+                Destroy(Instantiate(detonationPrefab, Utils.RandomNearPosition(collision.transform, SceneConfig.TERRAIN.ramdomExplosion, 0f, SceneConfig.TERRAIN.ramdomExplosion).position, Quaternion.identity), SceneConfig.TERRAIN.explosionLife);
             }
-            detonationTowerPrefab.transform.localScale = new Vector3(SceneConfig.TERRAIN.detonationFlagSize, SceneConfig.TERRAIN.detonationFlagSize, SceneConfig.TERRAIN.detonationFlagSize);
+            detonationTowerPrefab.transform.localScale = new Vector3(destructionSize, destructionSize, destructionSize);
             Destroy(Instantiate(detonationTowerPrefab, collision.transform.position, Quaternion.identity), SceneConfig.TERRAIN.explosionLife);
         }
     }

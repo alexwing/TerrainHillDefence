@@ -7,6 +7,8 @@
     public static class FLAG
     {
         public static int Lives = 20;
+        public static int DestrucionTerrainSize = 20;
+        public readonly static float DetonationSize = 50f;
 
     }
     public static class TOWER
@@ -16,11 +18,12 @@
         public readonly static int ShootMaxDistance = 400;
         public readonly static float TowerFrameRate = 25f;
         public readonly static int Lives = 5;
-        public readonly static float shootCarence = 1.75f;
+        public readonly static float shootCarence = 0.75f;
         public readonly static float shootSpeed = 100f;
         public readonly static float shootTargetHeight = 1.75f;
         public readonly static float RotationAngleMinToShoot = 120f;
         public readonly static float DestrucionTerrainSize = 15f;
+        public readonly static float DetonationSize = 6f;
 
     }
     public static class SOLDIER
@@ -44,9 +47,9 @@
     public static class TERRAIN
     {
         public static int detonationBulletSize = 5;
-        public static int detonationFlagSize = 20;
         public static int explosionLife = 10;
         public static int explosionBulletLife = 10;
+        public static float ramdomExplosion = 1.0f;
     }
 
 }

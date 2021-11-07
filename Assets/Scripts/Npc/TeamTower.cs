@@ -13,7 +13,7 @@ namespace HillDefence
         {
             Utils.ChangeColor(towerMaterial, HillDefenceCreator.teams[npcInfo.teamNumber].teamColor);
             InvokeRepeating("UpdateTower", Random.Range(0, 1f / SceneConfig.TOWER.TowerFrameRate), 1f / SceneConfig.TOWER.TowerFrameRate);
-            InvokeRepeating("findEnemy", Random.Range(0, 1f / SceneConfig.TOWER.FindEnemyRange), 1f / SceneConfig.TOWER.FindEnemyRange);
+            InvokeRepeating("findEnemy", Random.Range(0, 1f / SceneConfig.TOWER.TowerFrameRate), 1f / SceneConfig.TOWER.TowerFrameRate);
         }
 
         void OnTriggerEnter(Collider collision)
@@ -48,7 +48,7 @@ namespace HillDefence
             HillDefenceCreator.Npcs.Remove(gameObject.GetComponent<TeamTower>());
             Destroy(gameObject);
             TargetTerrain.instance.ModifyTerrain(collision, SceneConfig.TOWER.DestrucionTerrainSize, SceneConfig.TOWER.DestrucionTerrainSize, false);
-            TargetTerrain.instance.DetonationTerrain(collision, SceneConfig.TOWER.DestrucionTerrainSize);
+            TargetTerrain.instance.DetonationTerrain(collision, SceneConfig.TOWER.DetonationSize);
             CancelInvoke("UpdateTower");
             CancelInvoke("findEnemy");                
         }
@@ -83,7 +83,7 @@ namespace HillDefence
                 }
 
             }
-            //is team flag is destroit
+            //is team flag is destroid
             if (HillDefenceCreator.teams[npcInfo.teamNumber].teamFlag.npcInfo.isDead)
             {
                 deathNPC(this.gameObject);
