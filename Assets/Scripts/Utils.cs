@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class Utils
 {
@@ -387,6 +388,14 @@ public class Utils
             return false;
 
     }
+    public static bool IsFrontAtObject(Transform obj1, Vector3 obj2)
+    {
+        if (Vector3.Dot(Vector3.forward, obj1.transform.InverseTransformPoint(obj2)) < 0)
+            return true;
+        else
+            return false;
+
+    }
 
 
     public static String GetWifiMAC()
@@ -463,9 +472,9 @@ public class Utils
     {
 
         obj.position = new Vector3(
-             UnityEngine.Random.Range(obj.position.x - XRange, obj.position.x + XRange),
-             UnityEngine.Random.Range(obj.position.y - YRange, obj.position.y + YRange),
-             UnityEngine.Random.Range(obj.position.z - ZRange, obj.position.z + ZRange)
+            Random.Range(obj.position.x - XRange, obj.position.x + XRange),
+            Random.Range(obj.position.y - YRange, obj.position.y + YRange),
+            Random.Range(obj.position.z - ZRange, obj.position.z + ZRange)
             );
 
         return obj;

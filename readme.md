@@ -6,7 +6,7 @@ This game is a tower defence game. The player controls a tower which is placed o
 
 ## Requirements
 
-Unity 2021.2.0b3
+Unity 2021.2.5f1
 
 ## Controls
 
