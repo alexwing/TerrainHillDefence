@@ -53,6 +53,8 @@ namespace HillDefence
             CreateUIOptions();
         }
 
+        public bool isPlacingTurret = false;
+
         private void Update()
         {
             // Toggle map display with M
@@ -68,50 +70,72 @@ namespace HillDefence
                 FlyCamera.lockMovement = isMapVisible;
             }
 
-            // Raycast mouse cursor to object pointer in terrain
-            // Only when NOT clicking over UI elements (minimap, buttons, HUD)
-            bool isOverUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
-
-            if (Input.GetMouseButton(0) && anchorToTerrain && !isOverUI)
+            // Turret Placement State Machine
+            if (isPlacingTurret)
             {
-                RaycastHit hit;
-                if (Camera.main != null && Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 10000f))
+                if (Input.GetMouseButtonDown(1)) // Right click to cancel
                 {
-                    if (hit.collider.gameObject == anchorToTerrain.gameObject)
+                    isPlacingTurret = false;
+                    if (cursorPointer != null) cursorPointer.SetActive(false);
+                    return;
+                }
+
+                if (anchorToTerrain)
+                {
+                    RaycastHit hit;
+                    if (Camera.main != null && Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 10000f))
                     {
-                        GameNpc foundTeamTower = AIController.instance.getNearNpc(hit.point, -1, -1, NpcType.flag);
-
-                        if (cursorPointer != null)
+                        if (hit.collider.gameObject == anchorToTerrain.gameObject)
                         {
-                            cursorPointer.SetActive(true);
-                            cursorPointer.GetComponent<BoxCollider>().enabled = false;
-                            cursorPointer.transform.position = hit.point;
+                            GameNpc foundTeamFlag = AIController.instance.getNearNpc(hit.point, -1, -1, NpcType.flag);
 
-                            if (foundTeamTower != null)
+                            if (cursorPointer != null)
                             {
-                                Utils.ChangeColor(cursorPointer.GetComponent<TeamTower>().towerMaterial, HillDefenceCreator.teams[foundTeamTower.teamNumber].teamColor);
-                                if (Utils.DoubleClick())
+                                cursorPointer.SetActive(true);
+                                cursorPointer.GetComponent<BoxCollider>().enabled = false;
+                                cursorPointer.transform.position = hit.point;
+
+                                // Pulse animation using Lerp with White (works on Opaque materials)
+                                float pulse = Mathf.PingPong(Time.time * 3f, 0.5f);
+
+                                if (foundTeamFlag != null)
                                 {
-                                    GameObject newTower = Instantiate(cursorPointer, hit.point, Quaternion.identity) as GameObject;
-                                    TeamTower teamTower = newTower.GetComponent<TeamTower>();
-                                    teamTower.GetComponent<BoxCollider>().enabled = true;
-                                    if (teamTower != null)
+                                    Color baseC = HillDefenceCreator.teams[foundTeamFlag.teamNumber].teamColor;
+                                    Color pulseC = Color.Lerp(baseC, Color.white, pulse);
+                                    Utils.ChangeColor(cursorPointer.GetComponent<TeamTower>().towerMaterial, pulseC);
+
+                                    // Left click to place (ignore UI clicks)
+                                    bool isOverUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
+                                    if (Input.GetMouseButtonDown(0) && !isOverUI)
                                     {
-                                        teamTower.npcInfo.teamNumber = foundTeamTower.teamNumber;
-                                        teamTower.npcInfo.npcNumber = HillDefenceCreator.teams[foundTeamTower.teamNumber].towers.Count - 1;
+                                        GameObject newTower = Instantiate(cursorPointer, hit.point, Quaternion.identity) as GameObject;
+                                        TeamTower teamTower = newTower.GetComponent<TeamTower>();
+                                        teamTower.GetComponent<BoxCollider>().enabled = true;
+                                        
+                                        // Reset alpha for the real tower
+                                        Color realC = HillDefenceCreator.teams[foundTeamFlag.teamNumber].teamColor;
+                                        realC.a = 1f;
+                                        Utils.ChangeColor(teamTower.towerMaterial, realC);
+
+                                        teamTower.npcInfo.teamNumber = foundTeamFlag.teamNumber;
+                                        teamTower.npcInfo.npcNumber = HillDefenceCreator.teams[foundTeamFlag.teamNumber].towers.Count;
                                         teamTower.npcInfo.npcType = NpcType.tower;
                                         teamTower.npcInfo.npcObject = teamTower.gameObject;
 
                                         teamTower.name = "Tower_" + teamTower.npcInfo.teamNumber + "_" + teamTower.npcInfo.npcNumber;
                                         teamTower.Init();
-                                        HillDefenceCreator.teams[foundTeamTower.teamNumber].towers.Add(teamTower);
+                                        HillDefenceCreator.teams[foundTeamFlag.teamNumber].towers.Add(teamTower);
                                         HillDefenceCreator.Npcs.Add(teamTower);
+
+                                        isPlacingTurret = false; // Exit placement mode
+                                        cursorPointer.SetActive(false);
                                     }
                                 }
-                            }
-                            else
-                            {
-                                Utils.ChangeColor(cursorPointer.GetComponent<TeamTower>().towerMaterial, Color.black);
+                                else
+                                {
+                                    Color pulseC = Color.Lerp(Color.black, Color.red, pulse);
+                                    Utils.ChangeColor(cursorPointer.GetComponent<TeamTower>().towerMaterial, pulseC);
+                                }
                             }
                         }
                     }
@@ -119,7 +143,10 @@ namespace HillDefence
             }
             else
             {
-                if (cursorPointer != null) cursorPointer.SetActive(false);
+                if (cursorPointer != null && cursorPointer.activeSelf)
+                {
+                    cursorPointer.SetActive(false);
+                }
             }
         }
 
@@ -280,7 +307,7 @@ namespace HillDefence
             panelRt.anchorMax = new Vector2(1, 1);
             panelRt.pivot = new Vector2(1, 1);
             panelRt.anchoredPosition = new Vector2(-10, -10);
-            panelRt.sizeDelta = new Vector2(150, 100);
+            panelRt.sizeDelta = new Vector2(150, 145); // Increased height
 
             // Toggle Map Button
             Button mapBtn = CreateButton(optionsPanel.transform, "Toggle Map (M)", new Vector2(0, 0));
@@ -298,6 +325,13 @@ namespace HillDefence
             {
                 isHudVisible = !isHudVisible;
                 if (GameInfoPanel.instance != null) GameInfoPanel.instance.gameObject.SetActive(isHudVisible);
+            });
+
+            // Build Turret Button
+            Button buildBtn = CreateButton(optionsPanel.transform, "Build Turret", new Vector2(0, -90));
+            buildBtn.onClick.AddListener(() =>
+            {
+                isPlacingTurret = !isPlacingTurret;
             });
         }
 

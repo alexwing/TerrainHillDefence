@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
 
@@ -21,7 +21,7 @@ namespace HillDefence
         private Vignette         _vignette;
         private AmbientOcclusion _ao;
 
-        private float _baseBloomIntensity = 0.8f;
+        private float _baseBloomIntensity = 2.0f;
         private bool _pulsing = false;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -75,6 +75,7 @@ namespace HillDefence
                 layer.volumeLayer = ~0; // Everything
                 layer.volumeTrigger = Camera.main.transform;
                 layer.antialiasingMode = PostProcessLayer.Antialiasing.FastApproximateAntialiasing;
+                Camera.main.allowHDR = true;
             }
         }
 
@@ -86,8 +87,8 @@ namespace HillDefence
                 _bloom = profile.AddSettings<Bloom>();
             }
             _bloom.enabled.value     = true;
-            _bloom.intensity.value   = _baseBloomIntensity;
-            _bloom.threshold.value   = 0.9f;
+            _bloom.intensity.value   = 2.0f; // very visible base bloom
+            _bloom.threshold.value   = 0.3f; // lower threshold so everything blooms
             _bloom.diffusion.value   = 6f;
             _bloom.fastMode.value    = false;
 
@@ -98,10 +99,10 @@ namespace HillDefence
             }
             _colorGrading.enabled.value       = true;
             _colorGrading.gradingMode.value   = GradingMode.HighDefinitionRange;
-            _colorGrading.temperature.value   = 12f;   // warm orange tint
-            _colorGrading.saturation.value    = 15f;   // vivid colors
-            _colorGrading.contrast.value      = 8f;
-            _colorGrading.gamma.value         = new Vector4(1f, 0.97f, 0.92f, 0f);
+            _colorGrading.temperature.value   = 35f;   // very warm orange tint
+            _colorGrading.saturation.value    = 30f;   // hyper vivid colors
+            _colorGrading.contrast.value      = 25f;
+            _colorGrading.gamma.value         = new Vector4(1f, 0.9f, 0.8f, 0f);
 
             // ── Vignette ────────────────────────────────────────────────
             if (!profile.TryGetSettings(out _vignette))
