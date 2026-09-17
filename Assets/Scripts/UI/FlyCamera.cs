@@ -15,6 +15,7 @@ public class FlyCamera : MonoBehaviour
     mouse click right: set lock/unlock movement         
 	*/
 
+    public static FlyCamera instance;
 
     [Tooltip("The terrain to follow")]
     public Terrain anchorToTerrain;
@@ -24,13 +25,11 @@ public class FlyCamera : MonoBehaviour
     [Tooltip("The max height of the terrain to fly over")]
     public float maxHeighToTerrain = 120f;
 
-
     [Tooltip("Regular speed")]
     public float mainSpeed = 2f;
     [Tooltip("Rotation speed")]
     public float rotationSpeed = 20f;
     [Tooltip(" Multiplied by how long shift is held.  Basically running.")]
-
     public float shiftAdd = 125f;
     [Tooltip("Maximum speed when holdin gshift")]
     public float maxShift = 100f;
@@ -40,56 +39,83 @@ public class FlyCamera : MonoBehaviour
     public static bool lockMovement = false;
     private float timeShiftLapsed = 1f;
 
+    // Teleport-to-map-click state
+    private bool _isTeleporting = false;
+    private Vector3 _teleportTarget;
+    [Tooltip("How fast the camera glides to the map-click destination (units/sec)")]
+    public float teleportSpeed = 80f;
+
     private void Awake()
     {
+        instance = this;
         marginToTerrain = ((maxHeighToTerrain - minHeighToTerrain) * 0.5f) + minHeighToTerrain;
+    }
 
+    /// <summary>
+    /// Smoothly moves the camera to a world-space XZ position (Y is kept terrain-anchored).
+    /// Called by MapController when the player clicks on the minimap.
+    /// </summary>
+    public void TeleportTo(Vector3 worldPos)
+    {
+        _teleportTarget = worldPos;
+        _isTeleporting = true;
     }
 
     private void Update()
     {
-        Cursor.visible = lockMovement;
-        Cursor.lockState = lockMovement ? CursorLockMode.None : CursorLockMode.Locked;
-
-        if (!lockMovement)
+        // ── Teleport slide (overrides normal input while active) ──
+        if (_isTeleporting)
         {
-            // Mouse camera angle.  
-            float h = Input.GetAxis("Mouse X") * rotationSpeed;
-            float v = Input.GetAxis("Mouse Y") * rotationSpeed;
-            Vector3 delta = new Vector3(h, v, 0f);
+            Vector3 current = transform.position;
+            Vector3 target = new Vector3(_teleportTarget.x, current.y, _teleportTarget.z);
+            transform.position = Vector3.MoveTowards(current, target, teleportSpeed * Time.deltaTime);
+            if (Vector3.Distance(transform.position, target) < 1f)
+                _isTeleporting = false;
+            // Still apply terrain anchoring below
+        }
+        else
+        {
+            Cursor.visible = lockMovement;
+            Cursor.lockState = lockMovement ? CursorLockMode.None : CursorLockMode.Locked;
 
-            delta = new Vector3(-delta.y * camSens, delta.x * camSens, 0f);
-            delta = new Vector3(transform.eulerAngles.x + delta.x, transform.eulerAngles.y + delta.y, 0f);
-            transform.eulerAngles = delta;
-
-            // Keyboard commands
-
-            Vector3 p = GetBaseInput();
-
-            if (Input.GetKey(KeyCode.LeftShift))
+            if (!lockMovement)
             {
+                // Mouse camera angle.  
+                float h = Input.GetAxis("Mouse X") * rotationSpeed;
+                float v = Input.GetAxis("Mouse Y") * rotationSpeed;
+                Vector3 delta = new Vector3(h, v, 0f);
 
-                timeShiftLapsed += Time.deltaTime;
+                delta = new Vector3(-delta.y * camSens, delta.x * camSens, 0f);
+                delta = new Vector3(transform.eulerAngles.x + delta.x, transform.eulerAngles.y + delta.y, 0f);
+                transform.eulerAngles = delta;
 
-                //   totalRun += Time.deltaTime;
-                p = p * totalRun * shiftAdd * timeShiftLapsed;
-                p.x = Mathf.Clamp(p.x, -maxShift,+maxShift);
-                p.y = Mathf.Clamp(p.y, -maxShift, +maxShift);
-                p.z = Mathf.Clamp(p.z, -maxShift,+maxShift);
+                // Keyboard commands
+                Vector3 p = GetBaseInput();
 
+                if (Input.GetKey(KeyCode.LeftShift))
+                {
+                    timeShiftLapsed += Time.deltaTime;
+                    p = p * totalRun * shiftAdd * timeShiftLapsed;
+                    p.x = Mathf.Clamp(p.x, -maxShift, +maxShift);
+                    p.y = Mathf.Clamp(p.y, -maxShift, +maxShift);
+                    p.z = Mathf.Clamp(p.z, -maxShift, +maxShift);
+                }
+                else
+                {
+                    totalRun = Mathf.Clamp(mainSpeed * 0.5f, 1f, 1000f);
+                    p = p * totalRun;
+                    timeShiftLapsed = 1f;
+                }
+
+                p = p * Time.deltaTime;
+                transform.Translate(p);
             }
-            else
-            {
-                totalRun = Mathf.Clamp(mainSpeed * 0.5f, 1f, 1000f);
-                p = p * totalRun;
-                timeShiftLapsed = 1f;
-            }
 
-            p = p * Time.deltaTime;
-            transform.Translate(p);
-
+            // Cancel teleport on any WASD input
+            if (Input.anyKey) _isTeleporting = false;
         }
 
+        // ── Terrain anchoring (always active) ──
         if (anchorToTerrain)
         {
             Vector3 newPosition = transform.position;
@@ -101,34 +127,26 @@ public class FlyCamera : MonoBehaviour
             newPosition.z = Mathf.Clamp(newPosition.z, anchorToTerrain.transform.position.z, anchorToTerrain.transform.position.z + anchorToTerrain.terrainData.size.z);
             this.transform.position = new Vector3(newPosition.x, height + marginToTerrain, newPosition.z);
 
-            //mouse whell change marginToTerrain
-            marginToTerrain -= Input.GetAxis("Mouse ScrollWheel") * mainSpeed;
-
-            if (minHeighToTerrain > marginToTerrain)
+            //mouse wheel change marginToTerrain
+            if (!_isTeleporting)
             {
-                marginToTerrain = minHeighToTerrain;
-            }
-            if (marginToTerrain > maxHeighToTerrain)
-            {
-                marginToTerrain = maxHeighToTerrain;
+                marginToTerrain -= Input.GetAxis("Mouse ScrollWheel") * mainSpeed;
+                if (minHeighToTerrain > marginToTerrain) marginToTerrain = minHeighToTerrain;
+                if (marginToTerrain > maxHeighToTerrain) marginToTerrain = maxHeighToTerrain;
             }
         }
-
 
         //lock movement with mouse click
         if (Input.GetKeyDown(KeyCode.Escape) || Input.GetMouseButtonUp(1))
         {
             lockMovement = !lockMovement;
         }
-
     }
 
     private Vector3 GetBaseInput()
     {
         // Returns the basic values, if it's 0 than it's not active.
-
         Vector3 p_Velocity = new Vector3();
-
         if (!lockMovement)
         {
             if (Input.GetKey(KeyCode.W)) p_Velocity += Vector3.forward;
@@ -136,7 +154,6 @@ public class FlyCamera : MonoBehaviour
             if (Input.GetKey(KeyCode.A)) p_Velocity += Vector3.left;
             if (Input.GetKey(KeyCode.D)) p_Velocity += Vector3.right;
         }
-
         return p_Velocity;
     }
 }

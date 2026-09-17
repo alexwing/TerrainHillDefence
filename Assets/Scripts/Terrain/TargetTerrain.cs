@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 namespace HillDefence
 {
     public class TargetTerrain : MonoBehaviour
@@ -142,26 +142,32 @@ namespace HillDefence
 
         public void DetonationTerrain(GameObject collision, float destructionSize)
         {
-
             GameObject detonation = Instantiate(detonationPrefab, collision.transform.position, Quaternion.identity) as GameObject;
             detonation.transform.localScale = new Vector3(destructionSize, destructionSize, destructionSize);
             Destroy(detonation, SceneConfig.TERRAIN.explosionLife);
 
-           // Destroy(Instantiate(detonationPrefab, collision.transform.position, Quaternion.identity), SceneConfig.TERRAIN.explosionLife);
-
             GameObject _currentEffect = Instantiate(collision.gameObject, collision.transform.position, Quaternion.identity);
-
             for (int i = 0; i < _currentEffect.transform.childCount; i++)
             {
                 _currentEffect.transform.GetChild(i).transform.localScale = new Vector3(destructionSize, destructionSize, destructionSize) * 0.1f;
             }
             Destroy(_currentEffect, 0.5f);
-            for (int i = 0; i < destructionSize*2; i++)
+
+            for (int i = 0; i < destructionSize * 2; i++)
             {
                 Destroy(Instantiate(detonationPrefab, Utils.RandomNearPosition(collision.transform, SceneConfig.TERRAIN.ramdomExplosion, 0f, SceneConfig.TERRAIN.ramdomExplosion).position, Quaternion.identity), SceneConfig.TERRAIN.explosionLife);
             }
+
             detonationTowerPrefab.transform.localScale = new Vector3(destructionSize, destructionSize, destructionSize);
             Destroy(Instantiate(detonationTowerPrefab, collision.transform.position, Quaternion.identity), SceneConfig.TERRAIN.explosionLife);
+
+            // ── Big-base explosion: spawn the expanding fire wave ────────
+            if (destructionSize >= SceneConfig.FLAG.DetonationSize)
+            {
+                GameObject fxHost = new GameObject("FlagExplosionFX");
+                FlagExplosionFX fx = fxHost.AddComponent<FlagExplosionFX>();
+                fx.Play(collision.transform.position, destructionSize, detonationPrefab, detonationTowerPrefab);
+            }
         }
     }
 }

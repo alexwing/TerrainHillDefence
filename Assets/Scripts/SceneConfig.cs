@@ -9,7 +9,15 @@ public static class SceneConfig
         public static int Lives = 20;
         public static int DestrucionTerrainSize = 20;
         public readonly static float DetonationSize = 50f;
-
+        // Explosion FX parameters
+        public readonly static int ExplosionWaveCount = 24;       // particles in the expanding ring
+        public readonly static float ExplosionWaveDuration = 3f;  // seconds to expand
+        public readonly static float ExplosionMaxScale = 6f;      // peak scale of each fireball
+        public readonly static float CameraShakeMagnitude = 0.8f;
+        public readonly static float CameraShakeDuration = 1.2f;
+        // Post FX bloom pulse
+        public readonly static float BloomPulseIntensity = 12f;
+        public readonly static float BloomPulseDuration = 1.5f;
     }
     public static class TOWER
     {
