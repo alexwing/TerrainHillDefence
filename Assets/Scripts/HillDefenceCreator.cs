@@ -1,4 +1,4 @@
-﻿
+
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -55,9 +55,9 @@ namespace HillDefence
             SpawnHills();
             SpawnEnemyTeam();
             SpawnSoldiers();
-            // UIController.instance.CreateHealthbars();         
             AIController.instance.Init((int)terrain.terrainData.size.x);
             MapController.instance.Init((int)terrain.terrainData.size.x, SceneConfig.FindSizeMap);
+            if (GameInfoPanel.instance != null) GameInfoPanel.instance.Init();
         }
         void SpawnHills()
         {

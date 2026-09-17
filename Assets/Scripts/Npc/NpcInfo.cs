@@ -65,7 +65,7 @@ namespace HillDefence
                     Vector3 shootPos = shootInitPosition.transform.position + dir;
                     GameObject shootSend = Instantiate(HillDefenceCreator.teams[npcInfo.teamNumber].bulletPrefab, shootPos, Quaternion.identity);
                     //move bullet to enemy
-                    shootSend.GetComponent<Rigidbody>().velocity = dir * speed;
+                    shootSend.GetComponent<Rigidbody>().linearVelocity = dir * speed;
                     Bullet bullet = shootSend.GetComponent<Bullet>();
                     bullet.origin = shootPos;
                     bullet.npcInfo = npcInfo;

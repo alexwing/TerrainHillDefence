@@ -1,4 +1,4 @@
-﻿public static class SceneConfig
+public static class SceneConfig
 {
     public static bool Debug = false;
 
@@ -41,7 +41,11 @@
         public readonly static float shootCarence = 1.75f;
         public readonly static float shootSpeed = 100f;
         public readonly static float shootTargetHeight = 1.75f;
-
+        // Avoidance of own towers
+        public readonly static float TowerAvoidanceRadius = 15f;
+        public readonly static float TowerAvoidanceStrength = 2.5f;
+        // Flag defense: distance within which soldiers react to flag under attack
+        public readonly static float FlagDefenseRange = 200f;
     }
 
     public static class TERRAIN

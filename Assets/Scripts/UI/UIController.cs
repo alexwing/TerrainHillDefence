@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace HillDefence
 {
@@ -10,8 +11,18 @@ namespace HillDefence
         public GameObject cursorPointer;
         public Terrain anchorToTerrain;
 
+        [Header("Win Screen")]
         public TextMeshProUGUI winText;
+        [Tooltip("Semi-transparent overlay panel that covers the screen on win.")]
+        public GameObject winOverlay;
+        [Tooltip("Image component of winOverlay, used to tint it with the winner team colour.")]
+        public UnityEngine.UI.Image winOverlayImage;
+        [Tooltip("Extra TextMeshProUGUI inside winOverlay for final stats.")]
+        public TextMeshProUGUI winStatsText;
+        [Tooltip("Button to restart the scene shown on the win screen.")]
+        public GameObject restartButton;
 
+        [Header("HUD")]
         public Transform healthLayoutHolder;
         public GameObject healthLayout;
         public GameObject map;
@@ -29,9 +40,11 @@ namespace HillDefence
             else if (instance != this)
             {
                 Destroy(gameObject);
-
             }
             map.SetActive(false);
+            if (winOverlay != null) winOverlay.SetActive(false);
+            if (restartButton != null) restartButton.SetActive(false);
+            if (winText != null) winText.gameObject.SetActive(false);
         }
 
         private void Update()
@@ -102,12 +115,51 @@ namespace HillDefence
             }
         }
 
-        public void ShowWin(Team Team)
+        public void ShowWin(Team team)
         {
-            winText.transform.gameObject.SetActive(true);
-            winText.text = Team.teamNumber + " wins!";
-            // winText.color = Team.teamColor;
+            // Stop game info refresh
+            if (GameInfoPanel.instance != null)
+                GameInfoPanel.instance.StopRefresh();
 
+            // Activate win overlay and tint it with the winner team colour
+            if (winOverlay != null)
+            {
+                winOverlay.SetActive(true);
+                if (winOverlayImage != null)
+                {
+                    Color overlayColor = team.teamColor;
+                    overlayColor.a = 0.55f;
+                    winOverlayImage.color = overlayColor;
+                }
+            }
+
+            // Main win text
+            if (winText != null)
+            {
+                winText.gameObject.SetActive(true);
+                winText.text = $"TEAM {team.teamNumber} WINS!";
+                winText.color = team.teamColor;
+            }
+
+            // Final stats
+            if (winStatsText != null)
+            {
+                winStatsText.gameObject.SetActive(true);
+                winStatsText.text =
+                    $"Soldiers remaining: {team.soldiers.Count}\n" +
+                    $"Towers active: {team.towers.Count}\n" +
+                    $"Flags captured: {team.flagsWinsCount}";
+            }
+
+            // Show restart button
+            if (restartButton != null)
+                restartButton.SetActive(true);
+        }
+
+        /// <summary>Called by the Restart button in the Win screen.</summary>
+        public void RestartGame()
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
 
         public void CreateHealthbars()
@@ -117,14 +169,6 @@ namespace HillDefence
             {
                 Destroy(healthLayoutHolder.GetChild(i).gameObject);
             }
-
-            // print ("CreateHealthbars"+HillDefenceCreator.soldiers.Count);
-
-            /*for (int i = 0; i < HillDefenceCreator.soldiers.Count; i++)
-            {
-                CreateHealthbar(HillDefenceCreator.soldiers[i]);
-            }*/
-
         }
 
         void CreateHealthbar(TeamSoldier teamSoldier)
@@ -132,9 +176,8 @@ namespace HillDefence
             GameObject newHealthbar = GameObject.Instantiate(healthLayout, healthLayoutHolder);
             newHealthbar.transform.SetParent(healthLayoutHolder);
             newHealthbar.transform.position = Vector3.zero;
-
             newHealthbar.GetComponent<HealthLayout>().SetUp(teamSoldier);
         }
     }
 
-}
+}
