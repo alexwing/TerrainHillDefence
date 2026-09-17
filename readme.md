@@ -6,7 +6,7 @@ This game is a tower defence game. The player controls a tower which is placed o
 
 ## Requirements
 
-Unity 2021.2.5f1
+Unity 6000.0.68f1
 
 ## Controls
 
@@ -70,8 +70,7 @@ Unity 2021.2.5f1
 
 ## Change log
 
-
-* 2021-10-12 Fix towers shoot and change enemy when attack npc
+* 2026-09-17 Upgrade project to Unity 6000.0.68f1
 * 2021-10-07 Simplify destruction terrain, fix tower shoot
 * 2021-09-19 Separte to MapController from AIController
 * 2021-09-11 fix tower instanciate and find enemy
