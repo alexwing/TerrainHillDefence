@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 
 namespace HillDefence
@@ -188,10 +188,13 @@ namespace HillDefence
                     // Tower-avoidance steering: push away from nearby friendly towers
                     desiredDir = ApplyTowerAvoidance(desiredDir);
 
-                    // Move along the resulting direction
+                    // Target at the same distance as the enemy but in the avoidance-corrected direction.
+                    // This preserves the original Lerp speed while gently steering around towers.
+                    Vector3 targetPos = transform.position + desiredDir * distance;
+
                     transform.position = Vector3.Lerp(
                         transform.position,
-                        transform.position + desiredDir * 10f,
+                        targetPos,
                         Time.deltaTime * SceneConfig.SOLDIER.SoldierVelocity * (1f / SceneConfig.SOLDIER.SoldierFrameRate));
 
                     isWalking = true;
