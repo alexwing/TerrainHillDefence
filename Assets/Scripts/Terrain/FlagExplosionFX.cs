@@ -4,8 +4,7 @@ using UnityEngine;
 namespace HillDefence
 {
     /// <summary>
-    /// Plays an expanded fire-wave effect when a flag base is destroyed.
-    /// Spawned by TargetTerrain.DetonationTerrain() for large explosions.
+    /// Plays an expanded fire-wave effect and camera shake when a flag base is destroyed.
     /// </summary>
     public class FlagExplosionFX : MonoBehaviour
     {
@@ -32,14 +31,14 @@ namespace HillDefence
             float duration    = SceneConfig.FLAG.ExplosionWaveDuration;
             float maxScale    = SceneConfig.FLAG.ExplosionMaxScale * baseScale * 0.12f;
             float maxRadius   = baseScale * 1.8f;
-            float interval    = duration / waveCount;
+            float interval    = duration / Mathf.Max(1, waveCount);
             float shakeMag    = SceneConfig.FLAG.CameraShakeMagnitude;
             float shakeDur    = SceneConfig.FLAG.CameraShakeDuration;
 
             // 1 — Immediate central shockwave
             if (shockwavePrefab != null)
             {
-                float sw = baseScale * 1.4f;
+                float sw = baseScale * 1.5f;
                 GameObject shock = Instantiate(shockwavePrefab, center, Quaternion.identity);
                 shock.transform.localScale = new Vector3(sw, sw, sw);
                 Destroy(shock, SceneConfig.TERRAIN.explosionLife);
@@ -50,33 +49,35 @@ namespace HillDefence
 
             // 3 — Notify post-FX for bloom pulse
             if (CameraPostFX.instance != null)
+            {
                 CameraPostFX.instance.TriggerExplosionBloom();
+            }
 
             // 4 — Expanding fire ring
             for (int i = 0; i < waveCount; i++)
             {
-                float t = (float)i / (waveCount - 1);           // 0 → 1
-                float radius   = Mathf.Lerp(0f, maxRadius, t);
-                float scale    = Mathf.Sin(t * Mathf.PI) * maxScale; // grow then shrink
-                scale = Mathf.Max(scale, maxScale * 0.15f);
+                float t = (float)i / Mathf.Max(1, waveCount - 1);           // 0 -> 1
+                float radius = Mathf.Lerp(5f, maxRadius, t);
+                float scale  = Mathf.Sin(t * Mathf.PI) * maxScale;
+                scale = Mathf.Max(scale, maxScale * 0.2f);
 
-                // Evenly distribute fireballs around the ring
+                // Evenly distribute fireballs around the expanding ring
                 for (int j = 0; j < 6; j++)
                 {
-                    float angle = (j / 6f + t * 0.3f) * Mathf.PI * 2f; // slow spin
+                    float angle = (j / 6f + t * 0.4f) * Mathf.PI * 2f;
                     float ox = Mathf.Cos(angle) * radius;
                     float oz = Mathf.Sin(angle) * radius;
                     Vector3 spawnPos = center + new Vector3(ox, 0, oz);
 
-                    // Snap to terrain height
                     if (Terrain.activeTerrain != null)
+                    {
                         spawnPos.y = Terrain.activeTerrain.SampleHeight(spawnPos);
+                    }
 
                     if (firePrefab != null)
                     {
                         GameObject fx = Instantiate(firePrefab, spawnPos, Quaternion.identity);
                         fx.transform.localScale = Vector3.one * scale;
-                        // Punch-scale then destroy
                         StartCoroutine(PunchScale(fx.transform, scale, SceneConfig.TERRAIN.explosionLife));
                     }
                 }
@@ -104,17 +105,26 @@ namespace HillDefence
         {
             if (Camera.main == null) yield break;
             Transform camT = Camera.main.transform;
-            Vector3 originalPos = camT.localPosition;
+            Vector3 lastOffset = Vector3.zero;
             float elapsed = 0f;
 
-            while (elapsed < duration)
+            while (elapsed < duration && camT != null)
             {
                 float strength = Mathf.Lerp(magnitude, 0f, elapsed / duration);
-                camT.localPosition = originalPos + Random.insideUnitSphere * strength;
+                Vector3 newOffset = Random.insideUnitSphere * strength;
+
+                // Relative offset application prevents snapping if camera is flying
+                camT.position += (newOffset - lastOffset);
+                lastOffset = newOffset;
+
                 elapsed += Time.deltaTime;
                 yield return null;
             }
-            camT.localPosition = originalPos;
+
+            if (camT != null)
+            {
+                camT.position -= lastOffset;
+            }
         }
     }
 }

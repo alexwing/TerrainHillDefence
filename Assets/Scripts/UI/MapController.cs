@@ -16,7 +16,7 @@ namespace HillDefence
         public static float realHeight;
         public GameObject playerPoiMap;
 
-        [Tooltip("The RawImage that displays the minimap. Assign in Inspector.")]
+        [Tooltip("The RawImage that displays the minimap. Assign in Inspector or auto-found.")]
         public RawImage mapRawImage;
 
         void Awake()
@@ -30,12 +30,31 @@ namespace HillDefence
             height = width = sizeMap;
             AIBitmap = new Texture2D(width, height);
 
+            // Auto-locate mapRawImage if not manually wired
+            if (mapRawImage == null)
+            {
+                RawImage[] rawImages = GetComponentsInChildren<RawImage>(true);
+                foreach (RawImage r in rawImages)
+                {
+                    if (r.texture == AIMapTexture || r.name.ToLower().Contains("map") || rawImages.Length == 1)
+                    {
+                        mapRawImage = r;
+                        break;
+                    }
+                }
+                if (mapRawImage == null && rawImages.Length > 0)
+                {
+                    mapRawImage = rawImages[0];
+                }
+            }
+
             // Register click handler on the minimap RawImage
             if (mapRawImage != null)
             {
                 EventTrigger trigger = mapRawImage.gameObject.GetComponent<EventTrigger>();
                 if (trigger == null) trigger = mapRawImage.gameObject.AddComponent<EventTrigger>();
 
+                trigger.triggers.Clear();
                 var entry = new EventTrigger.Entry { eventID = EventTriggerType.PointerClick };
                 entry.callback.AddListener((data) =>
                 {
@@ -47,28 +66,26 @@ namespace HillDefence
 
         /// <summary>
         /// Called when the player clicks on the minimap.
-        /// Converts the click position to a world position and teleports the camera there.
+        /// Converts the click position to world coordinates and moves the camera there.
         /// </summary>
-        private void OnMapClick(PointerEventData eventData)
+        public void OnMapClick(PointerEventData eventData)
         {
             if (mapRawImage == null || FlyCamera.instance == null) return;
 
-            // Convert screen point to local point inside the RawImage rect
             RectTransform rt = mapRawImage.rectTransform;
             Vector2 localPoint;
             if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
                     rt, eventData.position, eventData.pressEventCamera, out localPoint))
                 return;
 
-            // Normalize to [0,1] — localPoint ranges from (-width/2, -height/2) to (width/2, height/2)
-            float normX = (localPoint.x / rt.rect.width) + 0.5f;
-            float normZ = (localPoint.y / rt.rect.height) + 0.5f;
+            // Normalize coordinate within rect (independent of pivot/anchors)
+            float normX = Mathf.Clamp01((localPoint.x - rt.rect.xMin) / rt.rect.width);
+            float normZ = Mathf.Clamp01((localPoint.y - rt.rect.yMin) / rt.rect.height);
 
-            // Convert normalized map coords to world XZ
-            float worldX = Mathf.Lerp(0, realWidth,  normX);
-            float worldZ = Mathf.Lerp(0, realHeight, normZ);
+            // Convert normalized coordinates to terrain world position
+            float worldX = normX * realWidth;
+            float worldZ = normZ * realHeight;
 
-            // Close the map and teleport the camera
             FlyCamera.instance.TeleportTo(new Vector3(worldX, 0, worldZ));
         }
 
@@ -86,11 +103,12 @@ namespace HillDefence
 
         public void refreshAIMap()
         {
+            if (AIBitmap == null) return;
             AIBitmap = Utils.FillColorAlpha(AIBitmap);
 
             foreach (NpcInfo npc in HillDefenceCreator.Npcs)
             {
-                if (!npc.npcInfo.isDead && npc != null)
+                if (npc != null && !npc.npcInfo.isDead)
                 {
                     Vector2 pos = posToMap(npc.transform.position.x, npc.transform.position.z);
                     if (pos.x >= 0 && pos.x < width && pos.y >= 0 && pos.y < height)
@@ -128,13 +146,12 @@ namespace HillDefence
             AIBitmap.Apply();
             Graphics.Blit(AIBitmap, AIMapTexture);
 
-            //update position of playerPoiMap from camera main to aiMap with same position
-            Vector2 pos2 = posToPostionMap(Camera.main.transform.position.x, Camera.main.transform.position.z);
-            playerPoiMap.GetComponent<RectTransform>().localPosition = new Vector3(pos2.x, pos2.y);
-
-            Console.WriteLine("refreshAIMap");
-
-            playerPoiMap.GetComponent<RectTransform>().rotation = new Quaternion(Camera.main.transform.rotation.x, Camera.main.transform.rotation.z, 0, 0);
+            if (playerPoiMap != null && Camera.main != null)
+            {
+                Vector2 pos2 = posToPostionMap(Camera.main.transform.position.x, Camera.main.transform.position.z);
+                playerPoiMap.GetComponent<RectTransform>().localPosition = new Vector3(pos2.x, pos2.y);
+                playerPoiMap.GetComponent<RectTransform>().rotation = new Quaternion(Camera.main.transform.rotation.x, Camera.main.transform.rotation.z, 0, 0);
+            }
         }
 
         public Vector2 posToPostionMap(float x, float y)

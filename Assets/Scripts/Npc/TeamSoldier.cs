@@ -1,5 +1,4 @@
-using UnityEngine;
-
+﻿using UnityEngine;
 
 namespace HillDefence
 {
@@ -10,7 +9,7 @@ namespace HillDefence
         public GameObject head;
         public GameObject arms;
 
-        [Tooltip("Prefab of the World-Space Canvas healthbar. Assign in Inspector.")]
+        [Tooltip("Prefab of the World-Space Canvas healthbar. Assign in Inspector or loaded from Resources.")]
         public GameObject healthBarPrefab;
 
         private float AttackDistance = 0f;
@@ -20,7 +19,7 @@ namespace HillDefence
         private bool isWalking = false;
         private string animateStatus = "";
 
-        // Healthbar instance spawned as a child
+        // Healthbar instance spawned in world
         private GameObject _healthBarInstance;
 
         // Use this for initialization
@@ -41,10 +40,14 @@ namespace HillDefence
             InvokeRepeating("UpdateSoldier", Random.Range(0, 1f / SceneConfig.SOLDIER.SoldierFrameRate), 1f / SceneConfig.SOLDIER.SoldierFrameRate);
             InvokeRepeating("findEnemy", Random.Range(0, 1f / SceneConfig.SOLDIER.SoldierFindFrameRate), 1f / SceneConfig.SOLDIER.SoldierFindFrameRate);
 
-            // Spawn healthbar if prefab is assigned
+            // Spawn healthbar
+            if (healthBarPrefab == null)
+            {
+                healthBarPrefab = Resources.Load<GameObject>("healthLayout");
+            }
             if (healthBarPrefab != null)
             {
-                _healthBarInstance = Instantiate(healthBarPrefab);
+                _healthBarInstance = Instantiate(healthBarPrefab, transform.position + Vector3.up * 2.5f, Quaternion.identity);
                 HealthLayout hl = _healthBarInstance.GetComponentInChildren<HealthLayout>();
                 if (hl != null) hl.SetUp(this);
             }
@@ -52,27 +55,25 @@ namespace HillDefence
 
         void OnTriggerEnter(Collider collision)
         {
-            if (!collision.gameObject)
-            {
-                return;
-            }
+            if (!collision.gameObject) return;
+
             if (collision.gameObject.tag == "bullet" && "bullet_" + npcInfo.teamNumber != collision.gameObject.name)
             {
                 TargetTerrain.instance.DetonationBullet(collision.gameObject);
+
+                npcInfo.shootCount++;
                 if (npcInfo.shootCount >= SceneConfig.SOLDIER.Lives && !npcInfo.isDead)
                 {
                     deathNPC();
                 }
                 else
                 {
-                    //atack to the shotting bullet enemy
+                    // Attack the enemy that shot the bullet
                     Bullet findAttackingME = collision.gameObject.GetComponent<Bullet>();
                     enemyNpc = findAttackingME != null && findAttackingME.npcInfo.teamNumber != npcInfo.teamNumber && !npcInfo.isDead ? findAttackingME.npcInfo : enemyNpc;
                 }
 
-                npcInfo.shootCount++;
                 Destroy(collision.gameObject);
-
             }
         }
 
@@ -81,14 +82,12 @@ namespace HillDefence
             npcInfo.isDead = true;
             this.name = "death_" + this.name;
             is_death();
-            //remove from HillDefenceCreator.soldiers
+
             HillDefenceCreator.Npcs.Remove(gameObject.GetComponent<TeamSoldier>());
-            //remove from team.soldiers
             HillDefenceCreator.teams[npcInfo.teamNumber].soldiers.Remove(gameObject.GetComponent<TeamSoldier>());
             animateStatus = "death";
-            //remove soldier collider
+
             Destroy(this.GetComponent<BoxCollider>());
-            //remove InvokeRepeatings UpdateSoldier findEnemy
             CancelInvoke("UpdateSoldier");
             CancelInvoke("findEnemy");
 
@@ -109,7 +108,7 @@ namespace HillDefence
 
         public void findEnemy()
         {
-            // Priority 1: own flag is under attack → defend it
+            // Priority 1: own flag is under attack -> defend it
             TeamFlag myFlag = HillDefenceCreator.teams[npcInfo.teamNumber].teamFlag;
             if (myFlag != null && myFlag.isUnderAttack && myFlag.lastAttacker != null && !myFlag.lastAttacker.isDead)
             {
@@ -121,10 +120,9 @@ namespace HillDefence
                 }
             }
 
-            //if not enemy
+            // If no enemy target, acquire one
             if (enemyNpc == null)
             {
-                //find nearest enemy soldier
                 GameNpc findNpcEnemy = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.SOLDIER.FindEnemyRange, NpcType.soldier);
                 if (findNpcEnemy != null)
                 {
@@ -132,7 +130,6 @@ namespace HillDefence
                 }
                 else
                 {
-                    //find enemy flag
                     findNpcEnemy = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, -1, NpcType.flag);
                     enemyNpc = findNpcEnemy != null ? findNpcEnemy : enemyNpc;
                 }
@@ -143,20 +140,17 @@ namespace HillDefence
                 {
                     enemyNpc = null;
                 }
-                else
+                else if (enemyNpc.npcType == NpcType.flag)
                 {
-                    if (enemyNpc.npcType == NpcType.flag)
-                    {
-                        GameNpc findNpcEnemy = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.SOLDIER.FindEnemyRange, NpcType.soldier);
-                        enemyNpc = findNpcEnemy != null ? findNpcEnemy : enemyNpc;
-                    }
+                    GameNpc findNpcEnemy = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.SOLDIER.FindEnemyRange, NpcType.soldier);
+                    enemyNpc = findNpcEnemy != null ? findNpcEnemy : enemyNpc;
                 }
             }
         }
 
         private void UpdateSoldier()
         {
-            //is team flag is destroit
+            // If team flag is destroyed, soldier dies
             if (HillDefenceCreator.teams[npcInfo.teamNumber].teamFlag.npcInfo.isDead && !npcInfo.isDead)
             {
                 deathNPC();
@@ -164,13 +158,12 @@ namespace HillDefence
             }
 
             Vector3 beforePosition = transform.position;
-            if (animateStatus == "death")
-            {
-                return;
-            }
+            if (animateStatus == "death") return;
+
             shootTime += Time.deltaTime;
             float y = Terrain.activeTerrain.SampleHeight(transform.position);
             transform.position = new Vector3(transform.position.x, y, transform.position.z);
+
             if (enemyNpc != null)
             {
                 if (enemyNpc.isDead || enemyNpc.npcObject == null)
@@ -178,20 +171,20 @@ namespace HillDefence
                     enemyNpc = null;
                     return;
                 }
+
                 Vector3 myPosition = transform.position;
                 float distance = Vector3.Distance(enemyNpc.npcObject.transform.position, myPosition);
+
                 if (distance > SceneConfig.SOLDIER.AttackRange + AttackDistance && enemyNpc != null)
                 {
                     // Base direction toward enemy
                     Vector3 desiredDir = (enemyNpc.npcObject.transform.position - transform.position).normalized;
 
-                    // Tower-avoidance steering: push away from nearby friendly towers
+                    // Steer around towers
                     desiredDir = ApplyTowerAvoidance(desiredDir);
 
-                    // Target at the same distance as the enemy but in the avoidance-corrected direction.
-                    // This preserves the original Lerp speed while gently steering around towers.
+                    // Move toward target distance in the avoidance direction
                     Vector3 targetPos = transform.position + desiredDir * distance;
-
                     transform.position = Vector3.Lerp(
                         transform.position,
                         targetPos,
@@ -203,7 +196,13 @@ namespace HillDefence
                 {
                     is_ataka();
                 }
-                transform.rotation = Quaternion.LookRotation(enemyNpc.npcObject.transform.position - transform.position);
+
+                Vector3 lookTarget = enemyNpc.npcObject.transform.position - transform.position;
+                lookTarget.y = 0;
+                if (lookTarget.sqrMagnitude > 0.01f)
+                {
+                    transform.rotation = Quaternion.LookRotation(lookTarget);
+                }
             }
 
             if (isWalking)
@@ -212,7 +211,6 @@ namespace HillDefence
                 {
                     is_walking();
                 }
-                //walking velocity
                 animator.speed = SceneConfig.SOLDIER.SoldierWalkAnimationVelocity + Mathf.Round((new Vector2(beforePosition.x, beforePosition.z) - new Vector2(transform.position.x, transform.position.z)).sqrMagnitude);
             }
             else
@@ -226,33 +224,36 @@ namespace HillDefence
         }
 
         /// <summary>
-        /// Adjusts the movement direction to steer away from friendly towers within avoidance radius.
+        /// Adjusts movement direction to steer away from towers.
         /// </summary>
         private Vector3 ApplyTowerAvoidance(Vector3 desiredDir)
         {
             Collider[] nearby = Physics.OverlapSphere(transform.position, SceneConfig.SOLDIER.TowerAvoidanceRadius);
             Vector3 avoidance = Vector3.zero;
             int count = 0;
+
             foreach (Collider col in nearby)
             {
                 TeamTower tower = col.GetComponent<TeamTower>();
-                if (tower != null && tower.npcInfo.teamNumber == npcInfo.teamNumber)
+                if (tower != null)
                 {
                     Vector3 away = transform.position - col.transform.position;
+                    away.y = 0; // Pure horizontal avoidance
                     float dist = away.magnitude;
-                    if (dist > 0.01f)
+                    if (dist > 0.05f)
                     {
-                        // Stronger avoidance the closer the tower
                         avoidance += away.normalized / dist;
                         count++;
                     }
                 }
             }
+
             if (count > 0)
             {
                 avoidance = (avoidance / count).normalized;
                 desiredDir = (desiredDir + avoidance * SceneConfig.SOLDIER.TowerAvoidanceStrength).normalized;
             }
+
             return desiredDir;
         }
 

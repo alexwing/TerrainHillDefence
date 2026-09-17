@@ -42,8 +42,8 @@ public class FlyCamera : MonoBehaviour
     // Teleport-to-map-click state
     private bool _isTeleporting = false;
     private Vector3 _teleportTarget;
-    [Tooltip("How fast the camera glides to the map-click destination (units/sec)")]
-    public float teleportSpeed = 80f;
+    [Tooltip("Minimum speed the camera glides to the map destination (units/sec)")]
+    public float teleportSpeed = 400f;
 
     private void Awake()
     {
@@ -63,15 +63,25 @@ public class FlyCamera : MonoBehaviour
 
     private void Update()
     {
-        // ── Teleport slide (overrides normal input while active) ──
+        // ── Teleport slide (overrides normal keyboard move while active) ──
         if (_isTeleporting)
         {
             Vector3 current = transform.position;
             Vector3 target = new Vector3(_teleportTarget.x, current.y, _teleportTarget.z);
-            transform.position = Vector3.MoveTowards(current, target, teleportSpeed * Time.deltaTime);
-            if (Vector3.Distance(transform.position, target) < 1f)
+            float dist = Vector3.Distance(new Vector3(current.x, 0, current.z), new Vector3(target.x, 0, target.z));
+            float speed = Mathf.Max(teleportSpeed, dist * 3f);
+
+            transform.position = Vector3.MoveTowards(current, target, speed * Time.deltaTime);
+            if (dist < 2f)
+            {
                 _isTeleporting = false;
-            // Still apply terrain anchoring below
+            }
+
+            // Cancel teleport if player presses WASD movement keys
+            if (GetBaseInput().sqrMagnitude > 0.001f)
+            {
+                _isTeleporting = false;
+            }
         }
         else
         {
@@ -110,9 +120,6 @@ public class FlyCamera : MonoBehaviour
                 p = p * Time.deltaTime;
                 transform.Translate(p);
             }
-
-            // Cancel teleport on any WASD input
-            if (Input.anyKey) _isTeleporting = false;
         }
 
         // ── Terrain anchoring (always active) ──

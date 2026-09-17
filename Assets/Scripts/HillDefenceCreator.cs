@@ -57,6 +57,13 @@ namespace HillDefence
             SpawnSoldiers();
             AIController.instance.Init((int)terrain.terrainData.size.x);
             MapController.instance.Init((int)terrain.terrainData.size.x, SceneConfig.FindSizeMap);
+            if (GameInfoPanel.instance == null)
+            {
+                if (UIController.instance != null)
+                    UIController.instance.gameObject.AddComponent<GameInfoPanel>();
+                else
+                    new GameObject("GameInfoPanel").AddComponent<GameInfoPanel>();
+            }
             if (GameInfoPanel.instance != null) GameInfoPanel.instance.Init();
         }
         void SpawnHills()

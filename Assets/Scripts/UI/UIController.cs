@@ -1,12 +1,13 @@
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace HillDefence
 {
     public class UIController : MonoBehaviour
     {
-
         public static UIController instance;
         public GameObject cursorPointer;
         public Terrain anchorToTerrain;
@@ -16,7 +17,7 @@ namespace HillDefence
         [Tooltip("Semi-transparent overlay panel that covers the screen on win.")]
         public GameObject winOverlay;
         [Tooltip("Image component of winOverlay, used to tint it with the winner team colour.")]
-        public UnityEngine.UI.Image winOverlayImage;
+        public Image winOverlayImage;
         [Tooltip("Extra TextMeshProUGUI inside winOverlay for final stats.")]
         public TextMeshProUGUI winStatsText;
         [Tooltip("Button to restart the scene shown on the win screen.")]
@@ -29,8 +30,6 @@ namespace HillDefence
 
         public bool isMapVisible = false;
 
-
-
         void Awake()
         {
             if (instance == null)
@@ -40,8 +39,10 @@ namespace HillDefence
             else if (instance != this)
             {
                 Destroy(gameObject);
+                return;
             }
-            map.SetActive(false);
+
+            if (map != null) map.SetActive(false);
             if (winOverlay != null) winOverlay.SetActive(false);
             if (restartButton != null) restartButton.SetActive(false);
             if (winText != null) winText.gameObject.SetActive(false);
@@ -49,114 +50,202 @@ namespace HillDefence
 
         private void Update()
         {
-            //show/hide map
-            if (Input.GetKeyUp(KeyCode.M))
+            // Toggle map display with M
+            if (Input.GetKeyUp(KeyCode.M) && map != null)
             {
                 isMapVisible = !isMapVisible;
                 map.SetActive(isMapVisible);
-                MapController.instance.UIMapSetActive(isMapVisible);
+                if (MapController.instance != null)
+                {
+                    MapController.instance.UIMapSetActive(isMapVisible);
+                }
+                // When map is open, unlock cursor so player can click on it
+                FlyCamera.lockMovement = isMapVisible;
             }
 
-            //raycast mouse cursor to objetct pointer in terrain
-            if (Input.GetMouseButton(0) && anchorToTerrain)
+            // Raycast mouse cursor to object pointer in terrain
+            // Only when NOT clicking over UI elements (minimap, buttons, HUD)
+            bool isOverUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
+
+            if (Input.GetMouseButton(0) && anchorToTerrain && !isOverUI)
             {
                 RaycastHit hit;
-
-                if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 10000f))
+                if (Camera.main != null && Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 10000f))
                 {
                     if (hit.collider.gameObject == anchorToTerrain.gameObject)
                     {
-                        //find the near flag tower in the terrain
-                        GameNpc foundTeamTower = null;
+                        GameNpc foundTeamTower = AIController.instance.getNearNpc(hit.point, -1, -1, NpcType.flag);
 
-                        foundTeamTower = AIController.instance.getNearNpc(hit.point, -1, -1, NpcType.flag);
-
-                        cursorPointer.SetActive(true);
-                        //disable cursorPointer collider
-                        cursorPointer.GetComponent<BoxCollider>().enabled = false;
-
-                        //  Debug.Log("position x: " + hit.transform.position.x + " position z: " + hit.transform.position.z);
-                        cursorPointer.transform.position = hit.point;
-                        if (foundTeamTower != null)
+                        if (cursorPointer != null)
                         {
-                            Utils.ChangeColor(cursorPointer.GetComponent<TeamTower>().towerMaterial, HillDefenceCreator.teams[foundTeamTower.teamNumber].teamColor);
-                            if (Utils.DoubleClick())
+                            cursorPointer.SetActive(true);
+                            cursorPointer.GetComponent<BoxCollider>().enabled = false;
+                            cursorPointer.transform.position = hit.point;
+
+                            if (foundTeamTower != null)
                             {
-                                //instanciate a new cursor pointer
-                                GameObject newTower = Instantiate(cursorPointer, hit.point, Quaternion.identity) as GameObject;
-                                TeamTower teamTower = newTower.GetComponent<TeamTower>();
-                                teamTower.GetComponent<BoxCollider>().enabled = true;
-                                if (teamTower != null)
+                                Utils.ChangeColor(cursorPointer.GetComponent<TeamTower>().towerMaterial, HillDefenceCreator.teams[foundTeamTower.teamNumber].teamColor);
+                                if (Utils.DoubleClick())
                                 {
-                                    teamTower.npcInfo.teamNumber = foundTeamTower.teamNumber;
-                                    teamTower.npcInfo.npcNumber = HillDefenceCreator.teams[foundTeamTower.teamNumber].towers.Count - 1;
-                                    teamTower.npcInfo.npcType = NpcType.tower;
-                                    teamTower.npcInfo.npcObject = teamTower.gameObject;
+                                    GameObject newTower = Instantiate(cursorPointer, hit.point, Quaternion.identity) as GameObject;
+                                    TeamTower teamTower = newTower.GetComponent<TeamTower>();
+                                    teamTower.GetComponent<BoxCollider>().enabled = true;
+                                    if (teamTower != null)
+                                    {
+                                        teamTower.npcInfo.teamNumber = foundTeamTower.teamNumber;
+                                        teamTower.npcInfo.npcNumber = HillDefenceCreator.teams[foundTeamTower.teamNumber].towers.Count - 1;
+                                        teamTower.npcInfo.npcType = NpcType.tower;
+                                        teamTower.npcInfo.npcObject = teamTower.gameObject;
 
-                                    teamTower.name = "Tower_" + teamTower.npcInfo.teamNumber + "_" + teamTower.npcInfo.npcNumber;
-                                    teamTower.Init();
-                                    HillDefenceCreator.teams[foundTeamTower.teamNumber].towers.Add(teamTower);
-                                    HillDefenceCreator.Npcs.Add(teamTower);
-
+                                        teamTower.name = "Tower_" + teamTower.npcInfo.teamNumber + "_" + teamTower.npcInfo.npcNumber;
+                                        teamTower.Init();
+                                        HillDefenceCreator.teams[foundTeamTower.teamNumber].towers.Add(teamTower);
+                                        HillDefenceCreator.Npcs.Add(teamTower);
+                                    }
                                 }
                             }
-                        }
-                        else
-                        {
-                            Utils.ChangeColor(cursorPointer.GetComponent<TeamTower>().towerMaterial, Color.black);
+                            else
+                            {
+                                Utils.ChangeColor(cursorPointer.GetComponent<TeamTower>().towerMaterial, Color.black);
+                            }
                         }
                     }
                 }
             }
             else
             {
-                //hide cursor pointer when no mouse click
-                cursorPointer.SetActive(false);
+                if (cursorPointer != null) cursorPointer.SetActive(false);
             }
         }
 
         public void ShowWin(Team team)
         {
-            // Stop game info refresh
             if (GameInfoPanel.instance != null)
                 GameInfoPanel.instance.StopRefresh();
 
-            // Activate win overlay and tint it with the winner team colour
+            // Unlock mouse cursor for win screen interaction
+            FlyCamera.lockMovement = true;
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+
             if (winOverlay != null)
             {
                 winOverlay.SetActive(true);
                 if (winOverlayImage != null)
                 {
-                    Color overlayColor = team.teamColor;
-                    overlayColor.a = 0.55f;
-                    winOverlayImage.color = overlayColor;
+                    Color c = team.teamColor;
+                    c.a = 0.65f;
+                    winOverlayImage.color = c;
+                }
+                if (winText != null)
+                {
+                    winText.gameObject.SetActive(true);
+                    winText.text = $"TEAM {team.teamNumber} WINS!";
+                    winText.color = team.teamColor;
+                }
+                if (winStatsText != null)
+                {
+                    winStatsText.gameObject.SetActive(true);
+                    winStatsText.text =
+                        $"Soldiers remaining: {team.soldiers.Count}\n" +
+                        $"Towers active: {team.towers.Count}\n" +
+                        $"Flags captured: {team.flagsWinsCount}";
+                }
+                if (restartButton != null)
+                {
+                    restartButton.SetActive(true);
                 }
             }
-
-            // Main win text
-            if (winText != null)
+            else
             {
-                winText.gameObject.SetActive(true);
-                winText.text = $"TEAM {team.teamNumber} WINS!";
-                winText.color = team.teamColor;
+                CreateDefaultWinScreen(team);
             }
-
-            // Final stats
-            if (winStatsText != null)
-            {
-                winStatsText.gameObject.SetActive(true);
-                winStatsText.text =
-                    $"Soldiers remaining: {team.soldiers.Count}\n" +
-                    $"Towers active: {team.towers.Count}\n" +
-                    $"Flags captured: {team.flagsWinsCount}";
-            }
-
-            // Show restart button
-            if (restartButton != null)
-                restartButton.SetActive(true);
         }
 
-        /// <summary>Called by the Restart button in the Win screen.</summary>
+        private void CreateDefaultWinScreen(Team team)
+        {
+            Canvas canvas = FindObjectOfType<Canvas>();
+            if (canvas == null) return;
+
+            GameObject modal = new GameObject("WinModal");
+            modal.transform.SetParent(canvas.transform, false);
+
+            RectTransform modalRt = modal.AddComponent<RectTransform>();
+            modalRt.anchorMin = new Vector2(0.5f, 0.5f);
+            modalRt.anchorMax = new Vector2(0.5f, 0.5f);
+            modalRt.pivot = new Vector2(0.5f, 0.5f);
+            modalRt.sizeDelta = new Vector2(450, 260);
+
+            Image modalBg = modal.AddComponent<Image>();
+            Color bgColor = team.teamColor * 0.4f;
+            bgColor.a = 0.9f;
+            modalBg.color = bgColor;
+
+            // Title
+            GameObject titleObj = new GameObject("WinTitle");
+            titleObj.transform.SetParent(modal.transform, false);
+            RectTransform titleRt = titleObj.AddComponent<RectTransform>();
+            titleRt.anchorMin = new Vector2(0, 1);
+            titleRt.anchorMax = new Vector2(1, 1);
+            titleRt.pivot = new Vector2(0.5f, 1);
+            titleRt.anchoredPosition = new Vector2(0, -20);
+            titleRt.sizeDelta = new Vector2(-20, 50);
+
+            TextMeshProUGUI titleTxt = titleObj.AddComponent<TextMeshProUGUI>();
+            titleTxt.text = $"<b>TEAM {team.teamNumber} VICTORIOUS!</b>";
+            titleTxt.fontSize = 26;
+            titleTxt.alignment = TextAlignmentOptions.Center;
+            titleTxt.color = Color.white;
+
+            // Stats
+            GameObject statsObj = new GameObject("WinStats");
+            statsObj.transform.SetParent(modal.transform, false);
+            RectTransform statsRt = statsObj.AddComponent<RectTransform>();
+            statsRt.anchorMin = new Vector2(0, 0.35f);
+            statsRt.anchorMax = new Vector2(1, 0.75f);
+            statsRt.pivot = new Vector2(0.5f, 0.5f);
+            statsRt.anchoredPosition = Vector2.zero;
+            statsRt.sizeDelta = new Vector2(-40, 0);
+
+            TextMeshProUGUI statsTxt = statsObj.AddComponent<TextMeshProUGUI>();
+            statsTxt.text =
+                $"<b>Soldiers Remaining:</b> {team.soldiers.Count}\n" +
+                $"<b>Towers Active:</b> {team.towers.Count}\n" +
+                $"<b>Flags Captured:</b> {team.flagsWinsCount}";
+            statsTxt.fontSize = 16;
+            statsTxt.alignment = TextAlignmentOptions.Center;
+            statsTxt.color = new Color(0.9f, 0.9f, 0.9f, 1f);
+
+            // Restart button
+            GameObject btnObj = new GameObject("RestartButton");
+            btnObj.transform.SetParent(modal.transform, false);
+            RectTransform btnRt = btnObj.AddComponent<RectTransform>();
+            btnRt.anchorMin = new Vector2(0.5f, 0);
+            btnRt.anchorMax = new Vector2(0.5f, 0);
+            btnRt.pivot = new Vector2(0.5f, 0);
+            btnRt.anchoredPosition = new Vector2(0, 20);
+            btnRt.sizeDelta = new Vector2(180, 45);
+
+            Image btnImg = btnObj.AddComponent<Image>();
+            btnImg.color = new Color(0.2f, 0.7f, 0.3f, 1f);
+
+            Button btn = btnObj.AddComponent<Button>();
+            btn.onClick.AddListener(RestartGame);
+
+            GameObject btnTextObj = new GameObject("BtnText");
+            btnTextObj.transform.SetParent(btnObj.transform, false);
+            RectTransform btnTextRt = btnTextObj.AddComponent<RectTransform>();
+            btnTextRt.anchorMin = Vector2.zero;
+            btnTextRt.anchorMax = Vector2.one;
+            btnTextRt.sizeDelta = Vector2.zero;
+
+            TextMeshProUGUI btnTxt = btnTextObj.AddComponent<TextMeshProUGUI>();
+            btnTxt.text = "<b>PLAY AGAIN</b>";
+            btnTxt.fontSize = 16;
+            btnTxt.alignment = TextAlignmentOptions.Center;
+            btnTxt.color = Color.white;
+        }
+
         public void RestartGame()
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
@@ -164,20 +253,13 @@ namespace HillDefence
 
         public void CreateHealthbars()
         {
-            // Clear healthbars
-            for (int i = 0; i < healthLayoutHolder.childCount; i++)
+            if (healthLayoutHolder != null)
             {
-                Destroy(healthLayoutHolder.GetChild(i).gameObject);
+                for (int i = 0; i < healthLayoutHolder.childCount; i++)
+                {
+                    Destroy(healthLayoutHolder.GetChild(i).gameObject);
+                }
             }
         }
-
-        void CreateHealthbar(TeamSoldier teamSoldier)
-        {
-            GameObject newHealthbar = GameObject.Instantiate(healthLayout, healthLayoutHolder);
-            newHealthbar.transform.SetParent(healthLayoutHolder);
-            newHealthbar.transform.position = Vector3.zero;
-            newHealthbar.GetComponent<HealthLayout>().SetUp(teamSoldier);
-        }
     }
-
-}
+}
