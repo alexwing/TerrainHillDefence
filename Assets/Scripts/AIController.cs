@@ -20,10 +20,7 @@ namespace HillDefence
         public GameNpc getNearNpc(Vector3 pos, int teamNumber, float findRange = -1, NpcType npcTypeToFind = NpcType.Any)
         {
             GameNpc bestTarget = null;
-            if (findRange < 0)
-            {
-                findRange = Mathf.Infinity;
-            }
+            float findRangeSqr = findRange < 0 ? Mathf.Infinity : findRange * findRange;
             float closestDistanceSqr = Mathf.Infinity;
             Vector2 currentPosition = new Vector2(pos.x, pos.z);
             foreach (NpcInfo potentialTarget in HillDefenceCreator.Npcs)
@@ -34,7 +31,7 @@ namespace HillDefence
                     {
                         Vector2 directionToTarget = new Vector2(potentialTarget.transform.position.x, potentialTarget.transform.position.z) - currentPosition;
                         float dSqrToTarget = directionToTarget.sqrMagnitude;
-                        if (dSqrToTarget < findRange)
+                        if (dSqrToTarget < findRangeSqr)
                         {
                             if (dSqrToTarget < closestDistanceSqr)
                             {

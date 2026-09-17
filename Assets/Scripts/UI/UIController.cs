@@ -1,4 +1,4 @@
-﻿using TMPro;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -28,7 +28,8 @@ namespace HillDefence
         public GameObject healthLayout;
         public GameObject map;
 
-        public bool isMapVisible = false;
+        public bool isMapVisible = true;
+        public bool isHudVisible = true;
 
         void Awake()
         {
@@ -42,10 +43,14 @@ namespace HillDefence
                 return;
             }
 
-            if (map != null) map.SetActive(false);
+            if (map != null) map.SetActive(isMapVisible);
+            FlyCamera.lockMovement = isMapVisible;
+            
             if (winOverlay != null) winOverlay.SetActive(false);
             if (restartButton != null) restartButton.SetActive(false);
             if (winText != null) winText.gameObject.SetActive(false);
+            
+            CreateUIOptions();
         }
 
         private void Update()
@@ -260,6 +265,72 @@ namespace HillDefence
                     Destroy(healthLayoutHolder.GetChild(i).gameObject);
                 }
             }
+        }
+        
+        private void CreateUIOptions()
+        {
+            Canvas canvas = FindObjectOfType<Canvas>();
+            if (canvas == null) return;
+
+            GameObject optionsPanel = new GameObject("OptionsPanel");
+            optionsPanel.transform.SetParent(canvas.transform, false);
+
+            RectTransform panelRt = optionsPanel.AddComponent<RectTransform>();
+            panelRt.anchorMin = new Vector2(1, 1);
+            panelRt.anchorMax = new Vector2(1, 1);
+            panelRt.pivot = new Vector2(1, 1);
+            panelRt.anchoredPosition = new Vector2(-10, -10);
+            panelRt.sizeDelta = new Vector2(150, 100);
+
+            // Toggle Map Button
+            Button mapBtn = CreateButton(optionsPanel.transform, "Toggle Map (M)", new Vector2(0, 0));
+            mapBtn.onClick.AddListener(() =>
+            {
+                isMapVisible = !isMapVisible;
+                if (map != null) map.SetActive(isMapVisible);
+                if (MapController.instance != null) MapController.instance.UIMapSetActive(isMapVisible);
+                FlyCamera.lockMovement = isMapVisible;
+            });
+
+            // Toggle HUD Button
+            Button hudBtn = CreateButton(optionsPanel.transform, "Toggle HUD", new Vector2(0, -45));
+            hudBtn.onClick.AddListener(() =>
+            {
+                isHudVisible = !isHudVisible;
+                if (GameInfoPanel.instance != null) GameInfoPanel.instance.gameObject.SetActive(isHudVisible);
+            });
+        }
+
+        private Button CreateButton(Transform parent, string textStr, Vector2 pos)
+        {
+            GameObject btnObj = new GameObject("OptionButton");
+            btnObj.transform.SetParent(parent, false);
+            RectTransform btnRt = btnObj.AddComponent<RectTransform>();
+            btnRt.anchorMin = new Vector2(0.5f, 1);
+            btnRt.anchorMax = new Vector2(0.5f, 1);
+            btnRt.pivot = new Vector2(0.5f, 1);
+            btnRt.anchoredPosition = pos;
+            btnRt.sizeDelta = new Vector2(140, 40);
+
+            Image btnImg = btnObj.AddComponent<Image>();
+            btnImg.color = new Color(0.2f, 0.2f, 0.2f, 0.8f);
+
+            Button btn = btnObj.AddComponent<Button>();
+
+            GameObject textObj = new GameObject("Text");
+            textObj.transform.SetParent(btnObj.transform, false);
+            RectTransform textRt = textObj.AddComponent<RectTransform>();
+            textRt.anchorMin = Vector2.zero;
+            textRt.anchorMax = Vector2.one;
+            textRt.sizeDelta = Vector2.zero;
+
+            TextMeshProUGUI txt = textObj.AddComponent<TextMeshProUGUI>();
+            txt.text = textStr;
+            txt.fontSize = 14;
+            txt.alignment = TextAlignmentOptions.Center;
+            txt.color = Color.white;
+
+            return btn;
         }
     }
 }

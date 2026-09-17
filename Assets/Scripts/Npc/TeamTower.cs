@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 
 namespace HillDefence
@@ -72,8 +72,9 @@ namespace HillDefence
                 //rotation lerp only y
                 Quaternion rotation = Quaternion.Lerp(tower.transform.rotation, Quaternion.LookRotation(enemyNpc.npcObject.transform.position - transform.position), Time.deltaTime * SceneConfig.TOWER.RotationSpeed);
                 tower.transform.rotation = new Quaternion(rotation.x, rotation.y, tower.transform.rotation.z, tower.transform.rotation.w);
-                float distance = Vector3.Distance(enemyNpc.npcObject.transform.position, transform.position);
-                if (distance <= SceneConfig.TOWER.FindEnemyRange)
+                
+                float sqrDistance = (enemyNpc.npcObject.transform.position - transform.position).sqrMagnitude;
+                if (sqrDistance <= SceneConfig.TOWER.FindEnemyRange * SceneConfig.TOWER.FindEnemyRange)
                 {
                     //check rotation is near to enemy
                     if (Vector3.Angle(enemyNpc.npcObject.transform.position - transform.position, transform.forward) < SceneConfig.TOWER.RotationAngleMinToShoot)

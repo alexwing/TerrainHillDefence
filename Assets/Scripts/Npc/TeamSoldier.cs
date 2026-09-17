@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace HillDefence
 {
@@ -112,8 +112,8 @@ namespace HillDefence
             TeamFlag myFlag = HillDefenceCreator.teams[npcInfo.teamNumber].teamFlag;
             if (myFlag != null && myFlag.isUnderAttack && myFlag.lastAttacker != null && !myFlag.lastAttacker.isDead)
             {
-                float distToFlag = Vector3.Distance(transform.position, myFlag.transform.position);
-                if (distToFlag <= SceneConfig.SOLDIER.FlagDefenseRange)
+                float sqrDistToFlag = (transform.position - myFlag.transform.position).sqrMagnitude;
+                if (sqrDistToFlag <= SceneConfig.SOLDIER.FlagDefenseRange * SceneConfig.SOLDIER.FlagDefenseRange)
                 {
                     enemyNpc = myFlag.lastAttacker;
                     return;
