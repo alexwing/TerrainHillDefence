@@ -14,13 +14,9 @@ namespace HillDefence
 
         [Header("Win Screen")]
         public TextMeshProUGUI winText;
-        [Tooltip("Semi-transparent overlay panel that covers the screen on win.")]
         public GameObject winOverlay;
-        [Tooltip("Image component of winOverlay, used to tint it with the winner team colour.")]
         public Image winOverlayImage;
-        [Tooltip("Extra TextMeshProUGUI inside winOverlay for final stats.")]
         public TextMeshProUGUI winStatsText;
-        [Tooltip("Button to restart the scene shown on the win screen.")]
         public GameObject restartButton;
 
         [Header("HUD")]
@@ -48,42 +44,65 @@ namespace HillDefence
             if (winOverlay != null) winOverlay.SetActive(false);
             if (restartButton != null) restartButton.SetActive(false);
             if (winText != null) winText.gameObject.SetActive(false);
+        }
 
-            CreateHUD();
+        /// <summary>Called from LateUpdate on first frame to ensure Canvas is ready.</summary>
+        private bool _hudCreated = false;
+
+        void LateUpdate()
+        {
+            if (!_hudCreated)
+            {
+                _hudCreated = true;
+                CreateHUD();
+            }
+
+            // Force minimap to bottom-left every frame (overrides any layout)
+            ForceMinimapPosition();
         }
 
         private void CreateHUD()
         {
-            // ── MINIMAP: Force to absolute bottom-left ──
-            RepositionMinimap();
-
-            Canvas canvas = FindObjectOfType<Canvas>();
+            Canvas canvas = FindScreenCanvas();
             if (canvas == null) return;
 
-            // ── ACTION BAR: Left side, above minimap ──
+            // Move minimap to be a direct child of the canvas root
+            if (map != null)
+            {
+                map.SetActive(isMapVisible);
+                map.transform.SetParent(canvas.transform, false);
+
+                if (MapController.instance != null)
+                    MapController.instance.UIMapSetActive(isMapVisible);
+            }
+
+            // Action bar (above minimap, left side)
             CreateActionBar(canvas);
         }
 
-        private void RepositionMinimap()
+        private void ForceMinimapPosition()
         {
             if (map == null) return;
+            RectTransform rt = map.GetComponent<RectTransform>();
+            if (rt == null) return;
 
-            map.SetActive(isMapVisible);
+            rt.anchorMin = new Vector2(0, 0);
+            rt.anchorMax = new Vector2(0, 0);
+            rt.pivot = new Vector2(0, 0);
+            rt.anchoredPosition = new Vector2(0, 0);
+        }
 
-            // Force the map container AND its children to bottom-left
-            RectTransform mapRt = map.GetComponent<RectTransform>();
-            if (mapRt != null)
+        private Canvas FindScreenCanvas()
+        {
+            Canvas[] all = FindObjectsOfType<Canvas>();
+            foreach (Canvas c in all)
             {
-                mapRt.anchorMin = new Vector2(0, 0);
-                mapRt.anchorMax = new Vector2(0, 0);
-                mapRt.pivot = new Vector2(0, 0);
-                mapRt.anchoredPosition = new Vector2(5, 5);
+                if (c.renderMode == RenderMode.ScreenSpaceOverlay)
+                    return c;
             }
-
-            if (MapController.instance != null)
-            {
-                MapController.instance.UIMapSetActive(isMapVisible);
-            }
+            Canvas self = GetComponentInParent<Canvas>();
+            if (self != null) return self;
+            return all.Length > 0 ? all[0] : null;
         }
 
         private void CreateActionBar(Canvas canvas)
@@ -95,13 +114,14 @@ namespace HillDefence
             barRt.anchorMin = new Vector2(0, 0);
             barRt.anchorMax = new Vector2(0, 0);
             barRt.pivot = new Vector2(0, 0);
-            barRt.anchoredPosition = new Vector2(10, 210);
-            barRt.sizeDelta = new Vector2(55, 60);
+            // Above the minimap (map is ~200px high with scale 3)
+            barRt.anchoredPosition = new Vector2(5, 210);
+            barRt.sizeDelta = new Vector2(55, 55);
 
             Image barBg = actionBar.AddComponent<Image>();
             barBg.color = new Color(0.08f, 0.08f, 0.12f, 0.75f);
 
-            // Build Turret button (text only, no unicode icons)
+            // Build Turret button
             _buildBtnImage = CreateActionButton(actionBar.transform, "T", "Turret", new Vector2(0, 0),
                 () => { isPlacingTurret = !isPlacingTurret; });
         }
@@ -111,11 +131,10 @@ namespace HillDefence
             GameObject btnObj = new GameObject($"ActionBtn_{label}");
             btnObj.transform.SetParent(parent, false);
             RectTransform btnRt = btnObj.AddComponent<RectTransform>();
-            btnRt.anchorMin = new Vector2(0, 1);
-            btnRt.anchorMax = new Vector2(1, 1);
-            btnRt.pivot = new Vector2(0.5f, 1);
-            btnRt.anchoredPosition = pos;
-            btnRt.sizeDelta = new Vector2(0, 55);
+            btnRt.anchorMin = Vector2.zero;
+            btnRt.anchorMax = Vector2.one;
+            btnRt.offsetMin = Vector2.zero;
+            btnRt.offsetMax = Vector2.zero;
 
             Image btnImg = btnObj.AddComponent<Image>();
             btnImg.color = new Color(0.2f, 0.2f, 0.25f, 0.9f);
@@ -128,15 +147,14 @@ namespace HillDefence
             btn.colors = cb;
             btn.onClick.AddListener(onClick);
 
-            // Icon letter
+            // Icon
             GameObject iconObj = new GameObject("Icon");
             iconObj.transform.SetParent(btnObj.transform, false);
             RectTransform iconRt = iconObj.AddComponent<RectTransform>();
-            iconRt.anchorMin = new Vector2(0, 0.4f);
+            iconRt.anchorMin = new Vector2(0, 0.35f);
             iconRt.anchorMax = new Vector2(1, 1);
             iconRt.offsetMin = Vector2.zero;
             iconRt.offsetMax = Vector2.zero;
-
             TextMeshProUGUI iconTxt = iconObj.AddComponent<TextMeshProUGUI>();
             iconTxt.text = $"<b>{icon}</b>";
             iconTxt.fontSize = 22;
@@ -148,10 +166,9 @@ namespace HillDefence
             labelObj.transform.SetParent(btnObj.transform, false);
             RectTransform labelRt = labelObj.AddComponent<RectTransform>();
             labelRt.anchorMin = new Vector2(0, 0);
-            labelRt.anchorMax = new Vector2(1, 0.4f);
+            labelRt.anchorMax = new Vector2(1, 0.35f);
             labelRt.offsetMin = Vector2.zero;
             labelRt.offsetMax = Vector2.zero;
-
             TextMeshProUGUI labelTxt = labelObj.AddComponent<TextMeshProUGUI>();
             labelTxt.text = label;
             labelTxt.fontSize = 9;
@@ -163,7 +180,7 @@ namespace HillDefence
 
         private void Update()
         {
-            // Toggle map with M key
+            // Toggle map with M
             if (Input.GetKeyUp(KeyCode.M) && map != null)
             {
                 isMapVisible = !isMapVisible;
@@ -172,7 +189,7 @@ namespace HillDefence
                     MapController.instance.UIMapSetActive(isMapVisible);
             }
 
-            // Highlight build button when active
+            // Highlight build button
             if (_buildBtnImage != null)
             {
                 _buildBtnImage.color = isPlacingTurret
@@ -215,9 +232,7 @@ namespace HillDefence
 
                                     bool isOverUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
                                     if (Input.GetMouseButtonDown(0) && !isOverUI)
-                                    {
                                         PlaceTurret(hit.point, foundTeamFlag);
-                                    }
                                 }
                                 else
                                 {
@@ -272,26 +287,9 @@ namespace HillDefence
             if (winOverlay != null)
             {
                 winOverlay.SetActive(true);
-                if (winOverlayImage != null)
-                {
-                    Color c = team.teamColor;
-                    c.a = 0.65f;
-                    winOverlayImage.color = c;
-                }
-                if (winText != null)
-                {
-                    winText.gameObject.SetActive(true);
-                    winText.text = $"TEAM {team.teamNumber} WINS!";
-                    winText.color = team.teamColor;
-                }
-                if (winStatsText != null)
-                {
-                    winStatsText.gameObject.SetActive(true);
-                    winStatsText.text =
-                        $"Soldiers remaining: {team.soldiers.Count}\n" +
-                        $"Towers active: {team.towers.Count}\n" +
-                        $"Flags captured: {team.flagsWinsCount}";
-                }
+                if (winOverlayImage != null) { Color c = team.teamColor; c.a = 0.65f; winOverlayImage.color = c; }
+                if (winText != null) { winText.gameObject.SetActive(true); winText.text = $"TEAM {team.teamNumber} WINS!"; winText.color = team.teamColor; }
+                if (winStatsText != null) { winStatsText.gameObject.SetActive(true); winStatsText.text = $"Soldiers remaining: {team.soldiers.Count}\nTowers active: {team.towers.Count}\nFlags captured: {team.flagsWinsCount}"; }
                 if (restartButton != null) restartButton.SetActive(true);
             }
             else
@@ -302,80 +300,51 @@ namespace HillDefence
 
         private void CreateDefaultWinScreen(Team team)
         {
-            Canvas canvas = FindObjectOfType<Canvas>();
+            Canvas canvas = FindScreenCanvas();
             if (canvas == null) return;
 
             GameObject modal = new GameObject("WinModal");
             modal.transform.SetParent(canvas.transform, false);
-
             RectTransform modalRt = modal.AddComponent<RectTransform>();
             modalRt.anchorMin = new Vector2(0.5f, 0.5f);
             modalRt.anchorMax = new Vector2(0.5f, 0.5f);
             modalRt.pivot = new Vector2(0.5f, 0.5f);
             modalRt.sizeDelta = new Vector2(450, 260);
-
             Image modalBg = modal.AddComponent<Image>();
-            Color bgColor = team.teamColor * 0.4f;
-            bgColor.a = 0.9f;
-            modalBg.color = bgColor;
+            Color bgColor = team.teamColor * 0.4f; bgColor.a = 0.9f; modalBg.color = bgColor;
 
-            // Title
             GameObject titleObj = new GameObject("WinTitle");
             titleObj.transform.SetParent(modal.transform, false);
             RectTransform titleRt = titleObj.AddComponent<RectTransform>();
-            titleRt.anchorMin = new Vector2(0, 1);
-            titleRt.anchorMax = new Vector2(1, 1);
-            titleRt.pivot = new Vector2(0.5f, 1);
-            titleRt.anchoredPosition = new Vector2(0, -20);
-            titleRt.sizeDelta = new Vector2(-20, 50);
+            titleRt.anchorMin = new Vector2(0, 1); titleRt.anchorMax = new Vector2(1, 1);
+            titleRt.pivot = new Vector2(0.5f, 1); titleRt.anchoredPosition = new Vector2(0, -20); titleRt.sizeDelta = new Vector2(-20, 50);
             TextMeshProUGUI titleTxt = titleObj.AddComponent<TextMeshProUGUI>();
-            titleTxt.text = $"<b>TEAM {team.teamNumber} VICTORIOUS!</b>";
-            titleTxt.fontSize = 26;
-            titleTxt.alignment = TextAlignmentOptions.Center;
-            titleTxt.color = Color.white;
+            titleTxt.text = $"<b>TEAM {team.teamNumber} VICTORIOUS!</b>"; titleTxt.fontSize = 26;
+            titleTxt.alignment = TextAlignmentOptions.Center; titleTxt.color = Color.white;
 
-            // Stats
             GameObject statsObj = new GameObject("WinStats");
             statsObj.transform.SetParent(modal.transform, false);
             RectTransform statsRt = statsObj.AddComponent<RectTransform>();
-            statsRt.anchorMin = new Vector2(0, 0.35f);
-            statsRt.anchorMax = new Vector2(1, 0.75f);
-            statsRt.pivot = new Vector2(0.5f, 0.5f);
-            statsRt.anchoredPosition = Vector2.zero;
-            statsRt.sizeDelta = new Vector2(-40, 0);
+            statsRt.anchorMin = new Vector2(0, 0.35f); statsRt.anchorMax = new Vector2(1, 0.75f);
+            statsRt.pivot = new Vector2(0.5f, 0.5f); statsRt.anchoredPosition = Vector2.zero; statsRt.sizeDelta = new Vector2(-40, 0);
             TextMeshProUGUI statsTxt = statsObj.AddComponent<TextMeshProUGUI>();
-            statsTxt.text =
-                $"<b>Soldiers Remaining:</b> {team.soldiers.Count}\n" +
-                $"<b>Towers Active:</b> {team.towers.Count}\n" +
-                $"<b>Flags Captured:</b> {team.flagsWinsCount}";
-            statsTxt.fontSize = 16;
-            statsTxt.alignment = TextAlignmentOptions.Center;
-            statsTxt.color = new Color(0.9f, 0.9f, 0.9f, 1f);
+            statsTxt.text = $"<b>Soldiers:</b> {team.soldiers.Count}\n<b>Towers:</b> {team.towers.Count}\n<b>Flags:</b> {team.flagsWinsCount}";
+            statsTxt.fontSize = 16; statsTxt.alignment = TextAlignmentOptions.Center; statsTxt.color = new Color(0.9f, 0.9f, 0.9f, 1f);
 
-            // Restart button
             GameObject btnObj = new GameObject("RestartButton");
             btnObj.transform.SetParent(modal.transform, false);
             RectTransform btnRt = btnObj.AddComponent<RectTransform>();
-            btnRt.anchorMin = new Vector2(0.5f, 0);
-            btnRt.anchorMax = new Vector2(0.5f, 0);
-            btnRt.pivot = new Vector2(0.5f, 0);
-            btnRt.anchoredPosition = new Vector2(0, 20);
-            btnRt.sizeDelta = new Vector2(180, 45);
-            Image btnImg = btnObj.AddComponent<Image>();
-            btnImg.color = new Color(0.2f, 0.7f, 0.3f, 1f);
-            Button btn = btnObj.AddComponent<Button>();
-            btn.onClick.AddListener(RestartGame);
+            btnRt.anchorMin = new Vector2(0.5f, 0); btnRt.anchorMax = new Vector2(0.5f, 0);
+            btnRt.pivot = new Vector2(0.5f, 0); btnRt.anchoredPosition = new Vector2(0, 20); btnRt.sizeDelta = new Vector2(180, 45);
+            Image btnImg = btnObj.AddComponent<Image>(); btnImg.color = new Color(0.2f, 0.7f, 0.3f, 1f);
+            Button btn = btnObj.AddComponent<Button>(); btn.onClick.AddListener(RestartGame);
             GameObject btnTextObj = new GameObject("BtnText");
             btnTextObj.transform.SetParent(btnObj.transform, false);
             RectTransform btnTextRt = btnTextObj.AddComponent<RectTransform>();
-            btnTextRt.anchorMin = Vector2.zero;
-            btnTextRt.anchorMax = Vector2.one;
-            btnTextRt.sizeDelta = Vector2.zero;
+            btnTextRt.anchorMin = Vector2.zero; btnTextRt.anchorMax = Vector2.one; btnTextRt.sizeDelta = Vector2.zero;
             TextMeshProUGUI btnTxt = btnTextObj.AddComponent<TextMeshProUGUI>();
-            btnTxt.text = "<b>PLAY AGAIN</b>";
-            btnTxt.fontSize = 16;
-            btnTxt.alignment = TextAlignmentOptions.Center;
-            btnTxt.color = Color.white;
+            btnTxt.text = "<b>PLAY AGAIN</b>"; btnTxt.fontSize = 16;
+            btnTxt.alignment = TextAlignmentOptions.Center; btnTxt.color = Color.white;
         }
 
         public void RestartGame()
@@ -386,10 +355,8 @@ namespace HillDefence
         public void CreateHealthbars()
         {
             if (healthLayoutHolder != null)
-            {
                 for (int i = 0; i < healthLayoutHolder.childCount; i++)
                     Destroy(healthLayoutHolder.GetChild(i).gameObject);
-            }
         }
     }
 }

@@ -8,6 +8,7 @@ namespace HillDefence
     /// <summary>
     /// Top bar HUD: One button per team flag showing color, health, soldiers alive/total.
     /// Click a flag button to fly the camera to that flag.
+    /// Must be on the same GameObject as UIController (which has the Canvas).
     /// </summary>
     public class GameInfoPanel : MonoBehaviour
     {
@@ -40,41 +41,62 @@ namespace HillDefence
             InvokeRepeating("RefreshStats", 0.5f, 0.5f);
         }
 
+        /// <summary>
+        /// Finds the Screen Space Overlay canvas (not WorldSpace healthbar canvases).
+        /// </summary>
+        private Canvas FindScreenCanvas()
+        {
+            Canvas[] all = FindObjectsOfType<Canvas>();
+            foreach (Canvas c in all)
+            {
+                if (c.renderMode == RenderMode.ScreenSpaceOverlay)
+                    return c;
+            }
+            // Fallback: try the canvas on this gameobject
+            Canvas self = GetComponentInParent<Canvas>();
+            if (self != null) return self;
+            // Last resort
+            return all.Length > 0 ? all[0] : null;
+        }
+
         private void CreateTopBar()
         {
-            Canvas canvas = FindObjectOfType<Canvas>();
-            if (canvas == null) return;
+            Canvas canvas = FindScreenCanvas();
+            if (canvas == null)
+            {
+                Debug.LogError("GameInfoPanel: No Screen Space Canvas found!");
+                return;
+            }
 
             int teamCount = HillDefenceCreator.teams.Count;
             float btnWidth = 140f;
-            float btnHeight = 50f;
-            float spacing = 6f;
-            float totalWidth = teamCount * btnWidth + (teamCount - 1) * spacing;
+            float btnHeight = 45f;
+            float spacing = 4f;
 
-            // Container centered at top
+            // Container anchored at TOP-LEFT
             _panelRoot = new GameObject("FlagStatusBar");
             _panelRoot.transform.SetParent(canvas.transform, false);
             RectTransform containerRt = _panelRoot.AddComponent<RectTransform>();
-            containerRt.anchorMin = new Vector2(0.5f, 1);
-            containerRt.anchorMax = new Vector2(0.5f, 1);
-            containerRt.pivot = new Vector2(0.5f, 1);
-            containerRt.anchoredPosition = new Vector2(0, -5);
-            containerRt.sizeDelta = new Vector2(totalWidth, btnHeight);
+            containerRt.anchorMin = new Vector2(0, 1);
+            containerRt.anchorMax = new Vector2(0, 1);
+            containerRt.pivot = new Vector2(0, 1);
+            containerRt.anchoredPosition = new Vector2(5, -5);
+            containerRt.sizeDelta = new Vector2(btnWidth, teamCount * (btnHeight + spacing));
 
             for (int i = 0; i < teamCount; i++)
             {
                 Team team = HillDefenceCreator.teams[i];
-                float xPos = i * (btnWidth + spacing) - totalWidth / 2f + btnWidth / 2f;
+                float yPos = -i * (btnHeight + spacing);
 
                 // Button root
                 GameObject btnObj = new GameObject($"FlagBtn_{i}");
                 btnObj.transform.SetParent(_panelRoot.transform, false);
                 RectTransform btnRt = btnObj.AddComponent<RectTransform>();
-                btnRt.anchorMin = new Vector2(0.5f, 0.5f);
-                btnRt.anchorMax = new Vector2(0.5f, 0.5f);
-                btnRt.pivot = new Vector2(0.5f, 0.5f);
-                btnRt.anchoredPosition = new Vector2(xPos, 0);
-                btnRt.sizeDelta = new Vector2(btnWidth, btnHeight);
+                btnRt.anchorMin = new Vector2(0, 1);
+                btnRt.anchorMax = new Vector2(1, 1);
+                btnRt.pivot = new Vector2(0, 1);
+                btnRt.anchoredPosition = new Vector2(0, yPos);
+                btnRt.sizeDelta = new Vector2(0, btnHeight);
 
                 // Background
                 Image bgImg = btnObj.AddComponent<Image>();
@@ -82,27 +104,27 @@ namespace HillDefence
                 bgCol.a = 0.85f;
                 bgImg.color = bgCol;
 
-                // Left color stripe
-                GameObject stripe = new GameObject("Stripe");
+                // Left color stripe (the "flag")
+                GameObject stripe = new GameObject("FlagStripe");
                 stripe.transform.SetParent(btnObj.transform, false);
                 RectTransform stripeRt = stripe.AddComponent<RectTransform>();
                 stripeRt.anchorMin = new Vector2(0, 0);
                 stripeRt.anchorMax = new Vector2(0, 1);
                 stripeRt.pivot = new Vector2(0, 0.5f);
                 stripeRt.anchoredPosition = Vector2.zero;
-                stripeRt.sizeDelta = new Vector2(5, 0);
+                stripeRt.sizeDelta = new Vector2(8, 0);
                 Image stripeImg = stripe.AddComponent<Image>();
                 stripeImg.color = team.teamColor;
 
-                // Health bar background (bottom strip)
+                // Health bar at bottom
                 GameObject hpBg = new GameObject("HpBg");
                 hpBg.transform.SetParent(btnObj.transform, false);
                 RectTransform hpBgRt = hpBg.AddComponent<RectTransform>();
                 hpBgRt.anchorMin = new Vector2(0, 0);
                 hpBgRt.anchorMax = new Vector2(1, 0);
                 hpBgRt.pivot = new Vector2(0, 0);
-                hpBgRt.anchoredPosition = new Vector2(6, 2);
-                hpBgRt.sizeDelta = new Vector2(-10, 6);
+                hpBgRt.anchoredPosition = new Vector2(10, 2);
+                hpBgRt.sizeDelta = new Vector2(-14, 5);
                 Image hpBgImg = hpBg.AddComponent<Image>();
                 hpBgImg.color = new Color(0.1f, 0.1f, 0.1f, 1f);
 
@@ -122,29 +144,30 @@ namespace HillDefence
                 hpFillImg.fillOrigin = 0;
                 hpFillImg.fillAmount = 1f;
 
-                // Label text (no unicode emoji — TMP can't render them)
+                // Label text
                 GameObject labelObj = new GameObject("Label");
                 labelObj.transform.SetParent(btnObj.transform, false);
                 RectTransform labelRt = labelObj.AddComponent<RectTransform>();
-                labelRt.anchorMin = new Vector2(0, 0.15f);
+                labelRt.anchorMin = new Vector2(0, 0.12f);
                 labelRt.anchorMax = new Vector2(1, 1);
                 labelRt.pivot = new Vector2(0.5f, 0.5f);
-                labelRt.offsetMin = new Vector2(8, 0);
+                labelRt.offsetMin = new Vector2(12, 0);
                 labelRt.offsetMax = new Vector2(-4, -2);
 
                 TextMeshProUGUI labelTxt = labelObj.AddComponent<TextMeshProUGUI>();
-                labelTxt.fontSize = 12;
+                labelTxt.fontSize = 11;
                 labelTxt.alignment = TextAlignmentOptions.MidlineLeft;
                 labelTxt.color = Color.white;
                 labelTxt.text = $"<b>Team {i}</b>\nSoldiers: {_initialSoldierCount}/{_initialSoldierCount}";
                 labelTxt.enableWordWrapping = false;
+                labelTxt.overflowMode = TextOverflowModes.Ellipsis;
 
                 // Click to teleport to flag
                 Button btn = btnObj.AddComponent<Button>();
                 btn.transition = Selectable.Transition.ColorTint;
                 ColorBlock cb = btn.colors;
-                cb.highlightedColor = new Color(0.4f, 0.4f, 0.5f, 1f);
-                cb.pressedColor = new Color(0.5f, 0.5f, 0.6f, 1f);
+                cb.highlightedColor = new Color(0.35f, 0.35f, 0.4f, 1f);
+                cb.pressedColor = new Color(0.45f, 0.45f, 0.5f, 1f);
                 btn.colors = cb;
                 int capturedIndex = i;
                 btn.onClick.AddListener(() => OnFlagClicked(capturedIndex));
