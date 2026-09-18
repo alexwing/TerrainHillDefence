@@ -116,6 +116,7 @@ namespace HillDefence
                 if (sqrDistToFlag <= SceneConfig.SOLDIER.FlagDefenseRange * SceneConfig.SOLDIER.FlagDefenseRange)
                 {
                     enemyNpc = myFlag.lastAttacker;
+                    RecalcTowerAvoidance();
                     return;
                 }
             }
@@ -146,6 +147,9 @@ namespace HillDefence
                     enemyNpc = findNpcEnemy != null ? findNpcEnemy : enemyNpc;
                 }
             }
+
+            // Recalculate tower avoidance (low frequency, not every movement frame)
+            RecalcTowerAvoidance();
         }
 
         private void UpdateSoldier()
@@ -222,11 +226,13 @@ namespace HillDefence
                 }
             }
         }
+        // Cached avoidance direction (recalculated by findEnemy, not every frame)
+        private Vector3 _cachedAvoidDir = Vector3.zero;
 
         /// <summary>
-        /// Adjusts movement direction to steer away from towers.
+        /// Recalculates tower avoidance direction. Called from findEnemy (low frequency).
         /// </summary>
-        private Vector3 ApplyTowerAvoidance(Vector3 desiredDir)
+        private void RecalcTowerAvoidance()
         {
             Collider[] nearby = Physics.OverlapSphere(transform.position, SceneConfig.SOLDIER.TowerAvoidanceRadius);
             Vector3 avoidance = Vector3.zero;
@@ -238,7 +244,7 @@ namespace HillDefence
                 if (tower != null)
                 {
                     Vector3 away = transform.position - col.transform.position;
-                    away.y = 0; // Pure horizontal avoidance
+                    away.y = 0;
                     float dist = away.magnitude;
                     if (dist > 0.05f)
                     {
@@ -248,12 +254,18 @@ namespace HillDefence
                 }
             }
 
-            if (count > 0)
-            {
-                avoidance = (avoidance / count).normalized;
-                desiredDir = (desiredDir + avoidance * SceneConfig.SOLDIER.TowerAvoidanceStrength).normalized;
-            }
+            _cachedAvoidDir = count > 0 ? (avoidance / count).normalized : Vector3.zero;
+        }
 
+        /// <summary>
+        /// Applies the cached avoidance direction to the movement vector.
+        /// </summary>
+        private Vector3 ApplyTowerAvoidance(Vector3 desiredDir)
+        {
+            if (_cachedAvoidDir.sqrMagnitude > 0.001f)
+            {
+                desiredDir = (desiredDir + _cachedAvoidDir * SceneConfig.SOLDIER.TowerAvoidanceStrength).normalized;
+            }
             return desiredDir;
         }
 

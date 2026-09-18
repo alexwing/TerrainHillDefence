@@ -21,7 +21,7 @@ namespace HillDefence
         private Vignette         _vignette;
         private AmbientOcclusion _ao;
 
-        private float _baseBloomIntensity = 2.0f;
+        private float _baseBloomIntensity = 1.0f;
         private bool _pulsing = false;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -81,47 +81,40 @@ namespace HillDefence
 
         private void SetupEffects()
         {
-            // ── Bloom ────────────────────────────────────────────────────
+            // ── Bloom (subtle, fastMode for performance) ──────────────────
             if (!profile.TryGetSettings(out _bloom))
             {
                 _bloom = profile.AddSettings<Bloom>();
             }
             _bloom.enabled.value     = true;
-            _bloom.intensity.value   = 2.0f; // very visible base bloom
-            _bloom.threshold.value   = 0.3f; // lower threshold so everything blooms
-            _bloom.diffusion.value   = 6f;
-            _bloom.fastMode.value    = false;
+            _bloom.intensity.value   = _baseBloomIntensity;
+            _bloom.threshold.value   = 1.0f;
+            _bloom.diffusion.value   = 5f;
+            _bloom.fastMode.value    = true;
 
-            // ── Color Grading (warm, slightly cinematic) ─────────────────
+            // ── Color Grading (mild warm tint) ───────────────────────────
             if (!profile.TryGetSettings(out _colorGrading))
             {
                 _colorGrading = profile.AddSettings<ColorGrading>();
             }
             _colorGrading.enabled.value       = true;
-            _colorGrading.gradingMode.value   = GradingMode.HighDefinitionRange;
-            _colorGrading.temperature.value   = 35f;   // very warm orange tint
-            _colorGrading.saturation.value    = 30f;   // hyper vivid colors
-            _colorGrading.contrast.value      = 25f;
-            _colorGrading.gamma.value         = new Vector4(1f, 0.9f, 0.8f, 0f);
+            _colorGrading.gradingMode.value   = GradingMode.LowDefinitionRange;
+            _colorGrading.temperature.value   = 10f;
+            _colorGrading.saturation.value    = 10f;
+            _colorGrading.contrast.value      = 5f;
 
-            // ── Vignette ────────────────────────────────────────────────
+            // ── Vignette (very light) ────────────────────────────────────
             if (!profile.TryGetSettings(out _vignette))
             {
                 _vignette = profile.AddSettings<Vignette>();
             }
             _vignette.enabled.value   = true;
-            _vignette.intensity.value = 0.28f;
-            _vignette.smoothness.value = 0.65f;
-            _vignette.roundness.value  = 0.9f;
+            _vignette.intensity.value = 0.2f;
+            _vignette.smoothness.value = 0.5f;
+            _vignette.roundness.value  = 1f;
 
-            // ── Ambient Occlusion ────────────────────────────────────────
-            if (!profile.TryGetSettings(out _ao))
-            {
-                _ao = profile.AddSettings<AmbientOcclusion>();
-            }
-            _ao.enabled.value   = true;
-            _ao.intensity.value = 0.7f;
-            _ao.radius.value    = 0.4f;
+            // ── Ambient Occlusion DISABLED (too expensive) ───────────────
+            // _ao is not created to avoid GPU cost
         }
 
         /// <summary>

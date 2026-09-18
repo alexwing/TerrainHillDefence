@@ -46,9 +46,9 @@ namespace HillDefence
             if (canvas == null) return;
 
             int teamCount = HillDefenceCreator.teams.Count;
-            float btnWidth = 130f;
-            float btnHeight = 55f;
-            float spacing = 8f;
+            float btnWidth = 140f;
+            float btnHeight = 50f;
+            float spacing = 6f;
             float totalWidth = teamCount * btnWidth + (teamCount - 1) * spacing;
 
             // Container centered at top
@@ -58,7 +58,7 @@ namespace HillDefence
             containerRt.anchorMin = new Vector2(0.5f, 1);
             containerRt.anchorMax = new Vector2(0.5f, 1);
             containerRt.pivot = new Vector2(0.5f, 1);
-            containerRt.anchoredPosition = new Vector2(0, -8);
+            containerRt.anchoredPosition = new Vector2(0, -5);
             containerRt.sizeDelta = new Vector2(totalWidth, btnHeight);
 
             for (int i = 0; i < teamCount; i++)
@@ -76,13 +76,13 @@ namespace HillDefence
                 btnRt.anchoredPosition = new Vector2(xPos, 0);
                 btnRt.sizeDelta = new Vector2(btnWidth, btnHeight);
 
-                // Background with team color (darkened)
+                // Background
                 Image bgImg = btnObj.AddComponent<Image>();
-                Color bgCol = team.teamColor * 0.35f;
-                bgCol.a = 0.9f;
+                Color bgCol = team.teamColor * 0.3f;
+                bgCol.a = 0.85f;
                 bgImg.color = bgCol;
 
-                // Colored left stripe (team indicator)
+                // Left color stripe
                 GameObject stripe = new GameObject("Stripe");
                 stripe.transform.SetParent(btnObj.transform, false);
                 RectTransform stripeRt = stripe.AddComponent<RectTransform>();
@@ -90,21 +90,21 @@ namespace HillDefence
                 stripeRt.anchorMax = new Vector2(0, 1);
                 stripeRt.pivot = new Vector2(0, 0.5f);
                 stripeRt.anchoredPosition = Vector2.zero;
-                stripeRt.sizeDelta = new Vector2(6, 0);
+                stripeRt.sizeDelta = new Vector2(5, 0);
                 Image stripeImg = stripe.AddComponent<Image>();
                 stripeImg.color = team.teamColor;
 
-                // Health bar background
+                // Health bar background (bottom strip)
                 GameObject hpBg = new GameObject("HpBg");
                 hpBg.transform.SetParent(btnObj.transform, false);
                 RectTransform hpBgRt = hpBg.AddComponent<RectTransform>();
                 hpBgRt.anchorMin = new Vector2(0, 0);
                 hpBgRt.anchorMax = new Vector2(1, 0);
                 hpBgRt.pivot = new Vector2(0, 0);
-                hpBgRt.anchoredPosition = new Vector2(8, 3);
-                hpBgRt.sizeDelta = new Vector2(-16, 8);
+                hpBgRt.anchoredPosition = new Vector2(6, 2);
+                hpBgRt.sizeDelta = new Vector2(-10, 6);
                 Image hpBgImg = hpBg.AddComponent<Image>();
-                hpBgImg.color = new Color(0.15f, 0.15f, 0.15f, 1f);
+                hpBgImg.color = new Color(0.1f, 0.1f, 0.1f, 1f);
 
                 // Health bar fill
                 GameObject hpFill = new GameObject("HpFill");
@@ -122,25 +122,30 @@ namespace HillDefence
                 hpFillImg.fillOrigin = 0;
                 hpFillImg.fillAmount = 1f;
 
-                // Label text
+                // Label text (no unicode emoji — TMP can't render them)
                 GameObject labelObj = new GameObject("Label");
                 labelObj.transform.SetParent(btnObj.transform, false);
                 RectTransform labelRt = labelObj.AddComponent<RectTransform>();
-                labelRt.anchorMin = new Vector2(0, 0.2f);
+                labelRt.anchorMin = new Vector2(0, 0.15f);
                 labelRt.anchorMax = new Vector2(1, 1);
                 labelRt.pivot = new Vector2(0.5f, 0.5f);
-                labelRt.offsetMin = new Vector2(10, 0);
-                labelRt.offsetMax = new Vector2(-4, -3);
+                labelRt.offsetMin = new Vector2(8, 0);
+                labelRt.offsetMax = new Vector2(-4, -2);
 
                 TextMeshProUGUI labelTxt = labelObj.AddComponent<TextMeshProUGUI>();
-                labelTxt.fontSize = 11;
-                labelTxt.alignment = TextAlignmentOptions.Center;
+                labelTxt.fontSize = 12;
+                labelTxt.alignment = TextAlignmentOptions.MidlineLeft;
                 labelTxt.color = Color.white;
-                labelTxt.text = $"<b>⚑ Team {i}</b>\n{_initialSoldierCount}/{_initialSoldierCount} ⛨ 0";
+                labelTxt.text = $"<b>Team {i}</b>\nSoldiers: {_initialSoldierCount}/{_initialSoldierCount}";
+                labelTxt.enableWordWrapping = false;
 
-                // Click to teleport
+                // Click to teleport to flag
                 Button btn = btnObj.AddComponent<Button>();
-                btn.transition = Selectable.Transition.None;
+                btn.transition = Selectable.Transition.ColorTint;
+                ColorBlock cb = btn.colors;
+                cb.highlightedColor = new Color(0.4f, 0.4f, 0.5f, 1f);
+                cb.pressedColor = new Color(0.5f, 0.5f, 0.6f, 1f);
+                btn.colors = cb;
                 int capturedIndex = i;
                 btn.onClick.AddListener(() => OnFlagClicked(capturedIndex));
 
@@ -174,7 +179,7 @@ namespace HillDefence
 
                 if (t.teamFlag == null || t.teamFlag.npcInfo.isDead)
                 {
-                    fb.label.text = $"<b>☠ Team {i}</b>\n<color=#FF4444>DEFEATED</color>";
+                    fb.label.text = $"<b>Team {i}</b>\n<color=#FF4444>DEFEATED</color>";
                     fb.healthFill.fillAmount = 0;
                     Color dead = new Color(0.15f, 0.15f, 0.15f, 0.7f);
                     fb.bgImage.color = dead;
@@ -187,7 +192,7 @@ namespace HillDefence
                     flagHp = Mathf.Clamp01(flagHp);
 
                     fb.healthFill.fillAmount = flagHp;
-                    fb.label.text = $"<b>⚑ Team {i}</b>\n{alive}/{_initialSoldierCount}  ⛨{towers}";
+                    fb.label.text = $"<b>Team {i}</b>\nSoldiers: {alive}/{_initialSoldierCount}  Towers: {towers}";
                 }
             }
         }
