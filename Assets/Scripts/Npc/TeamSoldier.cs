@@ -38,7 +38,6 @@ namespace HillDefence
             Utils.ChangeColor(head.GetComponent<Renderer>(), color);
             Utils.ChangeColor(arms.GetComponent<Renderer>(), color);
             InvokeRepeating("UpdateSoldier", Random.Range(0, 1f / SceneConfig.SOLDIER.SoldierFrameRate), 1f / SceneConfig.SOLDIER.SoldierFrameRate);
-            InvokeRepeating("findEnemy", Random.Range(0, 1f / SceneConfig.SOLDIER.SoldierFindFrameRate), 1f / SceneConfig.SOLDIER.SoldierFindFrameRate);
 
             // Spawn healthbar
             if (healthBarPrefab == null)
