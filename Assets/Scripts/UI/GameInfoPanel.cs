@@ -33,10 +33,13 @@ namespace HillDefence
             else { Destroy(this); return; }
         }
 
+        private float[] _lastClickTimes;
+
         public void Init()
         {
             _flagButtons.Clear();
             _initialSoldierCount = HillDefenceCreator.instance.enemiesPerTeam;
+            _lastClickTimes = new float[HillDefenceCreator.teams.Count];
             CreateTopBar();
             InvokeRepeating("RefreshStats", 0.5f, 0.5f);
         }
@@ -193,16 +196,24 @@ namespace HillDefence
         {
             if (teamIndex < 0 || teamIndex >= HillDefenceCreator.teams.Count) return;
             
+            // Single click selects team
             if (UIController.instance != null)
             {
                 UIController.instance.SelectTeam(teamIndex);
             }
 
-            Team t = HillDefenceCreator.teams[teamIndex];
-            if (t.teamFlag != null && !t.teamFlag.npcInfo.isDead && FlyCamera.instance != null)
+            // Double click teleports camera
+            float timeSinceLastClick = Time.time - _lastClickTimes[teamIndex];
+            if (timeSinceLastClick > 0.05f && timeSinceLastClick < 0.4f)
             {
-                FlyCamera.instance.TeleportTo(t.teamFlag.transform.position);
+                Team t = HillDefenceCreator.teams[teamIndex];
+                if (t.teamFlag != null && !t.teamFlag.npcInfo.isDead && FlyCamera.instance != null)
+                {
+                    FlyCamera.instance.TeleportTo(t.teamFlag.transform.position);
+                }
             }
+            
+            _lastClickTimes[teamIndex] = Time.time;
 
             RefreshStats();
         }

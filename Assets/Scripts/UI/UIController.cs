@@ -118,21 +118,38 @@ namespace HillDefence
             wrapperRt.anchorMax = new Vector2(1, 0);
             wrapperRt.pivot = new Vector2(1, 0);
             wrapperRt.anchoredPosition = new Vector2(-10, 10);
-            wrapperRt.sizeDelta = new Vector2(200, 200);
+            wrapperRt.sizeDelta = new Vector2(250, 250);
 
             map.SetActive(isMapVisible);
             map.transform.SetParent(mapWrapper.transform, false);
             
+            // Fix the root minimap container
             RectTransform mapRt = map.GetComponent<RectTransform>();
             if (mapRt != null)
             {
-                // Stretch map to fill the wrapper and reset any weird scaling/pivots
                 mapRt.anchorMin = Vector2.zero;
                 mapRt.anchorMax = Vector2.one;
                 mapRt.pivot = new Vector2(0.5f, 0.5f);
                 mapRt.offsetMin = Vector2.zero;
                 mapRt.offsetMax = Vector2.zero;
+                mapRt.anchoredPosition = Vector2.zero;
                 mapRt.localScale = Vector3.one;
+            }
+
+            // Fix the actual RawImage map child so it doesn't overflow
+            if (MapController.instance != null && MapController.instance.mapRawImage != null)
+            {
+                RectTransform rawImageRt = MapController.instance.mapRawImage.GetComponent<RectTransform>();
+                if (rawImageRt != null)
+                {
+                    rawImageRt.anchorMin = Vector2.zero;
+                    rawImageRt.anchorMax = Vector2.one;
+                    rawImageRt.pivot = new Vector2(0.5f, 0.5f);
+                    rawImageRt.offsetMin = Vector2.zero;
+                    rawImageRt.offsetMax = Vector2.zero;
+                    rawImageRt.anchoredPosition = Vector2.zero;
+                    rawImageRt.localScale = Vector3.one;
+                }
             }
 
             if (MapController.instance != null)
@@ -166,8 +183,8 @@ namespace HillDefence
             barRt.anchorMin = new Vector2(1, 0); // Bottom-Right
             barRt.anchorMax = new Vector2(1, 0);
             barRt.pivot = new Vector2(1, 0);
-            // Position above the minimap wrapper (wrapper is 200 height + 10 padding = 210)
-            barRt.anchoredPosition = new Vector2(-10, 220);
+            // Position above the minimap wrapper (wrapper is 250 height + 10 padding = 260)
+            barRt.anchoredPosition = new Vector2(-10, 270);
             barRt.sizeDelta = new Vector2(55, 55);
 
             Image barBg = actionBar.AddComponent<Image>();
