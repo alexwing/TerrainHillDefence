@@ -26,8 +26,10 @@ namespace HillDefence
 
         public bool isMapVisible = true;
         public bool isPlacingTurret = false;
+        public bool isPlacingSoldier = false;
 
         private Image _buildBtnImage;
+        private Image _buildSoldierBtnImage;
 
         void Awake()
         {
@@ -118,7 +120,7 @@ namespace HillDefence
             wrapperRt.anchorMax = new Vector2(1, 0);
             wrapperRt.pivot = new Vector2(1, 0);
             wrapperRt.anchoredPosition = new Vector2(-10, 10);
-            wrapperRt.sizeDelta = new Vector2(250, 250);
+            wrapperRt.sizeDelta = new Vector2(350, 350);
 
             map.SetActive(isMapVisible);
             map.transform.SetParent(mapWrapper.transform, false);
@@ -207,16 +209,26 @@ namespace HillDefence
             barRt.anchorMin = new Vector2(1, 0); // Bottom-Right
             barRt.anchorMax = new Vector2(1, 0);
             barRt.pivot = new Vector2(1, 0);
-            // Position above the minimap wrapper (wrapper is 250 height + 10 padding = 260)
-            barRt.anchoredPosition = new Vector2(-10, 270);
-            barRt.sizeDelta = new Vector2(55, 55);
+            // Position above the minimap wrapper (wrapper is 350 height + 10 padding = 360)
+            barRt.anchoredPosition = new Vector2(-10, 370);
+            barRt.sizeDelta = new Vector2(55, 115);
 
             Image barBg = actionBar.AddComponent<Image>();
             barBg.color = new Color(0.08f, 0.08f, 0.12f, 0.75f);
 
-            // Build Turret button
-            _buildBtnImage = CreateActionButton(actionBar.transform, "T", "Turret", new Vector2(0, 0),
-                () => { isPlacingTurret = !isPlacingTurret; });
+            // Build Tank(Turret) button (Top)
+            _buildBtnImage = CreateActionButton(actionBar.transform, "T", "Tank", new Vector2(0, 55),
+                () => { 
+                    isPlacingTurret = !isPlacingTurret; 
+                    if (isPlacingTurret) isPlacingSoldier = false; 
+                });
+
+            // Build Soldier button (Bottom)
+            _buildSoldierBtnImage = CreateActionButton(actionBar.transform, "S", "Soldier", new Vector2(0, 0),
+                () => { 
+                    isPlacingSoldier = !isPlacingSoldier; 
+                    if (isPlacingSoldier) isPlacingTurret = false; 
+                });
         }
 
         private Image CreateActionButton(Transform parent, string icon, string label, Vector2 pos, UnityEngine.Events.UnityAction onClick)
@@ -289,33 +301,30 @@ namespace HillDefence
                     MapController.instance.UIMapSetActive(isMapVisible);
             }
 
-            // Highlight build button
-            if (_buildBtnImage != null)
+            // Highlight build buttons
+            Color baseColor = new Color(0.2f, 0.2f, 0.25f, 0.9f);
+            if (selectedTeamIndex >= 0 && selectedTeamIndex < HillDefenceCreator.teams.Count)
             {
-                Color baseColor = new Color(0.2f, 0.2f, 0.25f, 0.9f);
-                if (selectedTeamIndex >= 0 && selectedTeamIndex < HillDefenceCreator.teams.Count)
-                {
-                    baseColor = HillDefenceCreator.teams[selectedTeamIndex].teamColor * 0.5f;
-                    baseColor.a = 0.9f;
-                }
-
-                if (isPlacingTurret)
-                {
-                    Color highlightC = Color.Lerp(baseColor, Color.white, Mathf.PingPong(Time.time * 2f, 0.4f));
-                    _buildBtnImage.color = highlightC;
-                }
-                else
-                {
-                    _buildBtnImage.color = baseColor;
-                }
+                baseColor = HillDefenceCreator.teams[selectedTeamIndex].teamColor * 0.5f;
+                baseColor.a = 0.9f;
             }
 
-            // Turret placement
-            if (isPlacingTurret)
+            if (_buildBtnImage != null)
+            {
+                _buildBtnImage.color = isPlacingTurret ? Color.Lerp(baseColor, Color.white, Mathf.PingPong(Time.time * 2f, 0.4f)) : baseColor;
+            }
+            if (_buildSoldierBtnImage != null)
+            {
+                _buildSoldierBtnImage.color = isPlacingSoldier ? Color.Lerp(baseColor, Color.white, Mathf.PingPong(Time.time * 2f, 0.4f)) : baseColor;
+            }
+
+            // Placement logic
+            if (isPlacingTurret || isPlacingSoldier)
             {
                 if (Input.GetMouseButtonDown(1))
                 {
                     isPlacingTurret = false;
+                    isPlacingSoldier = false;
                     if (cursorPointer != null) cursorPointer.SetActive(false);
                     return;
                 }
@@ -343,7 +352,10 @@ namespace HillDefence
 
                                     bool isOverUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
                                     if (Input.GetMouseButtonDown(0) && !isOverUI)
-                                        PlaceTurret(hit.point, selectedTeamIndex);
+                                    {
+                                        if (isPlacingTurret) PlaceTurret(hit.point, selectedTeamIndex);
+                                        else if (isPlacingSoldier) PlaceSoldier(hit.point, selectedTeamIndex);
+                                    }
                                 }
                                 else
                                 {
@@ -383,6 +395,28 @@ namespace HillDefence
             HillDefenceCreator.Npcs.Add(teamTower);
 
             isPlacingTurret = false;
+            cursorPointer.SetActive(false);
+        }
+
+        private void PlaceSoldier(Vector3 position, int teamIndex)
+        {
+            if (HillDefenceCreator.instance == null || HillDefenceCreator.instance.enemyPrefab == null) return;
+
+            GameObject soldier = Instantiate(HillDefenceCreator.instance.enemyPrefab, position, Quaternion.identity);
+            TeamSoldier teamSoldier = soldier.GetComponent<TeamSoldier>();
+
+            teamSoldier.npcInfo.teamNumber = teamIndex;
+            teamSoldier.npcInfo.npcNumber = HillDefenceCreator.teams[teamIndex].soldiers.Count;
+            teamSoldier.npcInfo.npcType = NpcType.soldier;
+            teamSoldier.npcInfo.npcObject = soldier;
+
+            soldier.name = "Soldier_" + teamIndex + "_" + teamSoldier.npcInfo.npcNumber;
+            teamSoldier.Init();
+
+            HillDefenceCreator.teams[teamIndex].soldiers.Add(teamSoldier);
+            HillDefenceCreator.Npcs.Add(teamSoldier);
+
+            isPlacingSoldier = false;
             cursorPointer.SetActive(false);
         }
 

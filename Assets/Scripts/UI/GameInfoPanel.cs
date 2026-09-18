@@ -161,7 +161,7 @@ namespace HillDefence
                 labelTxt.fontSize = 11;
                 labelTxt.alignment = TextAlignmentOptions.MidlineLeft;
                 labelTxt.color = Color.white;
-                labelTxt.text = $"<b>Team {i}</b>\nSoldiers: {_initialSoldierCount}/{_initialSoldierCount}";
+                labelTxt.text = $"<b>Team {i}</b>\nUnits: {_initialSoldierCount}";
                 labelTxt.enableWordWrapping = false;
                 labelTxt.overflowMode = TextOverflowModes.Ellipsis;
 
@@ -248,7 +248,7 @@ namespace HillDefence
                     flagHp = Mathf.Clamp01(flagHp);
 
                     fb.healthFill.fillAmount = flagHp;
-                    fb.label.text = $"<b>Team {i}</b>\nSoldiers: {alive}/{_initialSoldierCount}  Towers: {towers}";
+                    fb.label.text = $"<b>Team {i}</b>\nUnits: {alive + towers} (S: {alive} | T: {towers})";
                 }
             }
         }
