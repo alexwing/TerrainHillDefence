@@ -22,7 +22,7 @@ public static class SceneConfig
     public static class TOWER
     {
         public static float RotationSpeed = 25f;
-        public readonly static float FindEnemyRange = 15000;
+        public readonly static float FindEnemyRange = 250f;   // detection radius (world units)
         public readonly static int ShootMaxDistance = 400;
         public readonly static float TowerFrameRate = 25f;
         public readonly static int Lives = 5;

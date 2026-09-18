@@ -29,7 +29,10 @@ namespace HillDefence
         public GameObject map;
 
         public bool isMapVisible = true;
-        public bool isHudVisible = true;
+        public bool isPlacingTurret = false;
+
+        // Action bar button reference for highlight
+        private Image _buildBtnImage;
 
         void Awake()
         {
@@ -43,17 +46,134 @@ namespace HillDefence
                 return;
             }
 
-            if (map != null) map.SetActive(isMapVisible);
-            FlyCamera.lockMovement = isMapVisible;
-            
             if (winOverlay != null) winOverlay.SetActive(false);
             if (restartButton != null) restartButton.SetActive(false);
             if (winText != null) winText.gameObject.SetActive(false);
-            
-            CreateUIOptions();
+
+            CreateHUD();
         }
 
-        public bool isPlacingTurret = false;
+        private void CreateHUD()
+        {
+            Canvas canvas = FindObjectOfType<Canvas>();
+            if (canvas == null) return;
+
+            // ──── MINIMAP: Bottom-left corner ────
+            RepositionMinimap();
+
+            // ──── ACTION BAR: Left side, above minimap ────
+            CreateActionBar(canvas);
+        }
+
+        private void RepositionMinimap()
+        {
+            // Move the existing map GameObject to bottom-left
+            if (map != null)
+            {
+                map.SetActive(isMapVisible);
+                RectTransform mapRt = map.GetComponent<RectTransform>();
+                if (mapRt != null)
+                {
+                    mapRt.anchorMin = new Vector2(0, 0);
+                    mapRt.anchorMax = new Vector2(0, 0);
+                    mapRt.pivot = new Vector2(0, 0);
+                    mapRt.anchoredPosition = new Vector2(10, 10);
+                    // Keep existing size or set a reasonable default
+                    if (mapRt.sizeDelta.x < 50) mapRt.sizeDelta = new Vector2(180, 180);
+                }
+
+                if (MapController.instance != null)
+                {
+                    MapController.instance.UIMapSetActive(isMapVisible);
+                }
+            }
+        }
+
+        private void CreateActionBar(Canvas canvas)
+        {
+            // Container on the left side
+            GameObject actionBar = new GameObject("ActionBar");
+            actionBar.transform.SetParent(canvas.transform, false);
+
+            RectTransform barRt = actionBar.AddComponent<RectTransform>();
+            barRt.anchorMin = new Vector2(0, 0);
+            barRt.anchorMax = new Vector2(0, 0);
+            barRt.pivot = new Vector2(0, 0);
+            // Position above the minimap
+            barRt.anchoredPosition = new Vector2(10, 200);
+            barRt.sizeDelta = new Vector2(55, 130);
+
+            // Semi-transparent background
+            Image barBg = actionBar.AddComponent<Image>();
+            barBg.color = new Color(0.08f, 0.08f, 0.12f, 0.75f);
+
+            // Build Turret button
+            _buildBtnImage = CreateActionButton(actionBar.transform, "⛨", "Turret", new Vector2(0, 0),
+                () => { isPlacingTurret = !isPlacingTurret; });
+
+            // Toggle Map button
+            CreateActionButton(actionBar.transform, "🗺", "Map", new Vector2(0, -60),
+                () => {
+                    isMapVisible = !isMapVisible;
+                    if (map != null) map.SetActive(isMapVisible);
+                    if (MapController.instance != null) MapController.instance.UIMapSetActive(isMapVisible);
+                });
+        }
+
+        private Image CreateActionButton(Transform parent, string icon, string label, Vector2 pos, UnityEngine.Events.UnityAction onClick)
+        {
+            GameObject btnObj = new GameObject($"ActionBtn_{label}");
+            btnObj.transform.SetParent(parent, false);
+            RectTransform btnRt = btnObj.AddComponent<RectTransform>();
+            btnRt.anchorMin = new Vector2(0, 1);
+            btnRt.anchorMax = new Vector2(0, 1);
+            btnRt.pivot = new Vector2(0, 1);
+            btnRt.anchoredPosition = pos;
+            btnRt.sizeDelta = new Vector2(50, 55);
+
+            Image btnImg = btnObj.AddComponent<Image>();
+            btnImg.color = new Color(0.2f, 0.2f, 0.25f, 0.9f);
+
+            Button btn = btnObj.AddComponent<Button>();
+            btn.transition = Selectable.Transition.ColorTint;
+            ColorBlock cb = btn.colors;
+            cb.highlightedColor = new Color(0.4f, 0.4f, 0.5f, 1f);
+            cb.pressedColor = new Color(0.5f, 0.5f, 0.6f, 1f);
+            btn.colors = cb;
+            btn.onClick.AddListener(onClick);
+
+            // Icon text
+            GameObject iconObj = new GameObject("Icon");
+            iconObj.transform.SetParent(btnObj.transform, false);
+            RectTransform iconRt = iconObj.AddComponent<RectTransform>();
+            iconRt.anchorMin = new Vector2(0, 0.35f);
+            iconRt.anchorMax = new Vector2(1, 1);
+            iconRt.offsetMin = Vector2.zero;
+            iconRt.offsetMax = Vector2.zero;
+
+            TextMeshProUGUI iconTxt = iconObj.AddComponent<TextMeshProUGUI>();
+            iconTxt.text = icon;
+            iconTxt.fontSize = 20;
+            iconTxt.alignment = TextAlignmentOptions.Center;
+            iconTxt.color = Color.white;
+
+            // Label under icon
+            GameObject labelObj = new GameObject("Label");
+            labelObj.transform.SetParent(btnObj.transform, false);
+            RectTransform labelRt = labelObj.AddComponent<RectTransform>();
+            labelRt.anchorMin = new Vector2(0, 0);
+            labelRt.anchorMax = new Vector2(1, 0.35f);
+            labelRt.offsetMin = Vector2.zero;
+            labelRt.offsetMax = Vector2.zero;
+
+            TextMeshProUGUI labelTxt = labelObj.AddComponent<TextMeshProUGUI>();
+            labelTxt.text = label;
+            labelTxt.fontSize = 9;
+            labelTxt.alignment = TextAlignmentOptions.Center;
+            labelTxt.color = new Color(0.7f, 0.7f, 0.7f, 1f);
+
+            return btnImg;
+        }
 
         private void Update()
         {
@@ -66,8 +186,14 @@ namespace HillDefence
                 {
                     MapController.instance.UIMapSetActive(isMapVisible);
                 }
-                // When map is open, unlock cursor so player can click on it
-                FlyCamera.lockMovement = isMapVisible;
+            }
+
+            // Highlight build button when in placement mode
+            if (_buildBtnImage != null)
+            {
+                _buildBtnImage.color = isPlacingTurret
+                    ? Color.Lerp(new Color(0.2f, 0.5f, 0.2f, 1f), new Color(0.3f, 0.7f, 0.3f, 1f), Mathf.PingPong(Time.time * 2f, 1f))
+                    : new Color(0.2f, 0.2f, 0.25f, 0.9f);
             }
 
             // Turret Placement State Machine
@@ -95,7 +221,6 @@ namespace HillDefence
                                 cursorPointer.GetComponent<BoxCollider>().enabled = false;
                                 cursorPointer.transform.position = hit.point;
 
-                                // Pulse animation using Lerp with White (works on Opaque materials)
                                 float pulse = Mathf.PingPong(Time.time * 3f, 0.5f);
 
                                 if (foundTeamFlag != null)
@@ -104,31 +229,10 @@ namespace HillDefence
                                     Color pulseC = Color.Lerp(baseC, Color.white, pulse);
                                     Utils.ChangeColor(cursorPointer.GetComponent<TeamTower>().towerMaterial, pulseC);
 
-                                    // Left click to place (ignore UI clicks)
                                     bool isOverUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
                                     if (Input.GetMouseButtonDown(0) && !isOverUI)
                                     {
-                                        GameObject newTower = Instantiate(cursorPointer, hit.point, Quaternion.identity) as GameObject;
-                                        TeamTower teamTower = newTower.GetComponent<TeamTower>();
-                                        teamTower.GetComponent<BoxCollider>().enabled = true;
-                                        
-                                        // Reset alpha for the real tower
-                                        Color realC = HillDefenceCreator.teams[foundTeamFlag.teamNumber].teamColor;
-                                        realC.a = 1f;
-                                        Utils.ChangeColor(teamTower.towerMaterial, realC);
-
-                                        teamTower.npcInfo.teamNumber = foundTeamFlag.teamNumber;
-                                        teamTower.npcInfo.npcNumber = HillDefenceCreator.teams[foundTeamFlag.teamNumber].towers.Count;
-                                        teamTower.npcInfo.npcType = NpcType.tower;
-                                        teamTower.npcInfo.npcObject = teamTower.gameObject;
-
-                                        teamTower.name = "Tower_" + teamTower.npcInfo.teamNumber + "_" + teamTower.npcInfo.npcNumber;
-                                        teamTower.Init();
-                                        HillDefenceCreator.teams[foundTeamFlag.teamNumber].towers.Add(teamTower);
-                                        HillDefenceCreator.Npcs.Add(teamTower);
-
-                                        isPlacingTurret = false; // Exit placement mode
-                                        cursorPointer.SetActive(false);
+                                        PlaceTurret(hit.point, foundTeamFlag);
                                     }
                                 }
                                 else
@@ -150,12 +254,35 @@ namespace HillDefence
             }
         }
 
+        private void PlaceTurret(Vector3 position, GameNpc nearFlag)
+        {
+            GameObject newTower = Instantiate(cursorPointer, position, Quaternion.identity) as GameObject;
+            TeamTower teamTower = newTower.GetComponent<TeamTower>();
+            teamTower.GetComponent<BoxCollider>().enabled = true;
+
+            Color realC = HillDefenceCreator.teams[nearFlag.teamNumber].teamColor;
+            realC.a = 1f;
+            Utils.ChangeColor(teamTower.towerMaterial, realC);
+
+            teamTower.npcInfo.teamNumber = nearFlag.teamNumber;
+            teamTower.npcInfo.npcNumber = HillDefenceCreator.teams[nearFlag.teamNumber].towers.Count;
+            teamTower.npcInfo.npcType = NpcType.tower;
+            teamTower.npcInfo.npcObject = teamTower.gameObject;
+
+            teamTower.name = "Tower_" + teamTower.npcInfo.teamNumber + "_" + teamTower.npcInfo.npcNumber;
+            teamTower.Init();
+            HillDefenceCreator.teams[nearFlag.teamNumber].towers.Add(teamTower);
+            HillDefenceCreator.Npcs.Add(teamTower);
+
+            isPlacingTurret = false;
+            cursorPointer.SetActive(false);
+        }
+
         public void ShowWin(Team team)
         {
             if (GameInfoPanel.instance != null)
                 GameInfoPanel.instance.StopRefresh();
 
-            // Unlock mouse cursor for win screen interaction
             FlyCamera.lockMovement = true;
             Cursor.visible = true;
             Cursor.lockState = CursorLockMode.None;
@@ -292,79 +419,6 @@ namespace HillDefence
                     Destroy(healthLayoutHolder.GetChild(i).gameObject);
                 }
             }
-        }
-        
-        private void CreateUIOptions()
-        {
-            Canvas canvas = FindObjectOfType<Canvas>();
-            if (canvas == null) return;
-
-            GameObject optionsPanel = new GameObject("OptionsPanel");
-            optionsPanel.transform.SetParent(canvas.transform, false);
-
-            RectTransform panelRt = optionsPanel.AddComponent<RectTransform>();
-            panelRt.anchorMin = new Vector2(1, 1);
-            panelRt.anchorMax = new Vector2(1, 1);
-            panelRt.pivot = new Vector2(1, 1);
-            panelRt.anchoredPosition = new Vector2(-10, -10);
-            panelRt.sizeDelta = new Vector2(150, 145); // Increased height
-
-            // Toggle Map Button
-            Button mapBtn = CreateButton(optionsPanel.transform, "Toggle Map (M)", new Vector2(0, 0));
-            mapBtn.onClick.AddListener(() =>
-            {
-                isMapVisible = !isMapVisible;
-                if (map != null) map.SetActive(isMapVisible);
-                if (MapController.instance != null) MapController.instance.UIMapSetActive(isMapVisible);
-                FlyCamera.lockMovement = isMapVisible;
-            });
-
-            // Toggle HUD Button
-            Button hudBtn = CreateButton(optionsPanel.transform, "Toggle HUD", new Vector2(0, -45));
-            hudBtn.onClick.AddListener(() =>
-            {
-                isHudVisible = !isHudVisible;
-                if (GameInfoPanel.instance != null) GameInfoPanel.instance.gameObject.SetActive(isHudVisible);
-            });
-
-            // Build Turret Button
-            Button buildBtn = CreateButton(optionsPanel.transform, "Build Turret", new Vector2(0, -90));
-            buildBtn.onClick.AddListener(() =>
-            {
-                isPlacingTurret = !isPlacingTurret;
-            });
-        }
-
-        private Button CreateButton(Transform parent, string textStr, Vector2 pos)
-        {
-            GameObject btnObj = new GameObject("OptionButton");
-            btnObj.transform.SetParent(parent, false);
-            RectTransform btnRt = btnObj.AddComponent<RectTransform>();
-            btnRt.anchorMin = new Vector2(0.5f, 1);
-            btnRt.anchorMax = new Vector2(0.5f, 1);
-            btnRt.pivot = new Vector2(0.5f, 1);
-            btnRt.anchoredPosition = pos;
-            btnRt.sizeDelta = new Vector2(140, 40);
-
-            Image btnImg = btnObj.AddComponent<Image>();
-            btnImg.color = new Color(0.2f, 0.2f, 0.2f, 0.8f);
-
-            Button btn = btnObj.AddComponent<Button>();
-
-            GameObject textObj = new GameObject("Text");
-            textObj.transform.SetParent(btnObj.transform, false);
-            RectTransform textRt = textObj.AddComponent<RectTransform>();
-            textRt.anchorMin = Vector2.zero;
-            textRt.anchorMax = Vector2.one;
-            textRt.sizeDelta = Vector2.zero;
-
-            TextMeshProUGUI txt = textObj.AddComponent<TextMeshProUGUI>();
-            txt.text = textStr;
-            txt.fontSize = 14;
-            txt.alignment = TextAlignmentOptions.Center;
-            txt.color = Color.white;
-
-            return btn;
         }
     }
 }

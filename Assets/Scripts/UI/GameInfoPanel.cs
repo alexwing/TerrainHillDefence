@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -6,130 +6,188 @@ using UnityEngine.UI;
 namespace HillDefence
 {
     /// <summary>
-    /// HUD panel that shows live statistics for every team:
-    /// soldiers alive, active towers and flags captured.
-    /// Auto-generates UI if references are not assigned.
+    /// Top bar HUD: One button per team flag showing color, health, soldiers alive/total.
+    /// Click a flag button to fly the camera to that flag.
     /// </summary>
     public class GameInfoPanel : MonoBehaviour
     {
         public static GameInfoPanel instance;
 
-        [Header("References (Optional - will auto-generate if null)")]
-        [Tooltip("Parent transform where team rows are generated.")]
-        public Transform rowContainer;
-
-        [Tooltip("Prefab for a single team row (must contain a TextMeshProUGUI component).")]
-        public GameObject teamRowPrefab;
-
-        private List<TextMeshProUGUI> _rows = new List<TextMeshProUGUI>();
+        private List<FlagButton> _flagButtons = new List<FlagButton>();
         private GameObject _panelRoot;
+        private int _initialSoldierCount;
+
+        private class FlagButton
+        {
+            public int teamIndex;
+            public GameObject root;
+            public Image bgImage;
+            public Image healthFill;
+            public TextMeshProUGUI label;
+        }
 
         void Awake()
         {
             if (instance == null) instance = this;
-            else { Destroy(gameObject); return; }
+            else { Destroy(this); return; }
         }
 
-        /// <summary>Builds the HUD display after teams have been spawned.</summary>
         public void Init()
         {
-            _rows.Clear();
-
-            if (rowContainer == null || teamRowPrefab == null)
-            {
-                CreateDefaultHUD();
-            }
-            else
-            {
-                foreach (Transform child in rowContainer)
-                {
-                    Destroy(child.gameObject);
-                }
-
-                foreach (Team team in HillDefenceCreator.teams)
-                {
-                    GameObject row = Instantiate(teamRowPrefab, rowContainer);
-                    TextMeshProUGUI label = row.GetComponentInChildren<TextMeshProUGUI>();
-                    if (label != null)
-                    {
-                        label.color = team.teamColor;
-                        _rows.Add(label);
-                    }
-                }
-            }
-
-            InvokeRepeating("RefreshStats", 0.1f, 1f / SceneConfig.MapRefreshRate);
+            _flagButtons.Clear();
+            _initialSoldierCount = HillDefenceCreator.instance.enemiesPerTeam;
+            CreateTopBar();
+            InvokeRepeating("RefreshStats", 0.5f, 0.5f);
         }
 
-        private void CreateDefaultHUD()
+        private void CreateTopBar()
         {
             Canvas canvas = FindObjectOfType<Canvas>();
             if (canvas == null) return;
 
-            // Create HUD container in top-left
-            _panelRoot = new GameObject("GameInfoHUD");
+            int teamCount = HillDefenceCreator.teams.Count;
+            float btnWidth = 130f;
+            float btnHeight = 55f;
+            float spacing = 8f;
+            float totalWidth = teamCount * btnWidth + (teamCount - 1) * spacing;
+
+            // Container centered at top
+            _panelRoot = new GameObject("FlagStatusBar");
             _panelRoot.transform.SetParent(canvas.transform, false);
+            RectTransform containerRt = _panelRoot.AddComponent<RectTransform>();
+            containerRt.anchorMin = new Vector2(0.5f, 1);
+            containerRt.anchorMax = new Vector2(0.5f, 1);
+            containerRt.pivot = new Vector2(0.5f, 1);
+            containerRt.anchoredPosition = new Vector2(0, -8);
+            containerRt.sizeDelta = new Vector2(totalWidth, btnHeight);
 
-            RectTransform rt = _panelRoot.AddComponent<RectTransform>();
-            rt.anchorMin = new Vector2(0, 1);
-            rt.anchorMax = new Vector2(0, 1);
-            rt.pivot = new Vector2(0, 1);
-            rt.anchoredPosition = new Vector2(15, -15);
-            rt.sizeDelta = new Vector2(340, 30 + HillDefenceCreator.teams.Count * 22);
-
-            // Semi-transparent background
-            Image bg = _panelRoot.AddComponent<Image>();
-            bg.color = new Color(0.08f, 0.08f, 0.12f, 0.75f);
-
-            // Title
-            GameObject titleObj = new GameObject("Title");
-            titleObj.transform.SetParent(_panelRoot.transform, false);
-            RectTransform titleRt = titleObj.AddComponent<RectTransform>();
-            titleRt.anchorMin = new Vector2(0, 1);
-            titleRt.anchorMax = new Vector2(1, 1);
-            titleRt.pivot = new Vector2(0.5f, 1);
-            titleRt.anchoredPosition = new Vector2(10, -6);
-            titleRt.sizeDelta = new Vector2(-20, 20);
-
-            TextMeshProUGUI titleText = titleObj.AddComponent<TextMeshProUGUI>();
-            titleText.text = "<b>TEAM STATUS</b>";
-            titleText.fontSize = 13;
-            titleText.color = Color.white;
-
-            // One row per team
-            for (int i = 0; i < HillDefenceCreator.teams.Count; i++)
+            for (int i = 0; i < teamCount; i++)
             {
-                Team t = HillDefenceCreator.teams[i];
+                Team team = HillDefenceCreator.teams[i];
+                float xPos = i * (btnWidth + spacing) - totalWidth / 2f + btnWidth / 2f;
 
-                GameObject rowObj = new GameObject($"TeamRow_{i}");
-                rowObj.transform.SetParent(_panelRoot.transform, false);
-                RectTransform rowRt = rowObj.AddComponent<RectTransform>();
-                rowRt.anchorMin = new Vector2(0, 1);
-                rowRt.anchorMax = new Vector2(1, 1);
-                rowRt.pivot = new Vector2(0, 1);
-                rowRt.anchoredPosition = new Vector2(10, -28 - (i * 20));
-                rowRt.sizeDelta = new Vector2(-20, 18);
+                // Button root
+                GameObject btnObj = new GameObject($"FlagBtn_{i}");
+                btnObj.transform.SetParent(_panelRoot.transform, false);
+                RectTransform btnRt = btnObj.AddComponent<RectTransform>();
+                btnRt.anchorMin = new Vector2(0.5f, 0.5f);
+                btnRt.anchorMax = new Vector2(0.5f, 0.5f);
+                btnRt.pivot = new Vector2(0.5f, 0.5f);
+                btnRt.anchoredPosition = new Vector2(xPos, 0);
+                btnRt.sizeDelta = new Vector2(btnWidth, btnHeight);
 
-                TextMeshProUGUI rowText = rowObj.AddComponent<TextMeshProUGUI>();
-                rowText.fontSize = 11;
-                rowText.color = t.teamColor;
-                rowText.text = $"Team {i}: Initializing...";
-                _rows.Add(rowText);
+                // Background with team color (darkened)
+                Image bgImg = btnObj.AddComponent<Image>();
+                Color bgCol = team.teamColor * 0.35f;
+                bgCol.a = 0.9f;
+                bgImg.color = bgCol;
+
+                // Colored left stripe (team indicator)
+                GameObject stripe = new GameObject("Stripe");
+                stripe.transform.SetParent(btnObj.transform, false);
+                RectTransform stripeRt = stripe.AddComponent<RectTransform>();
+                stripeRt.anchorMin = new Vector2(0, 0);
+                stripeRt.anchorMax = new Vector2(0, 1);
+                stripeRt.pivot = new Vector2(0, 0.5f);
+                stripeRt.anchoredPosition = Vector2.zero;
+                stripeRt.sizeDelta = new Vector2(6, 0);
+                Image stripeImg = stripe.AddComponent<Image>();
+                stripeImg.color = team.teamColor;
+
+                // Health bar background
+                GameObject hpBg = new GameObject("HpBg");
+                hpBg.transform.SetParent(btnObj.transform, false);
+                RectTransform hpBgRt = hpBg.AddComponent<RectTransform>();
+                hpBgRt.anchorMin = new Vector2(0, 0);
+                hpBgRt.anchorMax = new Vector2(1, 0);
+                hpBgRt.pivot = new Vector2(0, 0);
+                hpBgRt.anchoredPosition = new Vector2(8, 3);
+                hpBgRt.sizeDelta = new Vector2(-16, 8);
+                Image hpBgImg = hpBg.AddComponent<Image>();
+                hpBgImg.color = new Color(0.15f, 0.15f, 0.15f, 1f);
+
+                // Health bar fill
+                GameObject hpFill = new GameObject("HpFill");
+                hpFill.transform.SetParent(hpBg.transform, false);
+                RectTransform hpFillRt = hpFill.AddComponent<RectTransform>();
+                hpFillRt.anchorMin = Vector2.zero;
+                hpFillRt.anchorMax = Vector2.one;
+                hpFillRt.pivot = new Vector2(0, 0.5f);
+                hpFillRt.offsetMin = Vector2.zero;
+                hpFillRt.offsetMax = Vector2.zero;
+                Image hpFillImg = hpFill.AddComponent<Image>();
+                hpFillImg.color = team.teamColor;
+                hpFillImg.type = Image.Type.Filled;
+                hpFillImg.fillMethod = Image.FillMethod.Horizontal;
+                hpFillImg.fillOrigin = 0;
+                hpFillImg.fillAmount = 1f;
+
+                // Label text
+                GameObject labelObj = new GameObject("Label");
+                labelObj.transform.SetParent(btnObj.transform, false);
+                RectTransform labelRt = labelObj.AddComponent<RectTransform>();
+                labelRt.anchorMin = new Vector2(0, 0.2f);
+                labelRt.anchorMax = new Vector2(1, 1);
+                labelRt.pivot = new Vector2(0.5f, 0.5f);
+                labelRt.offsetMin = new Vector2(10, 0);
+                labelRt.offsetMax = new Vector2(-4, -3);
+
+                TextMeshProUGUI labelTxt = labelObj.AddComponent<TextMeshProUGUI>();
+                labelTxt.fontSize = 11;
+                labelTxt.alignment = TextAlignmentOptions.Center;
+                labelTxt.color = Color.white;
+                labelTxt.text = $"<b>⚑ Team {i}</b>\n{_initialSoldierCount}/{_initialSoldierCount} ⛨ 0";
+
+                // Click to teleport
+                Button btn = btnObj.AddComponent<Button>();
+                btn.transition = Selectable.Transition.None;
+                int capturedIndex = i;
+                btn.onClick.AddListener(() => OnFlagClicked(capturedIndex));
+
+                _flagButtons.Add(new FlagButton
+                {
+                    teamIndex = i,
+                    root = btnObj,
+                    bgImage = bgImg,
+                    healthFill = hpFillImg,
+                    label = labelTxt
+                });
+            }
+        }
+
+        private void OnFlagClicked(int teamIndex)
+        {
+            if (teamIndex < 0 || teamIndex >= HillDefenceCreator.teams.Count) return;
+            Team t = HillDefenceCreator.teams[teamIndex];
+            if (t.teamFlag != null && !t.teamFlag.npcInfo.isDead && FlyCamera.instance != null)
+            {
+                FlyCamera.instance.TeleportTo(t.teamFlag.transform.position);
             }
         }
 
         private void RefreshStats()
         {
-            for (int i = 0; i < HillDefenceCreator.teams.Count && i < _rows.Count; i++)
+            for (int i = 0; i < _flagButtons.Count && i < HillDefenceCreator.teams.Count; i++)
             {
                 Team t = HillDefenceCreator.teams[i];
+                FlagButton fb = _flagButtons[i];
+
                 if (t.teamFlag == null || t.teamFlag.npcInfo.isDead)
                 {
-                    _rows[i].text = $"<b>Team {i}</b> — <color=#FF4444>DEFEATED</color>";
+                    fb.label.text = $"<b>☠ Team {i}</b>\n<color=#FF4444>DEFEATED</color>";
+                    fb.healthFill.fillAmount = 0;
+                    Color dead = new Color(0.15f, 0.15f, 0.15f, 0.7f);
+                    fb.bgImage.color = dead;
                 }
                 else
                 {
-                    _rows[i].text = $"<b>Team {i}</b>  |  Soldiers: {t.soldiers.Count}  |  Towers: {t.towers.Count}  |  Flags: {t.flagsWinsCount}";
+                    int alive = t.soldiers.Count;
+                    int towers = t.towers.Count;
+                    float flagHp = 1f - (float)t.teamFlag.npcInfo.shootCount / SceneConfig.FLAG.Lives;
+                    flagHp = Mathf.Clamp01(flagHp);
+
+                    fb.healthFill.fillAmount = flagHp;
+                    fb.label.text = $"<b>⚑ Team {i}</b>\n{alive}/{_initialSoldierCount}  ⛨{towers}";
                 }
             }
         }

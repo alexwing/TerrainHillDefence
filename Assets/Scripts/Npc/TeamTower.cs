@@ -53,10 +53,37 @@ namespace HillDefence
             CancelInvoke("findEnemy");                
         }
 
-        //find nearest enemy
+        //find nearest enemy soldier or tower within detection range (NOT flags)
         public void findEnemy()
         {
-            enemyNpc = enemyNpc == null || enemyNpc.isDead ? AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.TOWER.FindEnemyRange, NpcType.Any) : null;
+            // If current target is dead or out of range, drop it
+            if (enemyNpc != null)
+            {
+                if (enemyNpc.isDead || enemyNpc.npcObject == null)
+                {
+                    enemyNpc = null;
+                }
+                else
+                {
+                    float sqrDist = (enemyNpc.npcObject.transform.position - transform.position).sqrMagnitude;
+                    if (sqrDist > SceneConfig.TOWER.FindEnemyRange * SceneConfig.TOWER.FindEnemyRange)
+                    {
+                        enemyNpc = null; // out of range, go standby
+                    }
+                }
+            }
+
+            // Search for a new target if we don't have one
+            if (enemyNpc == null)
+            {
+                // Priority: soldiers first, then enemy towers
+                GameNpc found = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.TOWER.FindEnemyRange, NpcType.soldier);
+                if (found == null)
+                {
+                    found = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.TOWER.FindEnemyRange, NpcType.tower);
+                }
+                enemyNpc = found;
+            }
         }
 
         private void UpdateTower()
