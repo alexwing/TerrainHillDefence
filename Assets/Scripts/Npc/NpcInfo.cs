@@ -79,7 +79,6 @@ namespace HillDefence
                     Bullet bullet = shootSend.GetComponent<Bullet>();
                     bullet.origin = shootPos;
                     bullet.npcInfo = npcInfo;
-                    bullet.enemyNpc = enemyNpc;
                     shootSend.name = "bullet_" + npcInfo.teamNumber;
                     shootSend.gameObject.tag = "bullet";
                     //  print("velocity" +shootSend.GetComponent<Rigidbody>().velocity);

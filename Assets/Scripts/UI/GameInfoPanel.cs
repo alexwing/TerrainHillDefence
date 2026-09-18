@@ -49,7 +49,7 @@ namespace HillDefence
         /// </summary>
         private Canvas FindScreenCanvas()
         {
-            Canvas[] all = FindObjectsOfType<Canvas>();
+            Canvas[] all = FindObjectsByType<Canvas>(FindObjectsSortMode.None);
             foreach (Canvas c in all)
             {
                 if (c.renderMode == RenderMode.ScreenSpaceOverlay)
@@ -162,7 +162,7 @@ namespace HillDefence
                 labelTxt.alignment = TextAlignmentOptions.MidlineLeft;
                 labelTxt.color = Color.white;
                 labelTxt.text = $"<b>Team {i}</b>\nUnits: {_initialSoldierCount}";
-                labelTxt.enableWordWrapping = false;
+                labelTxt.textWrappingMode = TextWrappingModes.NoWrap;
                 labelTxt.overflowMode = TextOverflowModes.Ellipsis;
 
                 // Outline for selection highlight

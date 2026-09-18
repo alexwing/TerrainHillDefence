@@ -27,7 +27,7 @@ namespace HillDefence
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void AutoEnsureInstance()
         {
-            if (instance == null && FindObjectOfType<CameraPostFX>() == null)
+            if (instance == null && FindFirstObjectByType<CameraPostFX>() == null)
             {
                 GameObject host = new GameObject("PostProcessVolume");
                 host.AddComponent<PostProcessVolume>();

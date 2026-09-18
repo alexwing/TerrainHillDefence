@@ -219,7 +219,7 @@ namespace HillDefence
 
         private Canvas FindScreenCanvas()
         {
-            Canvas[] all = FindObjectsOfType<Canvas>();
+            Canvas[] all = FindObjectsByType<Canvas>(FindObjectsSortMode.None);
             foreach (Canvas c in all)
             {
                 if (c.renderMode == RenderMode.ScreenSpaceOverlay)
