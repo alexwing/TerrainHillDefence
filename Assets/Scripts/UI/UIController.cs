@@ -136,6 +136,30 @@ namespace HillDefence
                 mapRt.localScale = Vector3.one;
             }
 
+            // Remove the old grey background and borders, and stretch the internal MiniMap container
+            foreach (Transform child in map.transform)
+            {
+                if (child.name.Contains("Image") || child.name.Contains("Border") || child.name.Contains("Background"))
+                {
+                    child.gameObject.SetActive(false);
+                }
+                else
+                {
+                    // Stretch any other containers (like MiniMap) so they don't cause offsets
+                    RectTransform childRt = child.GetComponent<RectTransform>();
+                    if (childRt != null)
+                    {
+                        childRt.anchorMin = Vector2.zero;
+                        childRt.anchorMax = Vector2.one;
+                        childRt.pivot = new Vector2(0.5f, 0.5f);
+                        childRt.offsetMin = Vector2.zero;
+                        childRt.offsetMax = Vector2.zero;
+                        childRt.anchoredPosition = Vector2.zero;
+                        childRt.localScale = Vector3.one;
+                    }
+                }
+            }
+
             // Fix the actual RawImage map child so it doesn't overflow
             if (MapController.instance != null && MapController.instance.mapRawImage != null)
             {
