@@ -39,15 +39,16 @@ namespace HillDefence
 
         void Awake()
         {
-            if (instance == null)
+            if (instance == null || instance != this)
             {
                 instance = this;
                 TerrainInstance = terrain;
             }
-            else if (instance != this)
-            {
-                Destroy(gameObject);
-            }
+            
+            // Critical for restarting the scene properly: clear static variables
+            teams.Clear();
+            Npcs.Clear();
+            FlyCamera.lockMovement = false;
         }
 
         void Start()
