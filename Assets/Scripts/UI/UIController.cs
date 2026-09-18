@@ -66,30 +66,82 @@ namespace HillDefence
             Canvas canvas = FindScreenCanvas();
             if (canvas == null) return;
 
-            // Move minimap to be a direct child of the canvas root
-            if (map != null)
-            {
-                map.SetActive(isMapVisible);
-                map.transform.SetParent(canvas.transform, false);
+            // 1. Create Restart Button (Top-Right)
+            CreateRestartButton(canvas);
 
-                if (MapController.instance != null)
-                    MapController.instance.UIMapSetActive(isMapVisible);
+            // 2. Setup Minimap Wrapper (Bottom-Right)
+            SetupMinimapWrapper(canvas);
+
+            // 3. Action bar (above minimap, Bottom-Right)
+            CreateActionBar(canvas);
+        }
+
+        private void CreateRestartButton(Canvas canvas)
+        {
+            GameObject btnObj = new GameObject("RestartBtn_TopRight");
+            btnObj.transform.SetParent(canvas.transform, false);
+            RectTransform btnRt = btnObj.AddComponent<RectTransform>();
+            btnRt.anchorMin = new Vector2(1, 1); // Top-Right
+            btnRt.anchorMax = new Vector2(1, 1);
+            btnRt.pivot = new Vector2(1, 1);
+            btnRt.anchoredPosition = new Vector2(-10, -10);
+            btnRt.sizeDelta = new Vector2(100, 40);
+
+            Image btnImg = btnObj.AddComponent<Image>();
+            btnImg.color = new Color(0.6f, 0.15f, 0.15f, 0.9f);
+
+            Button btn = btnObj.AddComponent<Button>();
+            btn.onClick.AddListener(RestartGame);
+
+            GameObject txtObj = new GameObject("Text");
+            txtObj.transform.SetParent(btnObj.transform, false);
+            RectTransform txtRt = txtObj.AddComponent<RectTransform>();
+            txtRt.anchorMin = Vector2.zero; txtRt.anchorMax = Vector2.one;
+            txtRt.offsetMin = Vector2.zero; txtRt.offsetMax = Vector2.zero;
+            
+            TextMeshProUGUI txt = txtObj.AddComponent<TextMeshProUGUI>();
+            txt.text = "<b>RESTART</b>";
+            txt.fontSize = 14;
+            txt.alignment = TextAlignmentOptions.Center;
+            txt.color = Color.white;
+        }
+
+        private void SetupMinimapWrapper(Canvas canvas)
+        {
+            if (map == null) return;
+
+            // Create a dedicated wrapper at Bottom-Right
+            GameObject mapWrapper = new GameObject("MapWrapper");
+            mapWrapper.transform.SetParent(canvas.transform, false);
+            RectTransform wrapperRt = mapWrapper.AddComponent<RectTransform>();
+            wrapperRt.anchorMin = new Vector2(1, 0); // Bottom-Right
+            wrapperRt.anchorMax = new Vector2(1, 0);
+            wrapperRt.pivot = new Vector2(1, 0);
+            wrapperRt.anchoredPosition = new Vector2(-10, 10);
+            wrapperRt.sizeDelta = new Vector2(200, 200);
+
+            map.SetActive(isMapVisible);
+            map.transform.SetParent(mapWrapper.transform, false);
+            
+            RectTransform mapRt = map.GetComponent<RectTransform>();
+            if (mapRt != null)
+            {
+                // Stretch map to fill the wrapper and reset any weird scaling/pivots
+                mapRt.anchorMin = Vector2.zero;
+                mapRt.anchorMax = Vector2.one;
+                mapRt.pivot = new Vector2(0.5f, 0.5f);
+                mapRt.offsetMin = Vector2.zero;
+                mapRt.offsetMax = Vector2.zero;
+                mapRt.localScale = Vector3.one;
             }
 
-            // Action bar (above minimap, left side)
-            CreateActionBar(canvas);
+            if (MapController.instance != null)
+                MapController.instance.UIMapSetActive(isMapVisible);
         }
 
         private void ForceMinimapPosition()
         {
-            if (map == null) return;
-            RectTransform rt = map.GetComponent<RectTransform>();
-            if (rt == null) return;
-
-            rt.anchorMin = new Vector2(1, 0); // Bottom-Right
-            rt.anchorMax = new Vector2(1, 0);
-            rt.pivot = new Vector2(1, 0);
-            rt.anchoredPosition = new Vector2(-5, 5); // Slight padding from edge
+            // No longer needed, wrapper handles it.
         }
 
         private Canvas FindScreenCanvas()
@@ -114,8 +166,8 @@ namespace HillDefence
             barRt.anchorMin = new Vector2(1, 0); // Bottom-Right
             barRt.anchorMax = new Vector2(1, 0);
             barRt.pivot = new Vector2(1, 0);
-            // Position above the minimap (map is ~200px high with scale 3)
-            barRt.anchoredPosition = new Vector2(-10, 210);
+            // Position above the minimap wrapper (wrapper is 200 height + 10 padding = 210)
+            barRt.anchoredPosition = new Vector2(-10, 220);
             barRt.sizeDelta = new Vector2(55, 55);
 
             Image barBg = actionBar.AddComponent<Image>();
