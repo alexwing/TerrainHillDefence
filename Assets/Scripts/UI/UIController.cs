@@ -86,10 +86,10 @@ namespace HillDefence
             RectTransform rt = map.GetComponent<RectTransform>();
             if (rt == null) return;
 
-            rt.anchorMin = new Vector2(0, 0);
-            rt.anchorMax = new Vector2(0, 0);
-            rt.pivot = new Vector2(0, 0);
-            rt.anchoredPosition = new Vector2(0, 0);
+            rt.anchorMin = new Vector2(1, 0); // Bottom-Right
+            rt.anchorMax = new Vector2(1, 0);
+            rt.pivot = new Vector2(1, 0);
+            rt.anchoredPosition = new Vector2(-5, 5); // Slight padding from edge
         }
 
         private Canvas FindScreenCanvas()
@@ -111,11 +111,11 @@ namespace HillDefence
             actionBar.transform.SetParent(canvas.transform, false);
 
             RectTransform barRt = actionBar.AddComponent<RectTransform>();
-            barRt.anchorMin = new Vector2(0, 0);
-            barRt.anchorMax = new Vector2(0, 0);
-            barRt.pivot = new Vector2(0, 0);
-            // Above the minimap (map is ~200px high with scale 3)
-            barRt.anchoredPosition = new Vector2(5, 210);
+            barRt.anchorMin = new Vector2(1, 0); // Bottom-Right
+            barRt.anchorMax = new Vector2(1, 0);
+            barRt.pivot = new Vector2(1, 0);
+            // Position above the minimap (map is ~200px high with scale 3)
+            barRt.anchoredPosition = new Vector2(-10, 210);
             barRt.sizeDelta = new Vector2(55, 55);
 
             Image barBg = actionBar.AddComponent<Image>();

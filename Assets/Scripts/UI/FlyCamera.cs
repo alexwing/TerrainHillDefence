@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class FlyCamera : MonoBehaviour
 {
@@ -57,8 +57,19 @@ public class FlyCamera : MonoBehaviour
     /// </summary>
     public void TeleportTo(Vector3 worldPos)
     {
-        _teleportTarget = worldPos;
+        // Decide an offset position (e.g., 50 units back and 30 units right relative to world space)
+        // so we always get a good diagonal RTS view of the target.
+        Vector3 offset = new Vector3(-35f, 0, -35f);
+        _teleportTarget = worldPos + offset;
         _isTeleporting = true;
+        
+        // Instantly rotate the camera to look at the target position
+        float targetY = anchorToTerrain != null ? anchorToTerrain.SampleHeight(worldPos) : worldPos.y;
+        float cameraY = anchorToTerrain != null ? anchorToTerrain.SampleHeight(_teleportTarget) + marginToTerrain : _teleportTarget.y + marginToTerrain;
+        
+        Vector3 targetLookPos = new Vector3(worldPos.x, targetY, worldPos.z);
+        Vector3 cameraStartPos = new Vector3(_teleportTarget.x, cameraY, _teleportTarget.z);
+        transform.rotation = Quaternion.LookRotation(targetLookPos - cameraStartPos);
     }
 
     private void Update()
