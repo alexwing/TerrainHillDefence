@@ -230,6 +230,13 @@ namespace HillDefence
             return btnImg;
         }
 
+        public int selectedTeamIndex = 0; // Default to Team 0
+
+        public void SelectTeam(int teamIndex)
+        {
+            selectedTeamIndex = teamIndex;
+        }
+
         private void Update()
         {
             // Toggle map with M
@@ -244,9 +251,22 @@ namespace HillDefence
             // Highlight build button
             if (_buildBtnImage != null)
             {
-                _buildBtnImage.color = isPlacingTurret
-                    ? Color.Lerp(new Color(0.2f, 0.5f, 0.2f, 1f), new Color(0.3f, 0.7f, 0.3f, 1f), Mathf.PingPong(Time.time * 2f, 1f))
-                    : new Color(0.2f, 0.2f, 0.25f, 0.9f);
+                Color baseColor = new Color(0.2f, 0.2f, 0.25f, 0.9f);
+                if (selectedTeamIndex >= 0 && selectedTeamIndex < HillDefenceCreator.teams.Count)
+                {
+                    baseColor = HillDefenceCreator.teams[selectedTeamIndex].teamColor * 0.5f;
+                    baseColor.a = 0.9f;
+                }
+
+                if (isPlacingTurret)
+                {
+                    Color highlightC = Color.Lerp(baseColor, Color.white, Mathf.PingPong(Time.time * 2f, 0.4f));
+                    _buildBtnImage.color = highlightC;
+                }
+                else
+                {
+                    _buildBtnImage.color = baseColor;
+                }
             }
 
             // Turret placement
@@ -266,8 +286,6 @@ namespace HillDefence
                     {
                         if (hit.collider.gameObject == anchorToTerrain.gameObject)
                         {
-                            GameNpc foundTeamFlag = AIController.instance.getNearNpc(hit.point, -1, -1, NpcType.flag);
-
                             if (cursorPointer != null)
                             {
                                 cursorPointer.SetActive(true);
@@ -276,15 +294,15 @@ namespace HillDefence
 
                                 float pulse = Mathf.PingPong(Time.time * 3f, 0.5f);
 
-                                if (foundTeamFlag != null)
+                                if (selectedTeamIndex >= 0 && selectedTeamIndex < HillDefenceCreator.teams.Count)
                                 {
-                                    Color baseC = HillDefenceCreator.teams[foundTeamFlag.teamNumber].teamColor;
+                                    Color baseC = HillDefenceCreator.teams[selectedTeamIndex].teamColor;
                                     Color pulseC = Color.Lerp(baseC, Color.white, pulse);
                                     Utils.ChangeColor(cursorPointer.GetComponent<TeamTower>().towerMaterial, pulseC);
 
                                     bool isOverUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
                                     if (Input.GetMouseButtonDown(0) && !isOverUI)
-                                        PlaceTurret(hit.point, foundTeamFlag);
+                                        PlaceTurret(hit.point, selectedTeamIndex);
                                 }
                                 else
                                 {
@@ -303,24 +321,24 @@ namespace HillDefence
             }
         }
 
-        private void PlaceTurret(Vector3 position, GameNpc nearFlag)
+        private void PlaceTurret(Vector3 position, int teamIndex)
         {
             GameObject newTower = Instantiate(cursorPointer, position, Quaternion.identity);
             TeamTower teamTower = newTower.GetComponent<TeamTower>();
             teamTower.GetComponent<BoxCollider>().enabled = true;
 
-            Color realC = HillDefenceCreator.teams[nearFlag.teamNumber].teamColor;
+            Color realC = HillDefenceCreator.teams[teamIndex].teamColor;
             realC.a = 1f;
             Utils.ChangeColor(teamTower.towerMaterial, realC);
 
-            teamTower.npcInfo.teamNumber = nearFlag.teamNumber;
-            teamTower.npcInfo.npcNumber = HillDefenceCreator.teams[nearFlag.teamNumber].towers.Count;
+            teamTower.npcInfo.teamNumber = teamIndex;
+            teamTower.npcInfo.npcNumber = HillDefenceCreator.teams[teamIndex].towers.Count;
             teamTower.npcInfo.npcType = NpcType.tower;
             teamTower.npcInfo.npcObject = teamTower.gameObject;
 
             teamTower.name = "Tower_" + teamTower.npcInfo.teamNumber + "_" + teamTower.npcInfo.npcNumber;
             teamTower.Init();
-            HillDefenceCreator.teams[nearFlag.teamNumber].towers.Add(teamTower);
+            HillDefenceCreator.teams[teamIndex].towers.Add(teamTower);
             HillDefenceCreator.Npcs.Add(teamTower);
 
             isPlacingTurret = false;

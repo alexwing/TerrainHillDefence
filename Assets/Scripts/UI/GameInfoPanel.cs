@@ -162,7 +162,13 @@ namespace HillDefence
                 labelTxt.enableWordWrapping = false;
                 labelTxt.overflowMode = TextOverflowModes.Ellipsis;
 
-                // Click to teleport to flag
+                // Outline for selection highlight
+                Outline outline = btnObj.AddComponent<Outline>();
+                outline.effectColor = Color.white;
+                outline.effectDistance = new Vector2(2, -2);
+                outline.enabled = false;
+
+                // Click to teleport and select
                 Button btn = btnObj.AddComponent<Button>();
                 btn.transition = Selectable.Transition.ColorTint;
                 ColorBlock cb = btn.colors;
@@ -186,19 +192,35 @@ namespace HillDefence
         private void OnFlagClicked(int teamIndex)
         {
             if (teamIndex < 0 || teamIndex >= HillDefenceCreator.teams.Count) return;
+            
+            if (UIController.instance != null)
+            {
+                UIController.instance.SelectTeam(teamIndex);
+            }
+
             Team t = HillDefenceCreator.teams[teamIndex];
             if (t.teamFlag != null && !t.teamFlag.npcInfo.isDead && FlyCamera.instance != null)
             {
                 FlyCamera.instance.TeleportTo(t.teamFlag.transform.position);
             }
+
+            RefreshStats();
         }
 
         private void RefreshStats()
         {
+            int selectedTeam = UIController.instance != null ? UIController.instance.selectedTeamIndex : -1;
+
             for (int i = 0; i < _flagButtons.Count && i < HillDefenceCreator.teams.Count; i++)
             {
                 Team t = HillDefenceCreator.teams[i];
                 FlagButton fb = _flagButtons[i];
+
+                Outline outline = fb.root.GetComponent<Outline>();
+                if (outline != null)
+                {
+                    outline.enabled = (i == selectedTeam);
+                }
 
                 if (t.teamFlag == null || t.teamFlag.npcInfo.isDead)
                 {
