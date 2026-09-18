@@ -43,6 +43,10 @@ namespace HillDefence
             {
                 instance = this;
                 TerrainInstance = terrain;
+                if (GetComponent<ObjectPooler>() == null)
+                {
+                    gameObject.AddComponent<ObjectPooler>();
+                }
             }
             
             // Critical for restarting the scene properly: clear static variables
@@ -57,7 +61,11 @@ namespace HillDefence
             SpawnEnemyTeam();
             SpawnSoldiers();
             AIController.instance.Init((int)terrain.terrainData.size.x);
-            MapController.instance.Init((int)terrain.terrainData.size.x, SceneConfig.FindSizeMap);
+            MapController.instance.Init(
+                terrain.terrainData.size.x,
+                terrain.terrainData.size.z,
+                terrain.transform.position,
+                SceneConfig.FindSizeMap);
             if (GameInfoPanel.instance == null)
             {
                 if (UIController.instance != null)

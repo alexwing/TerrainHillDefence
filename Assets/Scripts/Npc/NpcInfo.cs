@@ -63,12 +63,23 @@ namespace HillDefence
                     shootTargetPosition.y += targetHeight;
                     Vector3 dir = (shootTargetPosition - shootInitPosition.transform.position).normalized;
                     Vector3 shootPos = shootInitPosition.transform.position + dir;
-                    GameObject shootSend = Instantiate(HillDefenceCreator.teams[npcInfo.teamNumber].bulletPrefab, shootPos, Quaternion.identity);
+                    
+                    GameObject shootSend;
+                    if (ObjectPooler.instance != null)
+                    {
+                        shootSend = ObjectPooler.instance.SpawnFromPool(HillDefenceCreator.teams[npcInfo.teamNumber].bulletPrefab, shootPos, Quaternion.identity);
+                    }
+                    else
+                    {
+                        shootSend = Instantiate(HillDefenceCreator.teams[npcInfo.teamNumber].bulletPrefab, shootPos, Quaternion.identity);
+                    }
+                    
                     //move bullet to enemy
                     shootSend.GetComponent<Rigidbody>().linearVelocity = dir * speed;
                     Bullet bullet = shootSend.GetComponent<Bullet>();
                     bullet.origin = shootPos;
                     bullet.npcInfo = npcInfo;
+                    bullet.enemyNpc = enemyNpc;
                     shootSend.name = "bullet_" + npcInfo.teamNumber;
                     shootSend.gameObject.tag = "bullet";
                     //  print("velocity" +shootSend.GetComponent<Rigidbody>().velocity);

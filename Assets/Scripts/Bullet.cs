@@ -1,4 +1,4 @@
-﻿
+
 using UnityEngine;
 namespace HillDefence
 {
@@ -17,7 +17,14 @@ namespace HillDefence
             float originDistance = Vector3.Distance(origin, transform.position);
             if (originDistance > SceneConfig.SOLDIER.ShootMaxDistance)
             {
-                Destroy(gameObject);
+                if (ObjectPooler.instance != null)
+                {
+                    ObjectPooler.instance.ReturnToPool(gameObject);
+                }
+                else
+                {
+                    Destroy(gameObject);
+                }
             }
         }
 

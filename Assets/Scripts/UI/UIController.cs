@@ -30,6 +30,9 @@ namespace HillDefence
 
         private Image _buildBtnImage;
         private Image _buildSoldierBtnImage;
+        private GameObject _towerCursor;
+        private GameObject _soldierCursor;
+        private GameObject _mapWrapper;
 
         void Awake()
         {
@@ -114,6 +117,7 @@ namespace HillDefence
 
             // Create a dedicated wrapper at Bottom-Right
             GameObject mapWrapper = new GameObject("MapWrapper");
+            _mapWrapper = mapWrapper;
             mapWrapper.transform.SetParent(canvas.transform, false);
             RectTransform wrapperRt = mapWrapper.AddComponent<RectTransform>();
             wrapperRt.anchorMin = new Vector2(1, 0); // Bottom-Right
@@ -121,6 +125,36 @@ namespace HillDefence
             wrapperRt.pivot = new Vector2(1, 0);
             wrapperRt.anchoredPosition = new Vector2(-10, 10);
             wrapperRt.sizeDelta = new Vector2(350, 350);
+
+            GameObject background = new GameObject("MinimapBackground");
+            background.transform.SetParent(mapWrapper.transform, false);
+            RectTransform backgroundRt = background.AddComponent<RectTransform>();
+            backgroundRt.anchorMin = Vector2.zero;
+            backgroundRt.anchorMax = Vector2.one;
+            backgroundRt.offsetMin = Vector2.zero;
+            backgroundRt.offsetMax = Vector2.zero;
+            Image backgroundImage = background.AddComponent<Image>();
+            backgroundImage.color = new Color(0.06f, 0.08f, 0.1f, 0.92f);
+            backgroundImage.raycastTarget = false;
+
+            Image sourceBackground = null;
+            float sourceArea = 0f;
+            foreach (Image image in map.GetComponentsInChildren<Image>(true))
+            {
+                RectTransform imageRt = image.rectTransform;
+                float area = imageRt.rect.width * imageRt.rect.height;
+                if (image.sprite != null && area > sourceArea)
+                {
+                    sourceBackground = image;
+                    sourceArea = area;
+                }
+            }
+            if (sourceBackground != null)
+            {
+                backgroundImage.sprite = sourceBackground.sprite;
+                backgroundImage.type = Image.Type.Simple;
+                backgroundImage.color = Color.white;
+            }
 
             map.SetActive(isMapVisible);
             map.transform.SetParent(mapWrapper.transform, false);
@@ -138,36 +172,13 @@ namespace HillDefence
                 mapRt.localScale = Vector3.one;
             }
 
-            // Remove the old grey background and borders, and stretch the internal MiniMap container
-            foreach (Transform child in map.transform)
-            {
-                if (child.name.Contains("Image") || child.name.Contains("Border") || child.name.Contains("Background"))
-                {
-                    child.gameObject.SetActive(false);
-                }
-                else
-                {
-                    // Stretch any other containers (like MiniMap) so they don't cause offsets
-                    RectTransform childRt = child.GetComponent<RectTransform>();
-                    if (childRt != null)
-                    {
-                        childRt.anchorMin = Vector2.zero;
-                        childRt.anchorMax = Vector2.one;
-                        childRt.pivot = new Vector2(0.5f, 0.5f);
-                        childRt.offsetMin = Vector2.zero;
-                        childRt.offsetMax = Vector2.zero;
-                        childRt.anchoredPosition = Vector2.zero;
-                        childRt.localScale = Vector3.one;
-                    }
-                }
-            }
-
-            // Fix the actual RawImage map child so it doesn't overflow
+            // Only the RawImage is stretched. Markers keep their local map coordinates.
             if (MapController.instance != null && MapController.instance.mapRawImage != null)
             {
                 RectTransform rawImageRt = MapController.instance.mapRawImage.GetComponent<RectTransform>();
                 if (rawImageRt != null)
                 {
+                    MapController.instance.mapRawImage.transform.SetParent(mapWrapper.transform, false);
                     rawImageRt.anchorMin = Vector2.zero;
                     rawImageRt.anchorMax = Vector2.one;
                     rawImageRt.pivot = new Vector2(0.5f, 0.5f);
@@ -176,7 +187,26 @@ namespace HillDefence
                     rawImageRt.anchoredPosition = Vector2.zero;
                     rawImageRt.localScale = Vector3.one;
                 }
+
+                if (MapController.instance.playerPoiMap != null)
+                {
+                    RectTransform poiRt = MapController.instance.playerPoiMap.GetComponent<RectTransform>();
+                    if (poiRt != null)
+                    {
+                        MapController.instance.playerPoiMap.transform.SetParent(mapWrapper.transform, false);
+                        poiRt.anchorMin = new Vector2(0.5f, 0.5f);
+                        poiRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    }
+                }
+
+                foreach (Transform child in map.transform)
+                {
+                    child.gameObject.SetActive(false);
+                }
             }
+
+            background.transform.SetAsFirstSibling();
+            mapWrapper.SetActive(isMapVisible);
 
             if (MapController.instance != null)
                 MapController.instance.UIMapSetActive(isMapVisible);
@@ -219,15 +249,13 @@ namespace HillDefence
             // Build Tank(Turret) button (Top)
             _buildBtnImage = CreateActionButton(actionBar.transform, "T", "Tank", new Vector2(0, 55),
                 () => { 
-                    isPlacingTurret = !isPlacingTurret; 
-                    if (isPlacingTurret) isPlacingSoldier = false; 
+                    SetPlacementMode(!isPlacingTurret, false);
                 });
 
             // Build Soldier button (Bottom)
             _buildSoldierBtnImage = CreateActionButton(actionBar.transform, "S", "Soldier", new Vector2(0, 0),
                 () => { 
-                    isPlacingSoldier = !isPlacingSoldier; 
-                    if (isPlacingSoldier) isPlacingTurret = false; 
+                    SetPlacementMode(false, !isPlacingSoldier);
                 });
         }
 
@@ -236,10 +264,11 @@ namespace HillDefence
             GameObject btnObj = new GameObject($"ActionBtn_{label}");
             btnObj.transform.SetParent(parent, false);
             RectTransform btnRt = btnObj.AddComponent<RectTransform>();
-            btnRt.anchorMin = Vector2.zero;
-            btnRt.anchorMax = Vector2.one;
-            btnRt.offsetMin = Vector2.zero;
-            btnRt.offsetMax = Vector2.zero;
+            btnRt.anchorMin = new Vector2(0, 0);
+            btnRt.anchorMax = new Vector2(0, 0);
+            btnRt.pivot = new Vector2(0, 0);
+            btnRt.anchoredPosition = pos;
+            btnRt.sizeDelta = new Vector2(55, 55);
 
             Image btnImg = btnObj.AddComponent<Image>();
             btnImg.color = new Color(0.2f, 0.2f, 0.25f, 0.9f);
@@ -283,6 +312,62 @@ namespace HillDefence
             return btnImg;
         }
 
+        private void SetPlacementMode(bool turret, bool soldier)
+        {
+            isPlacingTurret = turret;
+            isPlacingSoldier = soldier;
+            if (!turret && !soldier)
+                HidePlacementCursor();
+        }
+
+        private GameObject GetPlacementCursor()
+        {
+            if (isPlacingTurret)
+            {
+                if (cursorPointer == null)
+                    return null;
+
+                if (_towerCursor == null)
+                {
+                    _towerCursor = Instantiate(cursorPointer);
+                    _towerCursor.name = "TowerPlacementCursor";
+                    TeamTower tower = _towerCursor.GetComponent<TeamTower>();
+                    if (tower != null) tower.enabled = false;
+                    foreach (Collider collider in _towerCursor.GetComponentsInChildren<Collider>())
+                        collider.enabled = false;
+                }
+
+                return _towerCursor;
+            }
+
+            if (!isPlacingSoldier || HillDefenceCreator.instance == null || HillDefenceCreator.instance.enemyPrefab == null)
+                return null;
+
+            if (_soldierCursor == null)
+            {
+                _soldierCursor = Instantiate(HillDefenceCreator.instance.enemyPrefab);
+                _soldierCursor.name = "SoldierPlacementCursor";
+                TeamSoldier soldier = _soldierCursor.GetComponent<TeamSoldier>();
+                if (soldier != null) soldier.enabled = false;
+                Animator animator = _soldierCursor.GetComponent<Animator>();
+                if (animator != null) animator.enabled = false;
+                foreach (Collider collider in _soldierCursor.GetComponentsInChildren<Collider>())
+                    collider.enabled = false;
+            }
+
+            return _soldierCursor;
+        }
+
+        private void HidePlacementCursor()
+        {
+            if (cursorPointer != null)
+                cursorPointer.SetActive(false);
+            if (_towerCursor != null)
+                _towerCursor.SetActive(false);
+            if (_soldierCursor != null)
+                _soldierCursor.SetActive(false);
+        }
+
         public int selectedTeamIndex = 0; // Default to Team 0
 
         public void SelectTeam(int teamIndex)
@@ -297,6 +382,8 @@ namespace HillDefence
             {
                 isMapVisible = !isMapVisible;
                 map.SetActive(isMapVisible);
+                if (_mapWrapper != null)
+                    _mapWrapper.SetActive(isMapVisible);
                 if (MapController.instance != null)
                     MapController.instance.UIMapSetActive(isMapVisible);
             }
@@ -336,11 +423,11 @@ namespace HillDefence
                     {
                         if (hit.collider.gameObject == anchorToTerrain.gameObject)
                         {
-                            if (cursorPointer != null)
+                            GameObject placementCursor = GetPlacementCursor();
+                            if (placementCursor != null)
                             {
-                                cursorPointer.SetActive(true);
-                                cursorPointer.GetComponent<BoxCollider>().enabled = false;
-                                cursorPointer.transform.position = hit.point;
+                                placementCursor.SetActive(true);
+                                placementCursor.transform.position = hit.point;
 
                                 float pulse = Mathf.PingPong(Time.time * 3f, 0.5f);
 
@@ -348,7 +435,22 @@ namespace HillDefence
                                 {
                                     Color baseC = HillDefenceCreator.teams[selectedTeamIndex].teamColor;
                                     Color pulseC = Color.Lerp(baseC, Color.white, pulse);
-                                    Utils.ChangeColor(cursorPointer.GetComponent<TeamTower>().towerMaterial, pulseC);
+                                    if (isPlacingTurret)
+                                    {
+                                        TeamTower towerCursor = placementCursor.GetComponent<TeamTower>();
+                                        if (towerCursor != null)
+                                            Utils.ChangeColor(towerCursor.towerMaterial, pulseC);
+                                    }
+                                    else
+                                    {
+                                        TeamSoldier soldierCursor = placementCursor.GetComponent<TeamSoldier>();
+                                        if (soldierCursor != null)
+                                        {
+                                            Utils.ChangeColor(soldierCursor.body.GetComponent<Renderer>(), pulseC);
+                                            Utils.ChangeColor(soldierCursor.head.GetComponent<Renderer>(), pulseC);
+                                            Utils.ChangeColor(soldierCursor.arms.GetComponent<Renderer>(), pulseC);
+                                        }
+                                    }
 
                                     bool isOverUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
                                     if (Input.GetMouseButtonDown(0) && !isOverUI)
@@ -360,7 +462,12 @@ namespace HillDefence
                                 else
                                 {
                                     Color pulseC = Color.Lerp(Color.black, Color.red, pulse);
-                                    Utils.ChangeColor(cursorPointer.GetComponent<TeamTower>().towerMaterial, pulseC);
+                                    if (isPlacingTurret)
+                                    {
+                                        TeamTower towerCursor = placementCursor.GetComponent<TeamTower>();
+                                        if (towerCursor != null)
+                                            Utils.ChangeColor(towerCursor.towerMaterial, pulseC);
+                                    }
                                 }
                             }
                         }
@@ -369,15 +476,20 @@ namespace HillDefence
             }
             else
             {
-                if (cursorPointer != null && cursorPointer.activeSelf)
-                    cursorPointer.SetActive(false);
+                HidePlacementCursor();
             }
         }
 
         private void PlaceTurret(Vector3 position, int teamIndex)
         {
             GameObject newTower = Instantiate(cursorPointer, position, Quaternion.identity);
+            newTower.SetActive(true);
             TeamTower teamTower = newTower.GetComponent<TeamTower>();
+            if (teamTower == null)
+            {
+                Destroy(newTower);
+                return;
+            }
             teamTower.GetComponent<BoxCollider>().enabled = true;
 
             Color realC = HillDefenceCreator.teams[teamIndex].teamColor;
@@ -395,7 +507,7 @@ namespace HillDefence
             HillDefenceCreator.Npcs.Add(teamTower);
 
             isPlacingTurret = false;
-            cursorPointer.SetActive(false);
+            HidePlacementCursor();
         }
 
         private void PlaceSoldier(Vector3 position, int teamIndex)
@@ -417,7 +529,7 @@ namespace HillDefence
             HillDefenceCreator.Npcs.Add(teamSoldier);
 
             isPlacingSoldier = false;
-            cursorPointer.SetActive(false);
+            HidePlacementCursor();
         }
 
         public void ShowWin(Team team)

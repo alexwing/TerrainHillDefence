@@ -1276,7 +1276,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8b5b05ed5567cf4ab1ec396fa1c66f9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cursorPointer: {fileID: 0}
+  cursorPointer: {fileID: 100100000, guid: ec7acd9d4ff75a54187b7423d8dd14a4, type: 3}
   anchorToTerrain: {fileID: 0}
   winText: {fileID: 1398536600}
   winOverlay: {fileID: 0}
@@ -1287,7 +1287,7 @@ MonoBehaviour:
   healthLayout: {fileID: 1183261434336850, guid: 2eeb1c78265f5b349979930a16236bfc,
     type: 3}
   map: {fileID: 1923352778929143036}
-  isMapVisible: 0
+  isMapVisible: 1
 --- !u!114 &1087056505
 MonoBehaviour:
   m_ObjectHideFlags: 0

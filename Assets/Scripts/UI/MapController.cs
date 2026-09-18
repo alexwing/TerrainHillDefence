@@ -14,6 +14,7 @@ namespace HillDefence
         public static int height;
         public static float realWidth;
         public static float realHeight;
+        private static Vector3 worldOrigin;
         public GameObject playerPoiMap;
 
         [Tooltip("The RawImage that displays the minimap. Assign in Inspector or auto-found.")]
@@ -24,9 +25,11 @@ namespace HillDefence
             instance = this;
         }
 
-        public void Init(float realSize, int sizeMap)
+        public void Init(float terrainWidth, float terrainHeight, Vector3 terrainOrigin, int sizeMap)
         {
-            realWidth = realHeight = realSize;
+            realWidth = terrainWidth;
+            realHeight = terrainHeight;
+            worldOrigin = terrainOrigin;
             height = width = sizeMap;
             AIBitmap = new Texture2D(width, height);
 
@@ -83,8 +86,8 @@ namespace HillDefence
             float normZ = Mathf.Clamp01((localPoint.y - rt.rect.yMin) / rt.rect.height);
 
             // Convert normalized coordinates to terrain world position
-            float worldX = normX * realWidth;
-            float worldZ = normZ * realHeight;
+            float worldX = worldOrigin.x + normX * realWidth;
+            float worldZ = worldOrigin.z + normZ * realHeight;
 
             FlyCamera.instance.TeleportTo(new Vector3(worldX, 0, worldZ));
         }
@@ -116,48 +119,58 @@ namespace HillDefence
                         switch (npc.npcInfo.npcType)
                         {
                             case NpcType.soldier:
-                                AIBitmap.SetPixel((int)pos.x, (int)pos.y, HillDefenceCreator.teams[npc.npcInfo.teamNumber].teamColor);
+                                PaintMarker((int)pos.x, (int)pos.y, 2, HillDefenceCreator.teams[npc.npcInfo.teamNumber].teamColor);
                                 break;
                             case NpcType.tower:
-                                for (int i = 0; i <= 1; i++)
-                                {
-                                    for (int j = 0; j <= 1; j++)
-                                    {
-                                        AIBitmap.SetPixel((int)pos.x + i, (int)pos.y + j, HillDefenceCreator.teams[npc.npcInfo.teamNumber].teamColor);
-                                    }
-                                }
+                                PaintMarker((int)pos.x, (int)pos.y, 3, HillDefenceCreator.teams[npc.npcInfo.teamNumber].teamColor);
                                 break;
                             case NpcType.flag:
-                                for (int i = -2; i <= 2; i++)
-                                {
-                                    for (int j = -2; j <= 2; j++)
-                                    {
-                                        if (i != 0 || j != 0)
-                                        {
-                                            AIBitmap.SetPixel((int)pos.x + i, (int)pos.y + j, HillDefenceCreator.teams[npc.npcInfo.teamNumber].teamColor);
-                                        }
-                                    }
-                                }
+                                PaintMarker((int)pos.x, (int)pos.y, 4, HillDefenceCreator.teams[npc.npcInfo.teamNumber].teamColor);
                                 break;
                         }
                     }
                 }
             }
             AIBitmap.Apply();
-            Graphics.Blit(AIBitmap, AIMapTexture);
+            if (AIMapTexture != null)
+                Graphics.Blit(AIBitmap, AIMapTexture);
 
             if (playerPoiMap != null && Camera.main != null)
             {
                 Vector2 pos2 = posToPostionMap(Camera.main.transform.position.x, Camera.main.transform.position.z);
-                playerPoiMap.GetComponent<RectTransform>().localPosition = new Vector3(pos2.x, pos2.y);
-                playerPoiMap.GetComponent<RectTransform>().rotation = new Quaternion(Camera.main.transform.rotation.x, Camera.main.transform.rotation.z, 0, 0);
+                RectTransform poiRt = playerPoiMap.GetComponent<RectTransform>();
+                if (poiRt != null && mapRawImage != null)
+                {
+                    Rect mapRect = mapRawImage.rectTransform.rect;
+                    poiRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    poiRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    poiRt.anchoredPosition = new Vector2(
+                        pos2.x * mapRect.width / 100f,
+                        pos2.y * mapRect.height / 100f);
+                    poiRt.localRotation = Quaternion.Euler(0, 0, -Camera.main.transform.eulerAngles.y);
+                }
+            }
+        }
+
+        private void PaintMarker(int centerX, int centerY, int radius, Color color)
+        {
+            int minX = Mathf.Max(0, centerX - radius);
+            int maxX = Mathf.Min(width - 1, centerX + radius);
+            int minY = Mathf.Max(0, centerY - radius);
+            int maxY = Mathf.Min(height - 1, centerY + radius);
+            for (int x = minX; x <= maxX; x++)
+            {
+                for (int y = minY; y <= maxY; y++)
+                {
+                    AIBitmap.SetPixel(x, y, color);
+                }
             }
         }
 
         public Vector2 posToPostionMap(float x, float y)
         {
-            float xMapNormalized = Mathf.InverseLerp(0, realWidth, x);
-            float yMapNormalized = Mathf.InverseLerp(0, realHeight, y);
+            float xMapNormalized = Mathf.InverseLerp(worldOrigin.x, worldOrigin.x + realWidth, x);
+            float yMapNormalized = Mathf.InverseLerp(worldOrigin.z, worldOrigin.z + realHeight, y);
             int xMap = (int)Mathf.Lerp(0, 100, xMapNormalized);
             int yMap = (int)Mathf.Lerp(0, 100, yMapNormalized);
             return new Vector2(xMap - 50, yMap - 50);
@@ -170,8 +183,8 @@ namespace HillDefence
 
         public Vector2 posToMap(float x, float y)
         {
-            float xMapNormalized = Mathf.InverseLerp(0, realWidth, x);
-            float yMapNormalized = Mathf.InverseLerp(0, realHeight, y);
+            float xMapNormalized = Mathf.InverseLerp(worldOrigin.x, worldOrigin.x + realWidth, x);
+            float yMapNormalized = Mathf.InverseLerp(worldOrigin.z, worldOrigin.z + realHeight, y);
             int xMap = (int)Mathf.Lerp(0, width, xMapNormalized);
             int yMap = (int)Mathf.Lerp(0, height, yMapNormalized);
             return new Vector2(xMap, yMap);

@@ -47,7 +47,11 @@ namespace HillDefence
             {
                 ModifyTerrain(collision.gameObject, 10, 10, UpOrDown);
                 DetonationBullet(collision.gameObject);
-                Destroy(collision.gameObject);
+                
+                if (ObjectPooler.instance != null)
+                    ObjectPooler.instance.ReturnToPool(collision.gameObject);
+                else
+                    Destroy(collision.gameObject);
             }
 
         }
@@ -137,31 +141,76 @@ namespace HillDefence
 
         public void DetonationBullet(GameObject collision)
         {
-            Destroy(Instantiate(detonationBulletPrefab, collision.transform.position, Quaternion.identity), SceneConfig.TERRAIN.explosionBulletLife);
+            if (ObjectPooler.instance != null)
+            {
+                GameObject obj = ObjectPooler.instance.SpawnFromPool(detonationBulletPrefab, collision.transform.position, Quaternion.identity);
+                ReturnToPoolAfterTime returner = obj.GetComponent<ReturnToPoolAfterTime>();
+                if (returner == null) returner = obj.AddComponent<ReturnToPoolAfterTime>();
+                returner.lifeTime = SceneConfig.TERRAIN.explosionBulletLife;
+            }
+            else
+            {
+                Destroy(Instantiate(detonationBulletPrefab, collision.transform.position, Quaternion.identity), SceneConfig.TERRAIN.explosionBulletLife);
+            }
         }
 
         public void DetonationTerrain(GameObject collision, float destructionSize)
         {
-            GameObject detonation = Instantiate(detonationPrefab, collision.transform.position, Quaternion.identity) as GameObject;
-            detonation.transform.localScale = new Vector3(destructionSize, destructionSize, destructionSize);
-            Destroy(detonation, SceneConfig.TERRAIN.explosionLife);
-
-            GameObject _currentEffect = Instantiate(collision.gameObject, collision.transform.position, Quaternion.identity);
-            for (int i = 0; i < _currentEffect.transform.childCount; i++)
+            if (ObjectPooler.instance != null)
             {
-                _currentEffect.transform.GetChild(i).transform.localScale = new Vector3(destructionSize, destructionSize, destructionSize) * 0.1f;
-            }
-            Destroy(_currentEffect, 0.5f);
+                GameObject detonation = ObjectPooler.instance.SpawnFromPool(detonationPrefab, collision.transform.position, Quaternion.identity);
+                detonation.transform.localScale = new Vector3(destructionSize, destructionSize, destructionSize);
+                ReturnToPoolAfterTime returner1 = detonation.GetComponent<ReturnToPoolAfterTime>();
+                if (returner1 == null) returner1 = detonation.AddComponent<ReturnToPoolAfterTime>();
+                returner1.lifeTime = SceneConfig.TERRAIN.explosionLife;
 
-            for (int i = 0; i < destructionSize * 2; i++)
+                GameObject _currentEffect = ObjectPooler.instance.SpawnFromPool(collision.gameObject, collision.transform.position, Quaternion.identity);
+                for (int i = 0; i < _currentEffect.transform.childCount; i++)
+                {
+                    _currentEffect.transform.GetChild(i).transform.localScale = new Vector3(destructionSize, destructionSize, destructionSize) * 0.1f;
+                }
+                ReturnToPoolAfterTime returner2 = _currentEffect.GetComponent<ReturnToPoolAfterTime>();
+                if (returner2 == null) returner2 = _currentEffect.AddComponent<ReturnToPoolAfterTime>();
+                returner2.lifeTime = 0.5f;
+
+                for (int i = 0; i < destructionSize * 2; i++)
+                {
+                    GameObject p = ObjectPooler.instance.SpawnFromPool(detonationPrefab, Utils.RandomNearPosition(collision.transform, SceneConfig.TERRAIN.ramdomExplosion, 0f, SceneConfig.TERRAIN.ramdomExplosion).position, Quaternion.identity);
+                    ReturnToPoolAfterTime r = p.GetComponent<ReturnToPoolAfterTime>();
+                    if (r == null) r = p.AddComponent<ReturnToPoolAfterTime>();
+                    r.lifeTime = SceneConfig.TERRAIN.explosionLife;
+                }
+
+                detonationTowerPrefab.transform.localScale = new Vector3(destructionSize, destructionSize, destructionSize);
+                GameObject t = ObjectPooler.instance.SpawnFromPool(detonationTowerPrefab, collision.transform.position, Quaternion.identity);
+                ReturnToPoolAfterTime rt = t.GetComponent<ReturnToPoolAfterTime>();
+                if (rt == null) rt = t.AddComponent<ReturnToPoolAfterTime>();
+                rt.lifeTime = SceneConfig.TERRAIN.explosionLife;
+            }
+            else
             {
-                Destroy(Instantiate(detonationPrefab, Utils.RandomNearPosition(collision.transform, SceneConfig.TERRAIN.ramdomExplosion, 0f, SceneConfig.TERRAIN.ramdomExplosion).position, Quaternion.identity), SceneConfig.TERRAIN.explosionLife);
+                // Fallback if pooler missing
+                GameObject detonation = Instantiate(detonationPrefab, collision.transform.position, Quaternion.identity) as GameObject;
+                detonation.transform.localScale = new Vector3(destructionSize, destructionSize, destructionSize);
+                Destroy(detonation, SceneConfig.TERRAIN.explosionLife);
+
+                GameObject _currentEffect = Instantiate(collision.gameObject, collision.transform.position, Quaternion.identity);
+                for (int i = 0; i < _currentEffect.transform.childCount; i++)
+                {
+                    _currentEffect.transform.GetChild(i).transform.localScale = new Vector3(destructionSize, destructionSize, destructionSize) * 0.1f;
+                }
+                Destroy(_currentEffect, 0.5f);
+
+                for (int i = 0; i < destructionSize * 2; i++)
+                {
+                    Destroy(Instantiate(detonationPrefab, Utils.RandomNearPosition(collision.transform, SceneConfig.TERRAIN.ramdomExplosion, 0f, SceneConfig.TERRAIN.ramdomExplosion).position, Quaternion.identity), SceneConfig.TERRAIN.explosionLife);
+                }
+
+                detonationTowerPrefab.transform.localScale = new Vector3(destructionSize, destructionSize, destructionSize);
+                Destroy(Instantiate(detonationTowerPrefab, collision.transform.position, Quaternion.identity), SceneConfig.TERRAIN.explosionLife);
             }
 
-            detonationTowerPrefab.transform.localScale = new Vector3(destructionSize, destructionSize, destructionSize);
-            Destroy(Instantiate(detonationTowerPrefab, collision.transform.position, Quaternion.identity), SceneConfig.TERRAIN.explosionLife);
-
-            // ── Big-base explosion: spawn the expanding fire wave ────────
+            // Big-base explosion
             if (destructionSize >= SceneConfig.FLAG.DetonationSize)
             {
                 GameObject fxHost = new GameObject("FlagExplosionFX");
