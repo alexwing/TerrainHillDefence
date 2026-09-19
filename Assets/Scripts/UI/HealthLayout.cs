@@ -25,11 +25,12 @@ namespace HillDefence
 
         private int _lastShootCount = -1;
 
-        public void SetUp(GameNpc npcInfo, Transform target, int lives)
+        public void SetUp(GameNpc npcInfo, Transform target, int lives, float offset = 4.5f)
         {
             npc = npcInfo;
             targetTransform = target;
             maxLives = lives;
+            yOffset = offset;
             _lastShootCount = -1;
             UpdateBar();
         }

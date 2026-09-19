@@ -23,9 +23,9 @@ namespace HillDefence
             }
             if (healthBarPrefab != null)
             {
-                _healthBarInstance = Instantiate(healthBarPrefab, transform.position + Vector3.up * 6.5f, Quaternion.identity);
+                _healthBarInstance = Instantiate(healthBarPrefab, transform.position + Vector3.up * 8.5f, Quaternion.identity);
                 HealthLayout hl = _healthBarInstance.GetComponentInChildren<HealthLayout>();
-                if (hl != null) hl.SetUp(npcInfo, transform, SceneConfig.TOWER.Lives);
+                if (hl != null) hl.SetUp(npcInfo, transform, SceneConfig.TOWER.Lives, 8.5f);
             }
         }
 
