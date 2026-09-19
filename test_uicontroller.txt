@@ -472,7 +472,7 @@ namespace HillDefence
                                 {
                                     Color baseC = HillDefenceCreator.teams[selectedTeamIndex].teamColor;
                                     Color pulseC = Color.Lerp(baseC, Color.white, pulse);
-                                    if (isPlacingTurret || isPlacingTank)
+                                    if (isPlacingTurret)
                                     {
                                         TeamTower towerCursor = placementCursor.GetComponent<TeamTower>();
                                         if (towerCursor != null)
@@ -506,7 +506,7 @@ namespace HillDefence
                                 else
                                 {
                                     Color pulseC = Color.Lerp(Color.black, Color.red, pulse);
-                                    if (isPlacingTurret || isPlacingTank)
+                                    if (isPlacingTurret)
                                     {
                                         TeamTower towerCursor = placementCursor.GetComponent<TeamTower>();
                                         if (towerCursor != null)
@@ -684,5 +684,4 @@ namespace HillDefence
     }
 }
 // Trigger recompile
-
 

@@ -10,7 +10,7 @@ namespace HillDefence
         public Renderer towerMaterial;
 
         public GameObject healthBarPrefab;
-        private GameObject _healthBarInstance;
+        protected GameObject _healthBarInstance;
 
         public void Init()
         {
@@ -97,6 +97,7 @@ namespace HillDefence
                 if (found == null)
                 {
                     found = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.TOWER.FindEnemyRange, NpcType.tower);
+                if (found == null) found = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.TOWER.FindEnemyRange, NpcType.tank);
                 }
                 enemyNpc = found;
             }
@@ -135,4 +136,6 @@ namespace HillDefence
         }
     }
 }
+
+
 

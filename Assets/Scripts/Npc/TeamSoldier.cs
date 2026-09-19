@@ -170,6 +170,7 @@ namespace HillDefence
             if (enemyNpc == null)
             {
                 GameNpc findNpcEnemy = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.SOLDIER.FindEnemyRange, NpcType.soldier);
+                if (findNpcEnemy == null) findNpcEnemy = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.SOLDIER.FindEnemyRange, NpcType.tank);
                 if (findNpcEnemy != null)
                 {
                     enemyNpc = findNpcEnemy;
@@ -189,6 +190,7 @@ namespace HillDefence
                 else if (enemyNpc.npcType == NpcType.flag)
                 {
                     GameNpc findNpcEnemy = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.SOLDIER.FindEnemyRange, NpcType.soldier);
+                if (findNpcEnemy == null) findNpcEnemy = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.SOLDIER.FindEnemyRange, NpcType.tank);
                     enemyNpc = findNpcEnemy != null ? findNpcEnemy : enemyNpc;
                 }
             }
@@ -351,3 +353,5 @@ namespace HillDefence
         }
     }
 }
+
+

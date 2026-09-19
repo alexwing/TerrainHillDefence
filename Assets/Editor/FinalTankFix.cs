@@ -9,8 +9,8 @@ namespace HillDefence.EditorScripts
         [InitializeOnLoadMethod]
         public static void DoIt()
         {
-            if (SessionState.GetBool("FinalTankFixed3", false)) return;
-            SessionState.SetBool("FinalTankFixed3", true);
+            if (SessionState.GetBool("FinalTankFixed4", false)) return;
+            SessionState.SetBool("FinalTankFixed4", true);
 
             // 1. Fix Tank.prefab
             string tankPath = "Assets/Resources/Tank.prefab";
@@ -33,7 +33,7 @@ namespace HillDefence.EditorScripts
                     Transform tankVis = contentsRoot.transform.Find("TankVisual");
                     if (tankVis == null)
                     {
-                        GameObject tankModel = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Tank.obj");
+                        GameObject tankModel = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Tank.fbx");
                         GameObject newVisual = (GameObject)PrefabUtility.InstantiatePrefab(tankModel);
                         newVisual.transform.SetParent(contentsRoot.transform, false);
                         newVisual.transform.localPosition = Vector3.zero;
@@ -48,7 +48,7 @@ namespace HillDefence.EditorScripts
                     if (mr != null)
                     {
                         tt.towerMaterial = mr;
-                        mr.sharedMaterial = new Material(Shader.Find("Legacy Shaders/Diffuse"));
+                        // using fbx materials
                     }
 
                     // Add shootInitPosition if missing
@@ -87,3 +87,5 @@ namespace HillDefence.EditorScripts
         }
     }
 }
+
+

@@ -36,6 +36,7 @@ namespace HillDefence
         Any,
         flag,
         soldier,
-        tower
+        tower,
+        tank
     }
 }

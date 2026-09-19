@@ -523,6 +523,9 @@ MonoBehaviour:
   isMapVisible: 1
   isPlacingTurret: 0
   isPlacingSoldier: 0
+  isPlacingTank: 0
+  tankPrefab: {fileID: 8047671470460059953, guid: 9b2f6917e7f8e4a44b96350f2898a1dc,
+    type: 3}
   selectedTeamIndex: 0
 --- !u!114 &1087056505
 MonoBehaviour:
