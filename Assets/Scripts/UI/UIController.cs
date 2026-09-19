@@ -256,15 +256,21 @@ namespace HillDefence
             barBg.color = new Color(0.08f, 0.08f, 0.12f, 0.75f);
 
             // Build Tank(Turret) button (Top)
-            _buildBtnImage = CreateActionButton(actionBar.transform, "T", "Tank", new Vector2(0, 55),
+            _buildBtnImage = CreateActionButton(actionBar.transform, "T", "Tower", new Vector2(0, 55),
                 () => { 
-                    SetPlacementMode(!isPlacingTurret, false);
+                    SetPlacementMode(!isPlacingTurret, false, false);
+                });
+
+            // Build Tank button (Middle)
+            _buildTankBtnImage = CreateActionButton(actionBar.transform, "K", "Tank", new Vector2(0, 110),
+                () => { 
+                    SetPlacementMode(false, false, !isPlacingTank);
                 });
 
             // Build Soldier button (Bottom)
             _buildSoldierBtnImage = CreateActionButton(actionBar.transform, "S", "Soldier", new Vector2(0, 0),
                 () => { 
-                    SetPlacementMode(false, !isPlacingSoldier);
+                    SetPlacementMode(false, !isPlacingSoldier, false);
                 });
         }
 
@@ -321,11 +327,12 @@ namespace HillDefence
             return btnImg;
         }
 
-        private void SetPlacementMode(bool turret, bool soldier)
+        private void SetPlacementMode(bool turret, bool soldier, bool tank)
         {
             isPlacingTurret = turret;
             isPlacingSoldier = soldier;
-            if (!turret && !soldier)
+            isPlacingTank = tank;
+            if (!turret && !soldier && !tank)
                 HidePlacementCursor();
         }
 
@@ -333,9 +340,6 @@ namespace HillDefence
         {
             if (isPlacingTurret)
             {
-                if (cursorPointer == null)
-                    return null;
-
                 if (_towerCursor == null)
                 {
                     _towerCursor = Instantiate(cursorPointer);
@@ -345,26 +349,38 @@ namespace HillDefence
                     foreach (Collider collider in _towerCursor.GetComponentsInChildren<Collider>())
                         collider.enabled = false;
                 }
-
                 return _towerCursor;
             }
-
-            if (!isPlacingSoldier || HillDefenceCreator.instance == null || HillDefenceCreator.instance.enemyPrefab == null)
-                return null;
-
-            if (_soldierCursor == null)
+            else if (isPlacingTank)
             {
-                _soldierCursor = Instantiate(HillDefenceCreator.instance.enemyPrefab);
-                _soldierCursor.name = "SoldierPlacementCursor";
-                TeamSoldier soldier = _soldierCursor.GetComponent<TeamSoldier>();
-                if (soldier != null) soldier.enabled = false;
-                Animator animator = _soldierCursor.GetComponent<Animator>();
-                if (animator != null) animator.enabled = false;
-                foreach (Collider collider in _soldierCursor.GetComponentsInChildren<Collider>())
-                    collider.enabled = false;
+                if (_tankCursor == null)
+                {
+                    if (tankPrefab == null) tankPrefab = Resources.Load<GameObject>("Tank"); // Fallback
+                    _tankCursor = Instantiate(tankPrefab != null ? tankPrefab : cursorPointer);
+                    _tankCursor.name = "TankPlacementCursor";
+                    TeamTower tank = _tankCursor.GetComponent<TeamTower>();
+                    if (tank != null) tank.enabled = false;
+                    foreach (Collider collider in _tankCursor.GetComponentsInChildren<Collider>())
+                        collider.enabled = false;
+                }
+                return _tankCursor;
             }
-
-            return _soldierCursor;
+            else if (isPlacingSoldier)
+            {
+                if (_soldierCursor == null)
+                {
+                    _soldierCursor = Instantiate(HillDefenceCreator.instance.enemyPrefab);
+                    _soldierCursor.name = "SoldierPlacementCursor";
+                    TeamSoldier soldier = _soldierCursor.GetComponent<TeamSoldier>();
+                    if (soldier != null) soldier.enabled = false;
+                    Animator animator = _soldierCursor.GetComponent<Animator>();
+                    if (animator != null) animator.enabled = false;
+                    foreach (Collider collider in _soldierCursor.GetComponentsInChildren<Collider>())
+                        collider.enabled = false;
+                }
+                return _soldierCursor;
+            }
+            return null;
         }
 
         private void HidePlacementCursor()
@@ -375,6 +391,8 @@ namespace HillDefence
                 _towerCursor.SetActive(false);
             if (_soldierCursor != null)
                 _soldierCursor.SetActive(false);
+            if (_tankCursor != null)
+                _tankCursor.SetActive(false);
         }
 
         public int selectedTeamIndex = 0; // Default to Team 0
@@ -415,13 +433,14 @@ namespace HillDefence
             }
 
             // Placement logic
-            if (isPlacingTurret || isPlacingSoldier)
+            if (isPlacingTurret || isPlacingSoldier || isPlacingTank)
             {
                 if (Input.GetMouseButtonDown(1))
                 {
                     isPlacingTurret = false;
                     isPlacingSoldier = false;
-                    if (cursorPointer != null) cursorPointer.SetActive(false);
+                    isPlacingTank = false;
+                    HidePlacementCursor();
                     return;
                 }
 
@@ -444,7 +463,7 @@ namespace HillDefence
                                 {
                                     Color baseC = HillDefenceCreator.teams[selectedTeamIndex].teamColor;
                                     Color pulseC = Color.Lerp(baseC, Color.white, pulse);
-                                    if (isPlacingTurret)
+                                    if (isPlacingTurret || isPlacingTank)
                                     {
                                         TeamTower towerCursor = placementCursor.GetComponent<TeamTower>();
                                         if (towerCursor != null)
@@ -465,13 +484,14 @@ namespace HillDefence
                                     if (Input.GetMouseButtonDown(0) && !isOverUI)
                                     {
                                         if (isPlacingTurret) PlaceTurret(hit.point, selectedTeamIndex);
+                                        else if (isPlacingTank) PlaceTank(hit.point, selectedTeamIndex);
                                         else if (isPlacingSoldier) PlaceSoldier(hit.point, selectedTeamIndex);
                                     }
                                 }
                                 else
                                 {
                                     Color pulseC = Color.Lerp(Color.black, Color.red, pulse);
-                                    if (isPlacingTurret)
+                                    if (isPlacingTurret || isPlacingTank)
                                     {
                                         TeamTower towerCursor = placementCursor.GetComponent<TeamTower>();
                                         if (towerCursor != null)
@@ -510,6 +530,27 @@ namespace HillDefence
             HillDefenceCreator.Npcs.Add(teamTower);
             
             // Allow continuous placement; do not disable placement mode here.
+        }
+
+        private void PlaceTank(Vector3 position, int teamIndex)
+        {
+            GameObject newTank = Instantiate(tankPrefab != null ? tankPrefab : cursorPointer, position, Quaternion.identity);
+            newTank.SetActive(true);
+            TeamTower teamTank = newTank.GetComponent<TeamTower>();
+            if (teamTank == null)
+            {
+                Destroy(newTank);
+                return;
+            }
+            teamTank.GetComponent<BoxCollider>().enabled = true;
+            teamTank.npcInfo.npcType = NpcType.tower;
+            teamTank.npcInfo.teamNumber = teamIndex;
+            teamTank.npcInfo.npcNumber = HillDefenceCreator.teams[teamIndex].towers.Count;
+            teamTank.npcInfo.npcObject = newTank;
+            teamTank.name = "Tank_" + teamTank.npcInfo.teamNumber + "_" + teamTank.npcInfo.npcNumber;
+            teamTank.Init();
+            HillDefenceCreator.teams[teamIndex].towers.Add(teamTank);
+            HillDefenceCreator.Npcs.Add(teamTank);
         }
 
         private void PlaceSoldier(Vector3 position, int teamIndex)
