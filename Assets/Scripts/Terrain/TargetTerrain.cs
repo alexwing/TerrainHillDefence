@@ -139,8 +139,20 @@ namespace HillDefence
         }
 
 
+        private Mesh rockMesh;
+        private Material rockMat;
+
         public void DetonationBullet(GameObject collision)
         {
+            if (rockMesh == null)
+            {
+                GameObject tempCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                rockMesh = tempCube.GetComponent<MeshFilter>().sharedMesh;
+                Destroy(tempCube);
+
+                rockMat = new Material(Shader.Find("Standard"));
+                rockMat.color = new Color(0.35f, 0.30f, 0.25f, 1f); // Tierra/roca
+            }
             GameObject obj = null;
             if (ObjectPooler.instance != null)
             {
@@ -166,9 +178,24 @@ namespace HillDefence
                     // Force the particle system to simulate and play from the beginning
                     ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
                     
-                    // Tint to dirt/smoke (avoiding bright reds/yellows of fire)
-                    main.startColor = new Color(0.4f, 0.38f, 0.35f, 0.8f);
+                    // Convert default particles into 3D tumbling rocks
+                    ParticleSystemRenderer render = ps.GetComponent<ParticleSystemRenderer>();
+                    if (render != null && rockMesh != null)
+                    {
+                        render.renderMode = ParticleSystemRenderMode.Mesh;
+                        render.mesh = rockMesh;
+                        render.material = rockMat;
+                    }
                     
+                    main.startColor = new Color(0.4f, 0.38f, 0.35f, 1f);
+                    main.gravityModifier = 2.0f; // Make rocks fall
+
+                    var rot = ps.rotationOverLifetime;
+                    rot.enabled = true;
+                    rot.xMultiplier = 360f;
+                    rot.yMultiplier = 360f;
+                    rot.zMultiplier = 360f;
+
                     ps.Play(true);
                 }
             }

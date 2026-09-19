@@ -32,6 +32,19 @@ namespace HillDefence
             maxLives = lives;
             yOffset = offset;
             _lastShootCount = -1;
+
+            // Make it larger
+            transform.localScale = transform.localScale * 3.5f;
+
+            // Make it render on top of everything (ZTest Always)
+            Material alwaysOnTop = new Material(Shader.Find("UI/Default"));
+            alwaysOnTop.SetInt("unity_GUIZTestMode", (int)UnityEngine.Rendering.CompareFunction.Always);
+            
+            foreach (UnityEngine.UI.Graphic g in GetComponentsInChildren<UnityEngine.UI.Graphic>(true))
+            {
+                g.material = alwaysOnTop;
+            }
+
             UpdateBar();
         }
 
@@ -49,8 +62,15 @@ namespace HillDefence
                 UpdateBar();
             }
 
-            // Position directly above the character
-            transform.position = targetTransform.position + Vector3.up * yOffset;
+            // Dynamically calculate position above the highest point of the collider
+            float topY = targetTransform.position.y + yOffset; 
+            Collider col = targetTransform.GetComponentInChildren<Collider>();
+            if (col != null)
+            {
+                topY = col.bounds.max.y + 1.5f;
+            }
+
+            transform.position = new Vector3(targetTransform.position.x, topY, targetTransform.position.z);
             
             if (Camera.main != null)
             {
