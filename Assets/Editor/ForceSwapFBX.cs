@@ -9,8 +9,8 @@ namespace HillDefence.EditorScripts
         [InitializeOnLoadMethod]
         public static void DoIt()
         {
-            if (SessionState.GetBool("ForceSwapFBX2", false)) return;
-            SessionState.SetBool("ForceSwapFBX2", true);
+            if (SessionState.GetBool("ForceSwapFBX3", false)) return;
+            SessionState.SetBool("ForceSwapFBX3", true);
 
             string tankPath = "Assets/Resources/Tank.prefab";
             if (AssetDatabase.LoadAssetAtPath<GameObject>(tankPath) != null)
@@ -30,26 +30,37 @@ namespace HillDefence.EditorScripts
                 newVisual.transform.SetParent(contentsRoot.transform, false);
                 newVisual.transform.localPosition = Vector3.zero;
                 newVisual.transform.localRotation = Quaternion.identity;
-                newVisual.transform.localScale = Vector3.one * 0.35f;
+                
+                // Scale it appropriately (the Sketchfab T90 is 10m long, scale 0.5f makes it 5m)
+                newVisual.transform.localScale = Vector3.one * 0.5f;
                 newVisual.name = "TankVisual";
 
                 TeamTank tt = contentsRoot.GetComponent<TeamTank>();
                 if (tt != null)
                 {
-                    tt.tower = newVisual;
-                    MeshRenderer mr = newVisual.GetComponentInChildren<MeshRenderer>();
-                    if (mr != null)
+                    Transform turretTransform = newVisual.transform.Find("Turret");
+                    if (turretTransform != null)
                     {
-                        tt.towerMaterial = mr;
+                        tt.tower = turretTransform.gameObject;
                     }
+                    else
+                    {
+                        tt.tower = newVisual; // fallback
+                    }
+                    
+                    // Assign material (from Hull or Turret)
+                    MeshRenderer mr = newVisual.GetComponentInChildren<MeshRenderer>();
+                    if (mr != null) tt.towerMaterial = mr;
 
                     // Recreate ShootPos
                     Transform shootPos = newVisual.transform.Find("ShootPos");
                     if (shootPos == null)
                     {
                         GameObject sp = new GameObject("ShootPos");
-                        sp.transform.SetParent(newVisual.transform, false);
-                        sp.transform.localPosition = new Vector3(0, 1.5f, 3.0f);
+                        sp.transform.SetParent(turretTransform != null ? turretTransform : newVisual.transform, false);
+                        
+                        // If it's on the turret, we just move it forward (along Z) and up (along Y)
+                        sp.transform.localPosition = new Vector3(0, 0f, 4.0f);
                         shootPos = sp.transform;
                     }
                     tt.shootInitPosition = shootPos.gameObject;
@@ -57,9 +68,8 @@ namespace HillDefence.EditorScripts
 
                 PrefabUtility.SaveAsPrefabAsset(contentsRoot, tankPath);
                 PrefabUtility.UnloadPrefabContents(contentsRoot);
-                Debug.Log("Swapped to the new Blender FBX model!");
+                Debug.Log("Swapped to the new separated Turret FBX model!");
             }
         }
     }
 }
-

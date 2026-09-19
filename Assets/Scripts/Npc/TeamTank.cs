@@ -81,7 +81,6 @@ namespace HillDefence
                 if (found == null)
                     found = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.TOWER.FindEnemyRange, NpcType.tower);
                 
-                // Attack other tanks too
                 if (found == null)
                     found = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.TOWER.FindEnemyRange, NpcType.tank);
 
@@ -138,28 +137,30 @@ namespace HillDefence
                     isWalking = false;
                 }
 
-                // Always aim the entire tank body towards the enemy
-                Vector3 lookAtDir = (enemyNpc.npcObject.transform.position - transform.position).normalized;
-                lookAtDir.y = 0;
-                if (lookAtDir.sqrMagnitude > 0.01f)
+                // Turret aims independently!
+                if (tower != null)
                 {
-                    transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(lookAtDir), Time.deltaTime * SceneConfig.TOWER.RotationSpeed);
-                }
-                
-                if (distance <= SceneConfig.TOWER.FindEnemyRange)
-                {
-                    
                     Vector3 flatEnemyPos = enemyNpc.npcObject.transform.position;
-                    flatEnemyPos.y = transform.position.y;
-                    if (Vector3.Angle(flatEnemyPos - transform.position, transform.forward) < SceneConfig.TOWER.RotationAngleMinToShoot)
+                    // Keep pitch unchanged if possible, just yaw towards enemy
+                    Vector3 turretLookDir = (enemyNpc.npcObject.transform.position - tower.transform.position).normalized;
+                    turretLookDir.y = 0; // only rotate on Y
+                    if (turretLookDir.sqrMagnitude > 0.01f)
                     {
-                        Shoot(SceneConfig.TOWER.shootCarence, SceneConfig.TOWER.shootSpeed, SceneConfig.TOWER.ShootMaxDistance, SceneConfig.TOWER.shootTargetHeight);                      
-                    }      
+                        Quaternion targetRot = Quaternion.LookRotation(turretLookDir);
+                        tower.transform.rotation = Quaternion.Lerp(tower.transform.rotation, targetRot, Time.deltaTime * SceneConfig.TOWER.RotationSpeed);
+                    }
+                    
+                    if (distance <= SceneConfig.TOWER.FindEnemyRange)
+                    {
+                        flatEnemyPos.y = tower.transform.position.y;
+                        if (Vector3.Angle(flatEnemyPos - tower.transform.position, tower.transform.forward) < SceneConfig.TOWER.RotationAngleMinToShoot)
+                        {
+                            Shoot(SceneConfig.TOWER.shootCarence, SceneConfig.TOWER.shootSpeed, SceneConfig.TOWER.ShootMaxDistance, SceneConfig.TOWER.shootTargetHeight);                      
+                        }      
+                    }
                 }
             }
         }
     }
 }
-
-
 
