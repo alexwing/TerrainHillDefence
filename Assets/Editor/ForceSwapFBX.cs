@@ -9,58 +9,67 @@ namespace HillDefence.EditorScripts
         [InitializeOnLoadMethod]
         public static void DoIt()
         {
-            if (SessionState.GetBool("ForceSwapFBX3", false)) return;
-            SessionState.SetBool("ForceSwapFBX3", true);
+            if (SessionState.GetBool("ForceSwapFBX5", false)) return;
+            SessionState.SetBool("ForceSwapFBX5", true);
 
             string tankPath = "Assets/Resources/Tank.prefab";
             if (AssetDatabase.LoadAssetAtPath<GameObject>(tankPath) != null)
             {
                 GameObject contentsRoot = PrefabUtility.LoadPrefabContents(tankPath);
                 
-                // Destroy ANY existing TankVisual (the old obj)
                 Transform oldVis = contentsRoot.transform.Find("TankVisual");
                 if (oldVis != null)
                 {
                     GameObject.DestroyImmediate(oldVis.gameObject, true);
                 }
 
-                // Instantiate new FBX
                 GameObject tankModel = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/TankSketchfab.fbx");
                 GameObject newVisual = (GameObject)PrefabUtility.InstantiatePrefab(tankModel);
                 newVisual.transform.SetParent(contentsRoot.transform, false);
                 newVisual.transform.localPosition = Vector3.zero;
-                newVisual.transform.localRotation = Quaternion.identity;
                 
-                // Scale it appropriately (the Sketchfab T90 is 10m long, scale 0.5f makes it 5m)
-                newVisual.transform.localScale = Vector3.one * 0.5f;
+                // Rotamos 90 grados para arreglar el chasis. 
+                // En la foto, el tanque miraba hacia el lado (eje X en vez de Z). -90 o 90 deberia arreglarlo.
+                newVisual.transform.localRotation = Quaternion.Euler(0, -90, 0);
+                
+                // Hacemos el tanque mas grande
+                newVisual.transform.localScale = Vector3.one * 1.5f;
                 newVisual.name = "TankVisual";
 
                 TeamTank tt = contentsRoot.GetComponent<TeamTank>();
                 if (tt != null)
                 {
-                    Transform turretTransform = newVisual.transform.Find("Turret");
-                    if (turretTransform != null)
+                    Transform turretMesh = newVisual.transform.Find("Turret");
+                    if (turretMesh != null)
                     {
-                        tt.tower = turretTransform.gameObject;
+                        // Creamos un pivote para la torreta
+                        GameObject turretPivot = new GameObject("TurretPivot");
+                        turretPivot.transform.SetParent(newVisual.transform, false);
+                        turretPivot.transform.localPosition = turretMesh.localPosition;
+                        
+                        // Metemos la malla de la torreta dentro del pivote y le corregimos la rotacion
+                        turretMesh.SetParent(turretPivot.transform, true);
+                        turretMesh.localRotation = Quaternion.Euler(0, -90, 0); 
+                        turretMesh.localPosition = Vector3.zero;
+                        
+                        tt.tower = turretPivot;
                     }
                     else
                     {
-                        tt.tower = newVisual; // fallback
+                        tt.tower = newVisual; 
                     }
                     
-                    // Assign material (from Hull or Turret)
                     MeshRenderer mr = newVisual.GetComponentInChildren<MeshRenderer>();
                     if (mr != null) tt.towerMaterial = mr;
 
-                    // Recreate ShootPos
                     Transform shootPos = newVisual.transform.Find("ShootPos");
                     if (shootPos == null)
                     {
                         GameObject sp = new GameObject("ShootPos");
-                        sp.transform.SetParent(turretTransform != null ? turretTransform : newVisual.transform, false);
+                        sp.transform.SetParent(tt.tower.transform, false);
                         
-                        // If it's on the turret, we just move it forward (along Z) and up (along Y)
-                        sp.transform.localPosition = new Vector3(0, 0f, 4.0f);
+                        // Ponemos el shootPos delante de la torreta (hacia +Z que es el forward del pivote)
+                        sp.transform.localPosition = new Vector3(0, 0.5f, 2.5f);
                         shootPos = sp.transform;
                     }
                     tt.shootInitPosition = shootPos.gameObject;
@@ -68,7 +77,7 @@ namespace HillDefence.EditorScripts
 
                 PrefabUtility.SaveAsPrefabAsset(contentsRoot, tankPath);
                 PrefabUtility.UnloadPrefabContents(contentsRoot);
-                Debug.Log("Swapped to the new separated Turret FBX model!");
+                Debug.Log("Swapped, fixed rotation with TurretPivot and increased scale!");
             }
         }
     }
