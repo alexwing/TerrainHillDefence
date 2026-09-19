@@ -7,7 +7,7 @@ namespace HillDefence
     {
         public GameObject tower;
         // material to change color of the tower gun
-        public SkinnedMeshRenderer towerMaterial;
+        public Renderer towerMaterial;
 
         public GameObject healthBarPrefab;
         private GameObject _healthBarInstance;
