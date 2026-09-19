@@ -9,8 +9,8 @@ namespace HillDefence.EditorScripts
         [InitializeOnLoadMethod]
         public static void DoIt()
         {
-            if (SessionState.GetBool("ForceSwapFBX1", false)) return;
-            SessionState.SetBool("ForceSwapFBX1", true);
+            if (SessionState.GetBool("ForceSwapFBX2", false)) return;
+            SessionState.SetBool("ForceSwapFBX2", true);
 
             string tankPath = "Assets/Resources/Tank.prefab";
             if (AssetDatabase.LoadAssetAtPath<GameObject>(tankPath) != null)
@@ -25,7 +25,7 @@ namespace HillDefence.EditorScripts
                 }
 
                 // Instantiate new FBX
-                GameObject tankModel = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Tank.fbx");
+                GameObject tankModel = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/TankSketchfab.fbx");
                 GameObject newVisual = (GameObject)PrefabUtility.InstantiatePrefab(tankModel);
                 newVisual.transform.SetParent(contentsRoot.transform, false);
                 newVisual.transform.localPosition = Vector3.zero;
@@ -62,3 +62,4 @@ namespace HillDefence.EditorScripts
         }
     }
 }
+

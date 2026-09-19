@@ -9,8 +9,8 @@ namespace HillDefence.EditorScripts
         [InitializeOnLoadMethod]
         public static void DoIt()
         {
-            if (SessionState.GetBool("FinalTankFixed4", false)) return;
-            SessionState.SetBool("FinalTankFixed4", true);
+            if (SessionState.GetBool("FinalTankFixed5", false)) return;
+            SessionState.SetBool("FinalTankFixed5", true);
 
             // 1. Fix Tank.prefab
             string tankPath = "Assets/Resources/Tank.prefab";
@@ -33,7 +33,7 @@ namespace HillDefence.EditorScripts
                     Transform tankVis = contentsRoot.transform.Find("TankVisual");
                     if (tankVis == null)
                     {
-                        GameObject tankModel = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Tank.fbx");
+                        GameObject tankModel = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/TankSketchfab.fbx");
                         GameObject newVisual = (GameObject)PrefabUtility.InstantiatePrefab(tankModel);
                         newVisual.transform.SetParent(contentsRoot.transform, false);
                         newVisual.transform.localPosition = Vector3.zero;
@@ -87,5 +87,6 @@ namespace HillDefence.EditorScripts
         }
     }
 }
+
 
 

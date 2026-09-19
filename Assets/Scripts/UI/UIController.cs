@@ -612,7 +612,7 @@ namespace HillDefence
                 winOverlay.SetActive(true);
                 if (winOverlayImage != null) { Color c = team.teamColor; c.a = 0.65f; winOverlayImage.color = c; }
                 if (winText != null) { winText.gameObject.SetActive(true); winText.text = $"TEAM {team.teamNumber} WINS!"; winText.color = team.teamColor; }
-                if (winStatsText != null) { winStatsText.gameObject.SetActive(true); winStatsText.text = $"Soldiers remaining: {team.soldiers.Count}\nTowers active: {team.towers.Count}\nFlags captured: {team.flagsWinsCount}"; }
+                if (winStatsText != null) { winStatsText.gameObject.SetActive(true); winStatsText.text = BuildBattleReport(team); }
                 if (restartButton != null) restartButton.SetActive(true);
             }
             else
@@ -632,7 +632,7 @@ namespace HillDefence
             modalRt.anchorMin = new Vector2(0.5f, 0.5f);
             modalRt.anchorMax = new Vector2(0.5f, 0.5f);
             modalRt.pivot = new Vector2(0.5f, 0.5f);
-            modalRt.sizeDelta = new Vector2(450, 260);
+            modalRt.sizeDelta = new Vector2(620, 480);
             Image modalBg = modal.AddComponent<Image>();
             Color bgColor = team.teamColor * 0.4f; bgColor.a = 0.9f; modalBg.color = bgColor;
 
@@ -651,8 +651,10 @@ namespace HillDefence
             statsRt.anchorMin = new Vector2(0, 0.35f); statsRt.anchorMax = new Vector2(1, 0.75f);
             statsRt.pivot = new Vector2(0.5f, 0.5f); statsRt.anchoredPosition = Vector2.zero; statsRt.sizeDelta = new Vector2(-40, 0);
             TextMeshProUGUI statsTxt = statsObj.AddComponent<TextMeshProUGUI>();
-            statsTxt.text = $"<b>Soldiers:</b> {team.soldiers.Count}\n<b>Towers:</b> {team.towers.Count}\n<b>Flags:</b> {team.flagsWinsCount}";
-            statsTxt.fontSize = 16; statsTxt.alignment = TextAlignmentOptions.Center; statsTxt.color = new Color(0.9f, 0.9f, 0.9f, 1f);
+            statsTxt.text = BuildBattleReport(team);
+            statsTxt.fontSize = 15; statsTxt.alignment = TextAlignmentOptions.Center; statsTxt.color = new Color(0.9f, 0.9f, 0.9f, 1f);
+            statsTxt.textWrappingMode = TextWrappingModes.Normal;
+            statsTxt.overflowMode = TextOverflowModes.Ellipsis;
 
             GameObject btnObj = new GameObject("RestartButton");
             btnObj.transform.SetParent(modal.transform, false);
@@ -668,6 +670,61 @@ namespace HillDefence
             TextMeshProUGUI btnTxt = btnTextObj.AddComponent<TextMeshProUGUI>();
             btnTxt.text = "<b>PLAY AGAIN</b>"; btnTxt.fontSize = 16;
             btnTxt.alignment = TextAlignmentOptions.Center; btnTxt.color = Color.white;
+        }
+
+        private string BuildBattleReport(Team winner)
+        {
+            if (winner == null || HillDefenceCreator.teams == null)
+                return "<b>BATTLE REPORT</b>\nNo battle data available.";
+
+            int totalUnits = 0;
+            int defeatedTeams = 0;
+            int totalFlagsCaptured = 0;
+            foreach (Team team in HillDefenceCreator.teams)
+            {
+                totalUnits += GetActiveUnitCount(team);
+                totalFlagsCaptured += team.flagsWinsCount;
+                if (IsTeamDefeated(team)) defeatedTeams++;
+            }
+
+            string report = $"<b>BATTLE REPORT</b>\n" +
+                $"Winning force: <color=#{ColorUtility.ToHtmlStringRGB(winner.teamColor)}>Team {winner.teamNumber}</color>\n" +
+                $"Teams defeated: {defeatedTeams}/{HillDefenceCreator.teams.Count}   |   Units remaining: {totalUnits}\n" +
+                $"Flags captured: {totalFlagsCaptured}\n\n" +
+                "<b>FORCES</b>\n";
+
+            foreach (Team team in HillDefenceCreator.teams)
+                report += BuildTeamBattleLine(team, team == winner);
+
+            return report.TrimEnd('\n');
+        }
+
+        private string BuildTeamBattleLine(Team team, bool isWinner)
+        {
+            int activeUnits = GetActiveUnitCount(team);
+            int peakUnits = Mathf.Max(team.maxUnits, activeUnits);
+            if (peakUnits == 0 && HillDefenceCreator.instance != null)
+                peakUnits = HillDefenceCreator.instance.enemiesPerTeam;
+
+            int lostUnits = Mathf.Max(0, peakUnits - activeUnits);
+            string state = IsTeamDefeated(team) ? "DEFEATED" : (isWinner ? "WINNER" : "ACTIVE");
+            string color = ColorUtility.ToHtmlStringRGB(team.teamColor);
+            int flagsRemaining = IsTeamDefeated(team) ? 0 : 1;
+
+            return $"<color=#{color}><b>Team {team.teamNumber}</b></color> " +
+                $"[{state}]  Units: {activeUnits}/{peakUnits}  Lost: {lostUnits}  " +
+                $"Soldiers: {team.soldiers.Count}  Towers: {team.towers.Count}  " +
+                $"Flag: {flagsRemaining}  Captured: {team.flagsWinsCount}\n";
+        }
+
+        private int GetActiveUnitCount(Team team)
+        {
+            return team != null ? team.soldiers.Count + team.towers.Count : 0;
+        }
+
+        private bool IsTeamDefeated(Team team)
+        {
+            return team == null || team.teamFlag == null || team.teamFlag.npcInfo.isDead;
         }
 
         public void RestartGame()
