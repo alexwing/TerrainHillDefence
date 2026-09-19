@@ -36,9 +36,18 @@ namespace HillDefence
 
             }
         }
+        private float[] _curveLookup;
+
         void Start()
         {
             detonationBulletPrefab.transform.localScale = new Vector3(SceneConfig.TERRAIN.detonationBulletSize, SceneConfig.TERRAIN.detonationBulletSize, SceneConfig.TERRAIN.detonationBulletSize);
+            
+            // Precompute animation curve lookup for extreme performance boost
+            _curveLookup = new float[1024];
+            for (int i = 0; i < 1024; i++)
+            {
+                _curveLookup[i] = analogIntensityCurve.Evaluate(i / 1023f);
+            }
         }
 
         void OnTriggerEnter(Collider collision)
@@ -77,14 +86,12 @@ namespace HillDefence
             int x = (int)(coord.x * hmWidth) - offset;
             int y = (int)(coord.z * hmHeight) - offset;
 
-
-            float[,] areaT = new float[size, size];
-
-
             x = x < 0 ? 0 : x;
             y = y < 0 ? 0 : y;
             int sizex = x + size > hmWidth ? hmWidth - x : size;
             int sizey = y + size > hmHeight ? hmHeight - y : size;
+
+            float[,] areaT = null;
             try
             {
                 areaT = terr.terrainData.GetHeights(x, y, sizex, sizey);
@@ -92,30 +99,26 @@ namespace HillDefence
             catch (System.Exception e)
             {
                 Debug.LogError("GetHeights" + e.Message.ToString());
+                return; // Abort if heightmap fetching fails
             }
+
+            // Optimize multiplication
+            float intensityMult = destructionIntensity / 100f;
+            float radio = size * 0.5f;
 
             for (int i = 0; i < areaT.GetLength(0); i++)
             {
                 for (int j = 0; j < areaT.GetLength(1); j++)
                 {
-                    try
+                    float texPixel = GetBeizerFast(i, j, radio);
+                    if (type)
                     {
-                        float texPixel = GetBeizer(i, j, size);
-                        if (type)
-                        {
-                            areaT[i, j] += texPixel / 100 * destructionIntensity;
-                        }
-                        else
-                        {
-                            areaT[i, j] -= texPixel / 100 * destructionIntensity;
-                        }
+                        areaT[i, j] += texPixel * intensityMult;
                     }
-                    catch (System.Exception e)
+                    else
                     {
-                        Debug.LogError("areaT[i, j]" + e.Message.ToString());
+                        areaT[i, j] -= texPixel * intensityMult;
                     }
-
-                    //areaT[i, j] = 0;
                 }
             }
             try
@@ -127,15 +130,19 @@ namespace HillDefence
                 Debug.LogError("SetHeights " + e.Message.ToString());
             }
         }
-        private float GetBeizer(int i, int j, int size)
+        
+        private float GetBeizerFast(int i, int j, float radio)
         {
-            //Create hole from beizer curve and matriz radio
-            float radio = size * 0.5f;
-            float radioDistance = Vector2.Distance(new Vector2(i, j), new Vector2(radio, radio));
-            float normalizedRadio = Mathf.InverseLerp(0, radio, radioDistance);
-            float beizerRadio = analogIntensityCurve.Evaluate(Mathf.Lerp(0, 1f, normalizedRadio));
-            return beizerRadio;
-
+            // Fast distance calc
+            float dx = i - radio;
+            float dy = j - radio;
+            float dist = Mathf.Sqrt(dx * dx + dy * dy);
+            float norm = dist / radio;
+            if (norm >= 1f) return 0f;
+            
+            // Fast lookup
+            int idx = (int)(norm * 1023f);
+            return _curveLookup[idx];
         }
 
 
@@ -234,7 +241,10 @@ namespace HillDefence
                 if (returner2 == null) returner2 = _currentEffect.AddComponent<ReturnToPoolAfterTime>();
                 returner2.lifeTime = 0.5f;
 
-                for (int i = 0; i < destructionSize * 2; i++)
+                // Cap the number of random explosions to avoid massive FPS drops (e.g. 100+ explosions for a flag)
+                int numExplosions = Mathf.Min((int)destructionSize * 2, 8);
+                
+                for (int i = 0; i < numExplosions; i++)
                 {
                     GameObject p = ObjectPooler.instance.SpawnFromPool(detonationPrefab, Utils.RandomNearPosition(collision.transform, SceneConfig.TERRAIN.ramdomExplosion, 0f, SceneConfig.TERRAIN.ramdomExplosion).position, Quaternion.identity);
                     ReturnToPoolAfterTime r = p.GetComponent<ReturnToPoolAfterTime>();
@@ -262,7 +272,8 @@ namespace HillDefence
                 }
                 Destroy(_currentEffect, 0.5f);
 
-                for (int i = 0; i < destructionSize * 2; i++)
+                int numExplosions = Mathf.Min((int)destructionSize * 2, 8);
+                for (int i = 0; i < numExplosions; i++)
                 {
                     Destroy(Instantiate(detonationPrefab, Utils.RandomNearPosition(collision.transform, SceneConfig.TERRAIN.ramdomExplosion, 0f, SceneConfig.TERRAIN.ramdomExplosion).position, Quaternion.identity), SceneConfig.TERRAIN.explosionLife);
                 }
