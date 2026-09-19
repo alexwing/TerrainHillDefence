@@ -12,6 +12,7 @@ namespace HillDefence
         public Color teamColor;
         public List<TeamSoldier> soldiers = new List<TeamSoldier>();
         public List<TeamTower> towers = new List<TeamTower>();
+        public int maxUnits; // Tracks peak unit count for HP bar calculation
         public int flagsWinsCount;
         public int killCount;
         public int deathCount;

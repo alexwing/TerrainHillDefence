@@ -49,6 +49,17 @@ namespace HillDefence
                 }
             }
             
+            // Procedurally generate 24+ vibrant and distinct colors (avoiding black, grey, white)
+            teamsColors = new Color[25];
+            for (int i = 0; i < 25; i++)
+            {
+                float hue = (float)i / 25f;
+                // Alternate saturation and value slightly to make them even more distinct
+                float sat = (i % 2 == 0) ? 1.0f : 0.75f;
+                float val = (i % 3 == 0) ? 1.0f : 0.85f;
+                teamsColors[i] = Color.HSVToRGB(hue, sat, val);
+            }
+
             // Critical for restarting the scene properly: clear static variables
             teams.Clear();
             Npcs.Clear();

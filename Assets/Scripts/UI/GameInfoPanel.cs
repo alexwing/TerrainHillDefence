@@ -244,11 +244,16 @@ namespace HillDefence
                 {
                     int alive = t.soldiers.Count;
                     int towers = t.towers.Count;
-                    float flagHp = 1f - (float)t.teamFlag.npcInfo.shootCount / SceneConfig.FLAG.Lives;
-                    flagHp = Mathf.Clamp01(flagHp);
+                    int total = alive + towers;
+                    
+                    // Update peak units if we gained any
+                    if (total > t.maxUnits) t.maxUnits = total;
 
-                    fb.healthFill.fillAmount = flagHp;
-                    fb.label.text = $"<b>Team {i}</b>\nUnits: {alive + towers} (S: {alive} | T: {towers})";
+                    float unitHp = t.maxUnits > 0 ? (float)total / t.maxUnits : 0f;
+                    unitHp = Mathf.Clamp01(unitHp);
+
+                    fb.healthFill.fillAmount = unitHp;
+                    fb.label.text = $"<b>Team {i}</b>\nUnits: {total} (S: {alive} | T: {towers})";
                 }
             }
         }
