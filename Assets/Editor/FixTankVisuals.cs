@@ -64,7 +64,7 @@ namespace HillDefence.EditorScripts
                     if (mr != null) 
                     {
                         Material barrelMat = new Material(Shader.Find("Standard"));
-                        barrelMat.color = Color.darkGray;
+                        barrelMat.color = Color.gray;
                         mr.sharedMaterial = barrelMat;
                     }
                 }
@@ -76,3 +76,4 @@ namespace HillDefence.EditorScripts
         }
     }
 }
+
