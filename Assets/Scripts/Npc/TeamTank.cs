@@ -11,17 +11,17 @@ namespace HillDefence
             MeshRenderer[] renderers = GetComponentsInChildren<MeshRenderer>(true);
             foreach (MeshRenderer mr in renderers)
             {
-                if (mr.gameObject.name != ""Barrel"")
+                if (mr.gameObject.name != "Barrel")
                 {
                     Utils.ChangeColor(mr, HillDefenceCreator.teams[npcInfo.teamNumber].teamColor);
                 }
             }
             
-            InvokeRepeating(""UpdateTank"", Random.Range(0, 1f / SceneConfig.SOLDIER.SoldierFrameRate), 1f / SceneConfig.SOLDIER.SoldierFrameRate);
+            InvokeRepeating("UpdateTank", Random.Range(0, 1f / SceneConfig.SOLDIER.SoldierFrameRate), 1f / SceneConfig.SOLDIER.SoldierFrameRate);
 
             if (healthBarPrefab == null)
             {
-                healthBarPrefab = Resources.Load<GameObject>(""healthLayout"");
+                healthBarPrefab = Resources.Load<GameObject>("healthLayout");
             }
             if (healthBarPrefab != null)
             {
@@ -35,7 +35,7 @@ namespace HillDefence
         {
             if (!collision.gameObject) return;
             
-            if (collision.gameObject.tag == ""bullet"" && ""bullet_"" + npcInfo.teamNumber != collision.gameObject.name)
+            if (collision.gameObject.tag == "bullet" && "bullet_" + npcInfo.teamNumber != collision.gameObject.name)
             {
                 TargetTerrain.instance.DetonationBullet(collision.gameObject);
                 if (npcInfo.shootCount >= SceneConfig.TOWER.Lives * 2)
@@ -63,8 +63,8 @@ namespace HillDefence
             Destroy(gameObject);
             TargetTerrain.instance.ModifyTerrain(collision, SceneConfig.TOWER.DestrucionTerrainSize, SceneConfig.TOWER.DestrucionTerrainSize, false);
             TargetTerrain.instance.DetonationTerrain(collision, SceneConfig.TOWER.DetonationSize);
-            CancelInvoke(""UpdateTank"");
-            CancelInvoke(""findEnemyTank"");                
+            CancelInvoke("UpdateTank");
+            CancelInvoke("findEnemyTank");                
         }
 
         new public void findEnemy()
@@ -206,3 +206,4 @@ namespace HillDefence
         }
     }
 }
+
