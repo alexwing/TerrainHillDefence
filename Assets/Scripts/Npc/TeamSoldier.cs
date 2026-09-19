@@ -104,11 +104,14 @@ namespace HillDefence
             float timeout = 8f;
             while (animator != null && animator.speed > 0f && timeout > 0f)
             {
-                // Smoothly track terrain height during the death animation so they don't float and then snap abruptly
+                // Smoothly track terrain height ONLY if it drops (e.g. explosion under them as they die)
                 if (Terrain.activeTerrain != null)
                 {
                     float y = Terrain.activeTerrain.SampleHeight(transform.position);
-                    transform.position = new Vector3(transform.position.x, y, transform.position.z);
+                    if (transform.position.y - y > 0.5f)
+                    {
+                        transform.position = new Vector3(transform.position.x, y, transform.position.z);
+                    }
                 }
 
                 timeout -= 0.05f;
@@ -119,20 +122,16 @@ namespace HillDefence
             // because disabling the animator entirely can cause a 1-frame position/bind-pose snap in Unity. 
             // The animation event already set animator.speed = 0, which halts evaluation and saves CPU natively.
 
-            // 2. Disable Shadow Casting (saves massive GPU draw calls)
-            Renderer[] renderers = GetComponentsInChildren<Renderer>();
-            foreach (Renderer r in renderers)
-            {
-                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            }
-
-            // 3. Fall Loop: Keep corpse grounded if the terrain explodes beneath them
+            // 3. Fall Loop: Keep corpse grounded ONLY if the terrain heavily explodes beneath them
             while (true)
             {
                 if (Terrain.activeTerrain != null)
                 {
                     float targetY = Terrain.activeTerrain.SampleHeight(transform.position);
-                    if (Mathf.Abs(transform.position.y - targetY) > 0.05f)
+                    
+                    // Only drop them if the terrain drops significantly (e.g. > 0.5m crater).
+                    // Snapping to exact height on uneven slopes makes rigid dead bodies look like they are floating.
+                    if (transform.position.y - targetY > 0.5f)
                     {
                         transform.position = new Vector3(transform.position.x, targetY, transform.position.z);
                     }
