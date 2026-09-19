@@ -15,6 +15,8 @@ namespace HillDefence
         
         public GameObject playerPoiMap;
 
+        public RenderTexture AIMapTexture; // Restored!
+
         [Tooltip("The RawImage (or just an Image) that acts as the minimap background.")]
         public RawImage mapRawImage;
 
@@ -32,6 +34,34 @@ namespace HillDefence
             realHeight = terrainHeight;
             worldOrigin = terrainOrigin;
 
+            // Failsafe: if AIMapTexture was lost from the inspector, try to find it
+            if (AIMapTexture == null)
+            {
+                RenderTexture[] rts = Resources.FindObjectsOfTypeAll<RenderTexture>();
+                foreach (RenderTexture rt in rts)
+                {
+                    if (rt.name.Contains("Map") || rt.name.Contains("AIMap"))
+                    {
+                        AIMapTexture = rt;
+                        break;
+                    }
+                }
+                
+                // Still null? Try to find the minimap camera and grab its target texture!
+                if (AIMapTexture == null)
+                {
+                    Camera[] cameras = FindObjectsByType<Camera>(FindObjectsSortMode.None);
+                    foreach (Camera cam in cameras)
+                    {
+                        if (cam.name.Contains("Camera") && cam.targetTexture != null && cam != Camera.main)
+                        {
+                            AIMapTexture = cam.targetTexture;
+                            break;
+                        }
+                    }
+                }
+            }
+
             // Auto-locate mapRawImage if not manually wired
             if (mapRawImage == null)
             {
@@ -48,15 +78,35 @@ namespace HillDefence
                 {
                     mapRawImage = rawImages[0];
                 }
+                
+                // FAILSAFE: If the user deleted the RawImage, recreate it!
+                if (mapRawImage == null)
+                {
+                    GameObject newRaw = new GameObject("MapRawImage_AutoGened");
+                    newRaw.transform.SetParent(this.transform, false);
+                    mapRawImage = newRaw.AddComponent<RawImage>();
+                    
+                    RectTransform newRt = mapRawImage.rectTransform;
+                    newRt.anchorMin = Vector2.zero;
+                    newRt.anchorMax = Vector2.one;
+                    newRt.offsetMin = Vector2.zero;
+                    newRt.offsetMax = Vector2.zero;
+                }
             }
 
             // Create a container for our UI markers so they are properly scaled
             if (mapRawImage != null)
             {
+                // Ensure the texture is assigned
+                if (mapRawImage.texture == null && AIMapTexture != null)
+                {
+                    mapRawImage.texture = AIMapTexture;
+                }
+
                 GameObject containerObj = new GameObject("MarkerContainer");
                 markerContainer = containerObj.AddComponent<RectTransform>();
                 
-                // Attach to mapRawImage's parent (mapWrapper) to ensure we get the full 350x350 area
+                // Attach to mapRawImage's parent to ensure we get the full area
                 markerContainer.SetParent(mapRawImage.transform.parent, false);
                 markerContainer.anchorMin = Vector2.zero;
                 markerContainer.anchorMax = Vector2.one;
@@ -79,6 +129,7 @@ namespace HillDefence
                 
                 // Make sure the RawImage is visible and white to show the relief map
                 mapRawImage.color = Color.white;
+                mapRawImage.gameObject.SetActive(true);
             }
         }
 
@@ -177,6 +228,7 @@ namespace HillDefence
                     poiRt.anchorMax = new Vector2(camNormX, camNormY);
                     poiRt.anchoredPosition = Vector2.zero;
                     poiRt.localRotation = Quaternion.Euler(0, 0, -Camera.main.transform.eulerAngles.y);
+                    poiRt.gameObject.SetActive(true);
                 }
             }
         }
