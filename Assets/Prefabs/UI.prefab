@@ -1288,6 +1288,9 @@ MonoBehaviour:
     type: 3}
   map: {fileID: 1923352778929143036}
   isMapVisible: 1
+  isPlacingTurret: 0
+  isPlacingSoldier: 0
+  selectedTeamIndex: 0
 --- !u!114 &1087056505
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1300,8 +1303,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29e58a4249a22f24e9556e674845dd56, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  AIMapTexture: {fileID: 8400000, guid: b653a3ca0f44e9e4494e3d5d1a62990f, type: 2}
   playerPoiMap: {fileID: 2431404496143246434}
+  AIMapTexture: {fileID: 8400000, guid: b653a3ca0f44e9e4494e3d5d1a62990f, type: 2}
   mapRawImage: {fileID: 1923352778897352501}
 --- !u!1 &6013551511210374977
 GameObject:
@@ -2578,7 +2581,6 @@ GameObject:
   - component: {fileID: 6013551511288571716}
   - component: {fileID: 6013551511288571718}
   - component: {fileID: 6013551511288571719}
-  - component: {fileID: 6013551511288571713}
   m_Layer: 5
   m_Name: Filler
   m_TagString: Untagged
@@ -2644,19 +2646,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &6013551511288571713
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6013551511288571717}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6a25c5b6a3fd74a209f57bf624abc7e4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  slider: {fileID: 6013551513266332158}
 --- !u!1 &6013551511290262885
 GameObject:
   m_ObjectHideFlags: 0
@@ -5139,7 +5128,6 @@ GameObject:
   - component: {fileID: 6013551511454880119}
   - component: {fileID: 6013551511454880113}
   - component: {fileID: 6013551511454880118}
-  - component: {fileID: 6013551511454880112}
   m_Layer: 5
   m_Name: Image (43)
   m_TagString: Untagged
@@ -5204,19 +5192,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &6013551511454880112
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6013551511454880116}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6a25c5b6a3fd74a209f57bf624abc7e4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  slider: {fileID: 6013551513266332158}
 --- !u!1 &6013551511457712603
 GameObject:
   m_ObjectHideFlags: 0
