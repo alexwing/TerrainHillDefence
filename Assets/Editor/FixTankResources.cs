@@ -3,14 +3,18 @@ using UnityEditor;
 
 namespace HillDefence.EditorScripts
 {
-    public static class ScaffoldTank
+    public static class FixTankResources
     {
-        [MenuItem("Tools/Scaffold Tank")]
+        [MenuItem("Tools/Fix Tank")]
         [InitializeOnLoadMethod]
         public static void DoIt()
         {
-            if (SessionState.GetBool("TankScaffolded", false)) return;
-            SessionState.SetBool("TankScaffolded", true);
+            if (SessionState.GetBool("TankFixed", false)) return;
+            SessionState.SetBool("TankFixed", true);
+
+            if (!AssetDatabase.IsValidFolder("Assets/Resources")) {
+                AssetDatabase.CreateFolder("Assets", "Resources");
+            }
 
             string towerPath = "" ;
             string[] prefabPaths = AssetDatabase.FindAssets("t:Prefab Tower");
@@ -21,22 +25,23 @@ namespace HillDefence.EditorScripts
 
             if (string.IsNullOrEmpty(towerPath)) return;
 
-            string tankPath = "Assets/Prefabs/Tank.prefab";
-            if (!AssetDatabase.LoadAssetAtPath<GameObject>(tankPath))
-            {
+            string tankPath = "Assets/Resources/Tank.prefab";
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(tankPath) == null) {
                 AssetDatabase.CopyAsset(towerPath, tankPath);
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();
+            }
 
-                GameObject contentsRoot = PrefabUtility.LoadPrefabContents(tankPath);
-                TeamTower tt = contentsRoot.GetComponent<TeamTower>();
-                if (tt != null)
-                {
-                    GameObject tankModel = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Tank.obj");
-                    if (tt.tower != null) {
-                        GameObject.DestroyImmediate(tt.tower, true);
-                    }
+            GameObject contentsRoot = PrefabUtility.LoadPrefabContents(tankPath);
+            TeamTower tt = contentsRoot.GetComponent<TeamTower>();
+            if (tt != null)
+            {
+                GameObject tankModel = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Tank.obj");
+                if (tt.tower != null && tt.tower.name != "TankVisual") {
+                    GameObject.DestroyImmediate(tt.tower, true);
+                }
 
+                if (contentsRoot.transform.Find("TankVisual") == null) {
                     GameObject newVisual = (GameObject)PrefabUtility.InstantiatePrefab(tankModel);
                     newVisual.transform.SetParent(contentsRoot.transform, false);
                     newVisual.transform.localPosition = Vector3.zero;
@@ -52,10 +57,10 @@ namespace HillDefence.EditorScripts
                     }
 
                     PrefabUtility.SaveAsPrefabAsset(contentsRoot, tankPath);
-                    Debug.Log("[ScaffoldTank] Created Tank.prefab!");
+                    Debug.Log("[FixTank] Successfully created Tank.prefab in Resources!");
                 }
-                PrefabUtility.UnloadPrefabContents(contentsRoot);
             }
+            PrefabUtility.UnloadPrefabContents(contentsRoot);
         }
     }
 }

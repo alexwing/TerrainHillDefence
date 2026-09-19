@@ -432,6 +432,10 @@ namespace HillDefence
             {
                 _buildBtnImage.color = isPlacingTurret ? Color.Lerp(baseColor, Color.white, Mathf.PingPong(Time.time * 2f, 0.4f)) : baseColor;
             }
+            if (_buildTankBtnImage != null)
+            {
+                _buildTankBtnImage.color = isPlacingTank ? Color.Lerp(baseColor, Color.white, Mathf.PingPong(Time.time * 2f, 0.4f)) : baseColor;
+            }
             if (_buildSoldierBtnImage != null)
             {
                 _buildSoldierBtnImage.color = isPlacingSoldier ? Color.Lerp(baseColor, Color.white, Mathf.PingPong(Time.time * 2f, 0.4f)) : baseColor;
