@@ -199,9 +199,18 @@ namespace HillDefence
                     }
                 }
 
+                // Cleanup minimap backgrounds and static dummy markers
                 foreach (Transform child in map.transform)
                 {
-                    child.gameObject.SetActive(false);
+                    if (child.name.StartsWith("Image") && child.GetComponent<Image>() != null)
+                    {
+                        if (child.name != "Image (40)")
+                            child.gameObject.SetActive(false);
+                    }
+                    if (child.name == "Positions")
+                    {
+                        child.gameObject.SetActive(false);
+                    }
                 }
             }
 

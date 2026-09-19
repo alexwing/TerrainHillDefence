@@ -1,4 +1,4 @@
-﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -7,18 +7,19 @@ namespace HillDefence
 {
     public class MapController : MonoBehaviour
     {
-        public RenderTexture AIMapTexture;
-        private Texture2D AIBitmap;
         public static MapController instance;
-        public static int width;
-        public static int height;
+
         public static float realWidth;
         public static float realHeight;
         private static Vector3 worldOrigin;
+        
         public GameObject playerPoiMap;
 
-        [Tooltip("The RawImage that displays the minimap. Assign in Inspector or auto-found.")]
+        [Tooltip("The RawImage (or just an Image) that acts as the minimap background.")]
         public RawImage mapRawImage;
+
+        private RectTransform markerContainer;
+        private List<Image> markerPool = new List<Image>();
 
         void Awake()
         {
@@ -30,8 +31,6 @@ namespace HillDefence
             realWidth = terrainWidth;
             realHeight = terrainHeight;
             worldOrigin = terrainOrigin;
-            height = width = sizeMap;
-            AIBitmap = new Texture2D(width, height);
 
             // Auto-locate mapRawImage if not manually wired
             if (mapRawImage == null)
@@ -39,7 +38,7 @@ namespace HillDefence
                 RawImage[] rawImages = GetComponentsInChildren<RawImage>(true);
                 foreach (RawImage r in rawImages)
                 {
-                    if (r.texture == AIMapTexture || r.name.ToLower().Contains("map") || rawImages.Length == 1)
+                    if (r.name.ToLower().Contains("map") || rawImages.Length == 1)
                     {
                         mapRawImage = r;
                         break;
@@ -51,9 +50,22 @@ namespace HillDefence
                 }
             }
 
-            // Register click handler on the minimap RawImage
+            // Create a container for our UI markers so they are properly scaled
             if (mapRawImage != null)
             {
+                GameObject containerObj = new GameObject("MarkerContainer");
+                markerContainer = containerObj.AddComponent<RectTransform>();
+                
+                // Attach to mapRawImage's parent (mapWrapper) to ensure we get the full 350x350 area
+                markerContainer.SetParent(mapRawImage.transform.parent, false);
+                markerContainer.anchorMin = Vector2.zero;
+                markerContainer.anchorMax = Vector2.one;
+                markerContainer.offsetMin = Vector2.zero;
+                markerContainer.offsetMax = Vector2.zero;
+                
+                // Ensure it's rendered on top
+                markerContainer.SetAsLastSibling();
+
                 EventTrigger trigger = mapRawImage.gameObject.GetComponent<EventTrigger>();
                 if (trigger == null) trigger = mapRawImage.gameObject.AddComponent<EventTrigger>();
 
@@ -64,13 +76,13 @@ namespace HillDefence
                     OnMapClick((PointerEventData)data);
                 });
                 trigger.triggers.Add(entry);
+                
+                // Clear the old render texture if it was assigned to avoid seeing double
+                mapRawImage.texture = null;
+                mapRawImage.color = new Color(0, 0, 0, 0); // Fully transparent
             }
         }
 
-        /// <summary>
-        /// Called when the player clicks on the minimap.
-        /// Converts the click position to world coordinates and moves the camera there.
-        /// </summary>
         public void OnMapClick(PointerEventData eventData)
         {
             if (mapRawImage == null || FlyCamera.instance == null) return;
@@ -81,11 +93,9 @@ namespace HillDefence
                     rt, eventData.position, eventData.pressEventCamera, out localPoint))
                 return;
 
-            // Normalize coordinate within rect (independent of pivot/anchors)
             float normX = Mathf.Clamp01((localPoint.x - rt.rect.xMin) / rt.rect.width);
             float normZ = Mathf.Clamp01((localPoint.y - rt.rect.yMin) / rt.rect.height);
 
-            // Convert normalized coordinates to terrain world position
             float worldX = worldOrigin.x + normX * realWidth;
             float worldZ = worldOrigin.z + normZ * realHeight;
 
@@ -95,99 +105,102 @@ namespace HillDefence
         public void UIMapSetActive(bool active)
         {
             if (active)
-            {
                 InvokeRepeating("refreshAIMap", 0, 1f / SceneConfig.MapRefreshRate);
-            }
             else
-            {
                 CancelInvoke("refreshAIMap");
-            }
         }
 
         public void refreshAIMap()
         {
-            if (AIBitmap == null) return;
-            AIBitmap = Utils.FillColorAlpha(AIBitmap);
+            if (markerContainer == null) return;
+
+            int poolIndex = 0;
 
             foreach (NpcInfo npc in HillDefenceCreator.Npcs)
             {
                 if (npc != null && !npc.npcInfo.isDead)
                 {
-                    Vector2 pos = posToMap(npc.transform.position.x, npc.transform.position.z);
-                    if (pos.x >= 0 && pos.x < width && pos.y >= 0 && pos.y < height)
+                    // Calculate normalized coordinates
+                    float normX = Mathf.InverseLerp(worldOrigin.x, worldOrigin.x + realWidth, npc.transform.position.x);
+                    float normY = Mathf.InverseLerp(worldOrigin.z, worldOrigin.z + realHeight, npc.transform.position.z);
+
+                    if (normX >= 0f && normX <= 1f && normY >= 0f && normY <= 1f)
                     {
+                        Image marker = GetMarker(poolIndex);
+                        marker.gameObject.SetActive(true);
+                        
+                        // Scale based on type
+                        float size = 4f;
                         switch (npc.npcInfo.npcType)
                         {
-                            case NpcType.soldier:
-                                PaintMarker((int)pos.x, (int)pos.y, 2, HillDefenceCreator.teams[npc.npcInfo.teamNumber].teamColor);
-                                break;
-                            case NpcType.tower:
-                                PaintMarker((int)pos.x, (int)pos.y, 3, HillDefenceCreator.teams[npc.npcInfo.teamNumber].teamColor);
-                                break;
-                            case NpcType.flag:
-                                PaintMarker((int)pos.x, (int)pos.y, 4, HillDefenceCreator.teams[npc.npcInfo.teamNumber].teamColor);
-                                break;
+                            case NpcType.soldier: size = 6f; break;
+                            case NpcType.tower: size = 10f; break;
+                            case NpcType.flag: size = 14f; break;
                         }
+                        
+                        marker.rectTransform.sizeDelta = new Vector2(size, size);
+                        marker.color = HillDefenceCreator.teams[npc.npcInfo.teamNumber].teamColor;
+
+                        // Position it relative to the container using anchors
+                        marker.rectTransform.anchorMin = new Vector2(normX, normY);
+                        marker.rectTransform.anchorMax = new Vector2(normX, normY);
+                        marker.rectTransform.anchoredPosition = Vector2.zero;
+
+                        poolIndex++;
                     }
                 }
             }
-            AIBitmap.Apply();
-            if (AIMapTexture != null)
-                Graphics.Blit(AIBitmap, AIMapTexture);
 
-            if (playerPoiMap != null && Camera.main != null)
+            // Hide unused markers
+            for (int i = poolIndex; i < markerPool.Count; i++)
             {
-                Vector2 pos2 = posToPostionMap(Camera.main.transform.position.x, Camera.main.transform.position.z);
+                markerPool[i].gameObject.SetActive(false);
+            }
+
+            // Update Player POI camera cone
+            if (playerPoiMap != null && Camera.main != null && mapRawImage != null)
+            {
+                float camNormX = Mathf.InverseLerp(worldOrigin.x, worldOrigin.x + realWidth, Camera.main.transform.position.x);
+                float camNormY = Mathf.InverseLerp(worldOrigin.z, worldOrigin.z + realHeight, Camera.main.transform.position.z);
+
                 RectTransform poiRt = playerPoiMap.GetComponent<RectTransform>();
-                if (poiRt != null && mapRawImage != null)
+                if (poiRt != null)
                 {
-                    Rect mapRect = mapRawImage.rectTransform.rect;
-                    poiRt.anchorMin = new Vector2(0.5f, 0.5f);
-                    poiRt.anchorMax = new Vector2(0.5f, 0.5f);
-                    poiRt.anchoredPosition = new Vector2(
-                        pos2.x * mapRect.width / 100f,
-                        pos2.y * mapRect.height / 100f);
+                    // Re-parent to marker container if not already to share the same scale
+                    if (poiRt.parent != markerContainer)
+                    {
+                        poiRt.SetParent(markerContainer, false);
+                        // Make sure the POI map is drawn on top
+                        poiRt.SetAsLastSibling();
+                    }
+
+                    poiRt.anchorMin = new Vector2(camNormX, camNormY);
+                    poiRt.anchorMax = new Vector2(camNormX, camNormY);
+                    poiRt.anchoredPosition = Vector2.zero;
                     poiRt.localRotation = Quaternion.Euler(0, 0, -Camera.main.transform.eulerAngles.y);
                 }
             }
         }
 
-        private void PaintMarker(int centerX, int centerY, int radius, Color color)
+        private Image GetMarker(int index)
         {
-            int minX = Mathf.Max(0, centerX - radius);
-            int maxX = Mathf.Min(width - 1, centerX + radius);
-            int minY = Mathf.Max(0, centerY - radius);
-            int maxY = Mathf.Min(height - 1, centerY + radius);
-            for (int x = minX; x <= maxX; x++)
+            if (index < markerPool.Count)
             {
-                for (int y = minY; y <= maxY; y++)
-                {
-                    AIBitmap.SetPixel(x, y, color);
-                }
+                return markerPool[index];
             }
-        }
 
-        public Vector2 posToPostionMap(float x, float y)
-        {
-            float xMapNormalized = Mathf.InverseLerp(worldOrigin.x, worldOrigin.x + realWidth, x);
-            float yMapNormalized = Mathf.InverseLerp(worldOrigin.z, worldOrigin.z + realHeight, y);
-            int xMap = (int)Mathf.Lerp(0, 100, xMapNormalized);
-            int yMap = (int)Mathf.Lerp(0, 100, yMapNormalized);
-            return new Vector2(xMap - 50, yMap - 50);
-        }
-
-        public Vector3 mapToPos(int x, int y)
-        {
-            return new Vector3(x * width, 0, y * height);
-        }
-
-        public Vector2 posToMap(float x, float y)
-        {
-            float xMapNormalized = Mathf.InverseLerp(worldOrigin.x, worldOrigin.x + realWidth, x);
-            float yMapNormalized = Mathf.InverseLerp(worldOrigin.z, worldOrigin.z + realHeight, y);
-            int xMap = (int)Mathf.Lerp(0, width, xMapNormalized);
-            int yMap = (int)Mathf.Lerp(0, height, yMapNormalized);
-            return new Vector2(xMap, yMap);
+            // Create new marker
+            GameObject obj = new GameObject("MapMarker_" + index);
+            obj.transform.SetParent(markerContainer, false);
+            
+            Image img = obj.AddComponent<Image>();
+            img.raycastTarget = false; // Don't block clicks on the map
+            
+            RectTransform rt = img.rectTransform;
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            
+            markerPool.Add(img);
+            return img;
         }
     }
 }
