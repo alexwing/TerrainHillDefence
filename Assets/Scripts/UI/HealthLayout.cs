@@ -38,6 +38,9 @@ namespace HillDefence
             yOffset = offset;
             _lastShootCount = -1;
 
+            // Force override of the serialized prefab value
+            maxVisibleDistance = 1500f;
+
             _canvas = GetComponent<Canvas>();
             if (_canvas == null) _canvas = GetComponentInChildren<Canvas>();
 
