@@ -83,7 +83,15 @@ namespace HillDefence
                 if (mapRawImage == null)
                 {
                     GameObject newRaw = new GameObject("MapRawImage_AutoGened");
-                    newRaw.transform.SetParent(this.transform, false);
+                    
+                    // Try to attach to MapWrapper so it's in the corner, otherwise fallback to this
+                    GameObject mapWrapper = GameObject.Find("MapWrapper");
+                    if (mapWrapper != null) {
+                        newRaw.transform.SetParent(mapWrapper.transform, false);
+                    } else {
+                        newRaw.transform.SetParent(this.transform, false);
+                    }
+                    
                     mapRawImage = newRaw.AddComponent<RawImage>();
                     
                     RectTransform newRt = mapRawImage.rectTransform;
@@ -103,24 +111,11 @@ namespace HillDefence
                     mapRawImage.texture = AIMapTexture;
                 }
 
-                // Force mapRawImage out of any hidden containers (like "Positions") and onto the safe root
-                if (mapRawImage.transform.parent != this.transform)
-                {
-                    mapRawImage.transform.SetParent(this.transform, false);
-                    RectTransform rawRt = mapRawImage.rectTransform;
-                    if (rawRt != null) {
-                        rawRt.anchorMin = Vector2.zero;
-                        rawRt.anchorMax = Vector2.one;
-                        rawRt.offsetMin = Vector2.zero;
-                        rawRt.offsetMax = Vector2.zero;
-                    }
-                }
-
                 GameObject containerObj = new GameObject("MarkerContainer");
                 markerContainer = containerObj.AddComponent<RectTransform>();
                 
-                // Attach directly to the safe MiniMap root (this.transform) which is guaranteed to be 350x350
-                markerContainer.SetParent(this.transform, false);
+                // Attach directly to the mapRawImage so it exactly matches the minimap size and position
+                markerContainer.SetParent(mapRawImage.transform, false);
                 markerContainer.anchorMin = Vector2.zero;
                 markerContainer.anchorMax = Vector2.one;
                 markerContainer.offsetMin = Vector2.zero;
