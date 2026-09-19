@@ -24,7 +24,7 @@ namespace HillDefence
         public float yOffset = 4.5f;
 
         [Tooltip("Maximum distance from camera to show the health bar.")]
-        public float maxVisibleDistance = 300f;
+        public float maxVisibleDistance = 1000f;
 
         private int _lastShootCount = -1;
         private Canvas _canvas;
