@@ -23,7 +23,12 @@ namespace HillDefence
         [Tooltip("Vertical offset above the character.")]
         public float yOffset = 4.5f;
 
+        [Tooltip("Maximum distance from camera to show the health bar.")]
+        public float maxVisibleDistance = 80f;
+
         private int _lastShootCount = -1;
+        private Canvas _canvas;
+        private UnityEngine.UI.Graphic[] _graphics;
 
         public void SetUp(GameNpc npcInfo, Transform target, int lives, float offset = 4.5f)
         {
@@ -33,6 +38,15 @@ namespace HillDefence
             yOffset = offset;
             _lastShootCount = -1;
 
+            _canvas = GetComponent<Canvas>();
+            if (_canvas == null) _canvas = GetComponentInChildren<Canvas>();
+
+            // Remove percentage text as requested
+            if (healthText != null)
+            {
+                healthText.gameObject.SetActive(false);
+            }
+
             // Make it larger
             transform.localScale = transform.localScale * 3.5f;
 
@@ -40,7 +54,8 @@ namespace HillDefence
             Material alwaysOnTop = new Material(Shader.Find("UI/Default"));
             alwaysOnTop.SetInt("unity_GUIZTestMode", (int)UnityEngine.Rendering.CompareFunction.Always);
             
-            foreach (UnityEngine.UI.Graphic g in GetComponentsInChildren<UnityEngine.UI.Graphic>(true))
+            _graphics = GetComponentsInChildren<UnityEngine.UI.Graphic>(true);
+            foreach (UnityEngine.UI.Graphic g in _graphics)
             {
                 g.material = alwaysOnTop;
             }
@@ -75,6 +90,22 @@ namespace HillDefence
             if (Camera.main != null)
             {
                 transform.rotation = Camera.main.transform.rotation;
+
+                // Distance culling: hide if too far from camera
+                float distSq = (transform.position - Camera.main.transform.position).sqrMagnitude;
+                bool isClose = distSq <= (maxVisibleDistance * maxVisibleDistance);
+
+                if (_canvas != null)
+                {
+                    if (_canvas.enabled != isClose) _canvas.enabled = isClose;
+                }
+                else if (_graphics != null)
+                {
+                    foreach (var g in _graphics)
+                    {
+                        if (g != null && g.enabled != isClose) g.enabled = isClose;
+                    }
+                }
             }
         }
 
@@ -84,7 +115,6 @@ namespace HillDefence
 
             int lives = Mathf.Max(1, maxLives);
             float hp = Mathf.Clamp01(1f - (float)npc.shootCount / (float)lives);
-            int percent = Mathf.RoundToInt(hp * 100f);
 
             if (healthImage != null)
             {
@@ -95,11 +125,6 @@ namespace HillDefence
                     healthImage.color = Color.Lerp(Color.yellow, Color.green, (hp - 0.5f) * 2f);
                 else
                     healthImage.color = Color.Lerp(Color.red, Color.yellow, hp * 2f);
-            }
-
-            if (healthText != null)
-            {
-                healthText.text = percent + "%";
             }
         }
     }
