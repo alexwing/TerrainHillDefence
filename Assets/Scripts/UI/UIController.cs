@@ -27,11 +27,16 @@ namespace HillDefence
         public bool isMapVisible = true;
         public bool isPlacingTurret = false;
         public bool isPlacingSoldier = false;
+        public bool isPlacingTank = false;
 
         private Image _buildBtnImage;
         private Image _buildSoldierBtnImage;
+        private Image _buildTankBtnImage;
         private GameObject _towerCursor;
         private GameObject _soldierCursor;
+        private GameObject _tankCursor;
+        [Header("Prefabs")]
+        public GameObject tankPrefab;
         private GameObject _mapWrapper;
 
         void Awake()
@@ -662,3 +667,4 @@ namespace HillDefence
         }
     }
 }
+// Trigger recompile
