@@ -555,6 +555,7 @@ namespace HillDefence
 
         private void PlaceTank(Vector3 position, int teamIndex)
         {
+            if (tankPrefab == null) tankPrefab = Resources.Load<GameObject>("Tank");
             GameObject newTank = Instantiate(tankPrefab != null ? tankPrefab : cursorPointer, position, Quaternion.identity);
             newTank.SetActive(true);
             TeamTank teamTank = newTank.GetComponent<TeamTank>();
@@ -741,5 +742,6 @@ namespace HillDefence
     }
 }
 // Trigger recompile
+
 
 
