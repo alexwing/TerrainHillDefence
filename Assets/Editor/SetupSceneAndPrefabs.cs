@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -80,7 +80,7 @@ public static class SetupSceneAndPrefabs
             if (hl == null) hl = root.AddComponent<HealthLayout>();
             hl.healthImage = fgImage;
             hl.healthText = tmpText;
-            hl.yOffset = 2.5f;
+            hl.yOffset = 4.5f;
 
             PrefabUtility.SaveAsPrefabAsset(root, path);
             Debug.Log("HealthLayout.prefab configured successfully.");
@@ -210,7 +210,7 @@ public static class SetupSceneAndPrefabs
         if (camPostFX == null) camPostFX = ppVolObj.AddComponent<CameraPostFX>();
 
         // 3. Ensure GameInfoPanel is present on UI
-        UIController uiCtrl = Object.FindObjectOfType<UIController>();
+        UIController uiCtrl = Object.FindFirstObjectByType<UIController>();
         if (uiCtrl != null)
         {
             GameInfoPanel gip = uiCtrl.GetComponent<GameInfoPanel>();

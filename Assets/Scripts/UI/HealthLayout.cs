@@ -20,6 +20,9 @@ namespace HillDefence
         [Tooltip("Optional TextMeshProUGUI to display percentage (e.g. 100%).")]
         public TextMeshProUGUI healthText;
 
+        [Tooltip("Vertical offset above the character.")]
+        public float yOffset = 4.5f;
+
         private int _lastShootCount = -1;
 
         public void SetUp(GameNpc npcInfo, Transform target, int lives)
@@ -45,8 +48,8 @@ namespace HillDefence
                 UpdateBar();
             }
 
-            // Position directly above the character (using a large enough offset so it's above their heads, not their feet)
-            transform.position = targetTransform.position + Vector3.up * 4.5f;
+            // Position directly above the character
+            transform.position = targetTransform.position + Vector3.up * yOffset;
             
             if (Camera.main != null)
             {
