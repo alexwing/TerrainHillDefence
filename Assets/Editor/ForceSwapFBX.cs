@@ -9,8 +9,8 @@ namespace HillDefence.EditorScripts
         [InitializeOnLoadMethod]
         public static void DoIt()
         {
-            if (SessionState.GetBool("ForceSwapFBX5", false)) return;
-            SessionState.SetBool("ForceSwapFBX5", true);
+            if (SessionState.GetBool("ForceSwapFBX6", false)) return;
+            SessionState.SetBool("ForceSwapFBX6", true);
 
             string tankPath = "Assets/Resources/Tank.prefab";
             if (AssetDatabase.LoadAssetAtPath<GameObject>(tankPath) != null)
@@ -28,12 +28,13 @@ namespace HillDefence.EditorScripts
                 newVisual.transform.SetParent(contentsRoot.transform, false);
                 newVisual.transform.localPosition = Vector3.zero;
                 
-                // Rotamos 90 grados para arreglar el chasis. 
-                // En la foto, el tanque miraba hacia el lado (eje X en vez de Z). -90 o 90 deberia arreglarlo.
+                // Rotacion del chasis: el modelo original de Sketchfab mira hacia +X.
+                // Lo rotamos -90 en Y para que mire hacia +Z (Forward de Unity).
                 newVisual.transform.localRotation = Quaternion.Euler(0, -90, 0);
                 
-                // Hacemos el tanque mas grande
-                newVisual.transform.localScale = Vector3.one * 1.5f;
+                // Escala: el usuario dijo 'el doble de grande', y antes estaba en 1.5f. 
+                // Lo bajamos a la mitad: 0.75f.
+                newVisual.transform.localScale = Vector3.one * 0.75f;
                 newVisual.name = "TankVisual";
 
                 TeamTank tt = contentsRoot.GetComponent<TeamTank>();
@@ -42,13 +43,14 @@ namespace HillDefence.EditorScripts
                     Transform turretMesh = newVisual.transform.Find("Turret");
                     if (turretMesh != null)
                     {
-                        // Creamos un pivote para la torreta
                         GameObject turretPivot = new GameObject("TurretPivot");
-                        turretPivot.transform.SetParent(newVisual.transform, false);
+                        turretPivot.transform.SetParent(newVisual.transform, false); // Hereda el rot de newVisual
                         turretPivot.transform.localPosition = turretMesh.localPosition;
                         
-                        // Metemos la malla de la torreta dentro del pivote y le corregimos la rotacion
-                        turretMesh.SetParent(turretPivot.transform, true);
+                        // Metemos el mesh dentro del pivote. false para que su localPosition sea 0 respecto al pivote.
+                        turretMesh.SetParent(turretPivot.transform, false);
+                        // El pivot cuando apunte al enemigo pondra su +Z hacia el enemigo. 
+                        // Como el mesh original mira a +X, lo rotamos -90 localmente para alinear su +X con el +Z del pivote.
                         turretMesh.localRotation = Quaternion.Euler(0, -90, 0); 
                         turretMesh.localPosition = Vector3.zero;
                         
@@ -68,8 +70,8 @@ namespace HillDefence.EditorScripts
                         GameObject sp = new GameObject("ShootPos");
                         sp.transform.SetParent(tt.tower.transform, false);
                         
-                        // Ponemos el shootPos delante de la torreta (hacia +Z que es el forward del pivote)
-                        sp.transform.localPosition = new Vector3(0, 0.5f, 2.5f);
+                        // Posicion frente a la torreta (+Z del pivote) y un poco elevado (+Y).
+                        sp.transform.localPosition = new Vector3(0, 0.4f, 4.0f);
                         shootPos = sp.transform;
                     }
                     tt.shootInitPosition = shootPos.gameObject;
@@ -77,7 +79,7 @@ namespace HillDefence.EditorScripts
 
                 PrefabUtility.SaveAsPrefabAsset(contentsRoot, tankPath);
                 PrefabUtility.UnloadPrefabContents(contentsRoot);
-                Debug.Log("Swapped, fixed rotation with TurretPivot and increased scale!");
+                Debug.Log("Swapped, fixed rotation perfectly and adjusted scale to 0.75f!");
             }
         }
     }
