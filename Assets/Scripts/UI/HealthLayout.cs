@@ -24,7 +24,7 @@ namespace HillDefence
         public float yOffset = 4.5f;
 
         [Tooltip("Maximum distance from camera to show the health bar.")]
-        public float maxVisibleDistance = 1000f;
+        public float maxVisibleDistance = 500f;
 
         private int _lastShootCount = -1;
         private Canvas _canvas;
@@ -37,9 +37,6 @@ namespace HillDefence
             maxLives = lives;
             yOffset = offset;
             _lastShootCount = -1;
-
-            // Force override of the serialized prefab value
-            maxVisibleDistance = 1500f;
 
             _canvas = GetComponent<Canvas>();
             if (_canvas == null) _canvas = GetComponentInChildren<Canvas>();
