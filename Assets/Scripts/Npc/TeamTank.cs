@@ -138,21 +138,24 @@ namespace HillDefence
                     isWalking = false;
                 }
 
-                if (tower != null)
+                // Always aim the entire tank body towards the enemy
+                Vector3 lookAtDir = (enemyNpc.npcObject.transform.position - transform.position).normalized;
+                lookAtDir.y = 0;
+                if (lookAtDir.sqrMagnitude > 0.01f)
                 {
-                    Quaternion rotation = Quaternion.Lerp(tower.transform.rotation, Quaternion.LookRotation(enemyNpc.npcObject.transform.position - transform.position), Time.deltaTime * SceneConfig.TOWER.RotationSpeed);
-                    tower.transform.rotation = new Quaternion(rotation.x, rotation.y, tower.transform.rotation.z, tower.transform.rotation.w);
-                    
-                    if (distance <= SceneConfig.TOWER.FindEnemyRange)
+                    transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(lookAtDir), Time.deltaTime * SceneConfig.TOWER.RotationSpeed);
+                }
+                
+                if (distance <= SceneConfig.TOWER.FindEnemyRange)
+                {
+                    if (Vector3.Angle(enemyNpc.npcObject.transform.position - transform.position, transform.forward) < SceneConfig.TOWER.RotationAngleMinToShoot)
                     {
-                        if (Vector3.Angle(enemyNpc.npcObject.transform.position - transform.position, tower.transform.forward) < SceneConfig.TOWER.RotationAngleMinToShoot)
-                        {
-                            Shoot(SceneConfig.TOWER.shootCarence, SceneConfig.TOWER.shootSpeed, SceneConfig.TOWER.ShootMaxDistance, SceneConfig.TOWER.shootTargetHeight);                      
-                        }      
-                    }
+                        Shoot(SceneConfig.TOWER.shootCarence, SceneConfig.TOWER.shootSpeed, SceneConfig.TOWER.ShootMaxDistance, SceneConfig.TOWER.shootTargetHeight);                      
+                    }      
                 }
             }
         }
     }
 }
+
 
