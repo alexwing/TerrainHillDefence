@@ -127,10 +127,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c9c284b2c4e5b3409f28090f4043279, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  teamSoldier: {fileID: 0}
   healthImage: {fileID: 114906054373166908}
   healthText: {fileID: 5660061194373801891}
   yOffset: 2.5
+  maxVisibleDistance: 500
 --- !u!223 &6088992160971393858
 Canvas:
   m_ObjectHideFlags: 0

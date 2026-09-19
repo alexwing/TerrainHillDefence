@@ -99,8 +99,14 @@ namespace HillDefence
 
         private System.Collections.IEnumerator OptimizeCorpseCoroutine()
         {
-            // Wait for death animation to finish
-            yield return new WaitForSeconds(1.5f);
+            // Wait for the death animation to completely finish.
+            // The animation clip has an event that calls death() which sets animator.speed = 0.
+            float timeout = 8f;
+            while (animator != null && animator.speed > 0f && timeout > 0f)
+            {
+                timeout -= 0.5f;
+                yield return new WaitForSeconds(0.5f);
+            }
 
             // 1. Disable Animator (saves massive CPU bone calculations on 1000s of units)
             if (animator != null)
