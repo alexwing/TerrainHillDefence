@@ -231,14 +231,16 @@ namespace HillDefence
                         // Make sure the POI map is drawn on top
                         poiRt.SetAsLastSibling();
                         
-                        // Double the size of the player marker as requested
-                        poiRt.localScale = new Vector3(2f, 2f, 2f);
+                        // Make it even bigger as requested
+                        poiRt.localScale = new Vector3(3.5f, 3.5f, 3.5f);
                     }
 
                     poiRt.anchorMin = new Vector2(camNormX, camNormY);
                     poiRt.anchorMax = new Vector2(camNormX, camNormY);
                     poiRt.anchoredPosition = Vector2.zero;
-                    poiRt.localRotation = Quaternion.Euler(0, 0, -Camera.main.transform.eulerAngles.y);
+                    
+                    // Fixed rotation: flipped 180 degrees so it points exactly where the camera is looking
+                    poiRt.localRotation = Quaternion.Euler(0, 0, -Camera.main.transform.eulerAngles.y + 180f);
                     poiRt.gameObject.SetActive(true);
                 }
             }
