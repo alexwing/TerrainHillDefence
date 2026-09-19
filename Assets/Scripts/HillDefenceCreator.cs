@@ -49,16 +49,36 @@ namespace HillDefence
                 }
             }
             
-            // Procedurally generate 24+ vibrant and distinct colors (avoiding black, grey, white)
-            teamsColors = new Color[25];
-            for (int i = 0; i < 25; i++)
+            // Hand-picked list of 25 highly distinct colors to guarantee maximum contrast between teams.
+            // These are intentionally non-sequential and avoid dark/grey tones.
+            teamsColors = new Color[]
             {
-                float hue = (float)i / 25f;
-                // Alternate saturation and value slightly to make them even more distinct
-                float sat = (i % 2 == 0) ? 1.0f : 0.75f;
-                float val = (i % 3 == 0) ? 1.0f : 0.85f;
-                teamsColors[i] = Color.HSVToRGB(hue, sat, val);
-            }
+                new Color32(255, 0, 0, 255),     // 0: Red
+                new Color32(0, 128, 255, 255),   // 1: Azure Blue
+                new Color32(0, 255, 0, 255),     // 2: Lime Green
+                new Color32(255, 255, 0, 255),   // 3: Yellow
+                new Color32(255, 0, 255, 255),   // 4: Magenta
+                new Color32(0, 255, 255, 255),   // 5: Cyan
+                new Color32(255, 128, 0, 255),   // 6: Orange
+                new Color32(128, 0, 255, 255),   // 7: Purple
+                new Color32(0, 255, 128, 255),   // 8: Spring Green
+                new Color32(255, 0, 128, 255),   // 9: Rose
+                new Color32(128, 255, 0, 255),   // 10: Chartreuse
+                new Color32(128, 0, 0, 255),     // 11: Maroon
+                new Color32(0, 128, 128, 255),   // 12: Teal
+                new Color32(0, 0, 128, 255),     // 13: Navy
+                new Color32(128, 128, 0, 255),   // 14: Olive
+                new Color32(255, 165, 0, 255),   // 15: Bright Orange
+                new Color32(0, 100, 0, 255),     // 16: Dark Green
+                new Color32(139, 69, 19, 255),   // 17: Saddle Brown
+                new Color32(255, 20, 147, 255),  // 18: Deep Pink
+                new Color32(75, 0, 130, 255),    // 19: Indigo
+                new Color32(255, 215, 0, 255),   // 20: Gold
+                new Color32(250, 128, 114, 255), // 21: Salmon
+                new Color32(64, 224, 208, 255),  // 22: Turquoise
+                new Color32(220, 20, 60, 255),   // 23: Crimson
+                new Color32(238, 130, 238, 255)  // 24: Violet
+            };
 
             // Critical for restarting the scene properly: clear static variables
             teams.Clear();
