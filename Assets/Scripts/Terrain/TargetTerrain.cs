@@ -150,8 +150,8 @@ namespace HillDefence
                 rockMesh = tempCube.GetComponent<MeshFilter>().sharedMesh;
                 Destroy(tempCube);
 
-                rockMat = new Material(Shader.Find("Standard"));
-                rockMat.color = new Color(0.35f, 0.30f, 0.25f, 1f); // Tierra/roca
+                rockMat = new Material(Shader.Find("Legacy Shaders/Diffuse"));
+                rockMat.color = new Color(0.55f, 0.50f, 0.45f, 1f); // Gris/Marrón claro
             }
             GameObject obj = null;
             if (ObjectPooler.instance != null)
@@ -169,32 +169,46 @@ namespace HillDefence
 
             if (obj != null)
             {
-                // Force particles to play (required for object pooling) and tint them to look like dirt/smoke instead of fire
                 ParticleSystem[] pss = obj.GetComponentsInChildren<ParticleSystem>();
                 foreach (ParticleSystem ps in pss)
                 {
                     var main = ps.main;
-                    
-                    // Force the particle system to simulate and play from the beginning
                     ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
                     
-                    // Convert default particles into 3D tumbling rocks
                     ParticleSystemRenderer render = ps.GetComponent<ParticleSystemRenderer>();
-                    if (render != null && rockMesh != null)
-                    {
-                        render.renderMode = ParticleSystemRenderMode.Mesh;
-                        render.mesh = rockMesh;
-                        render.material = rockMat;
-                    }
-                    
-                    main.startColor = new Color(0.4f, 0.38f, 0.35f, 1f);
-                    main.gravityModifier = 2.0f; // Make rocks fall
+                    string psName = ps.gameObject.name.ToLower();
 
-                    var rot = ps.rotationOverLifetime;
-                    rot.enabled = true;
-                    rot.xMultiplier = 360f;
-                    rot.yMultiplier = 360f;
-                    rot.zMultiplier = 360f;
+                    if (psName.Contains("sparkle") || psName.Contains("debris"))
+                    {
+                        // Convert into small 3D tumbling rocks
+                        if (render != null && rockMesh != null)
+                        {
+                            render.renderMode = ParticleSystemRenderMode.Mesh;
+                            render.mesh = rockMesh;
+                            render.material = rockMat;
+                        }
+                        
+                        main.startSize = new ParticleSystem.MinMaxCurve(0.05f, 0.25f); // Tiny rocks
+                        main.startColor = new Color(0.55f, 0.50f, 0.45f, 1f);
+                        main.gravityModifier = 2.0f; 
+
+                        var rot = ps.rotationOverLifetime;
+                        rot.enabled = true;
+                        rot.xMultiplier = 360f;
+                        rot.yMultiplier = 360f;
+                        rot.zMultiplier = 360f;
+                    }
+                    else
+                    {
+                        // Restore billboard mode for smoke/flash to avoid giant cubes
+                        if (render != null)
+                        {
+                            render.renderMode = ParticleSystemRenderMode.Billboard;
+                        }
+                        
+                        // Tint to dirt/smoke (avoiding bright reds/yellows of fire)
+                        main.startColor = new Color(0.45f, 0.40f, 0.35f, 0.6f);
+                    }
 
                     ps.Play(true);
                 }
