@@ -77,9 +77,8 @@ namespace HillDefence
                 });
                 trigger.triggers.Add(entry);
                 
-                // Clear the old render texture if it was assigned to avoid seeing double
-                mapRawImage.texture = null;
-                mapRawImage.color = new Color(0, 0, 0, 0); // Fully transparent
+                // Make sure the RawImage is visible and white to show the relief map
+                mapRawImage.color = Color.white;
             }
         }
 
@@ -129,13 +128,13 @@ namespace HillDefence
                         Image marker = GetMarker(poolIndex);
                         marker.gameObject.SetActive(true);
                         
-                        // Scale based on type
-                        float size = 4f;
+                        // Scale based on type (made smaller per request)
+                        float size = 3f;
                         switch (npc.npcInfo.npcType)
                         {
-                            case NpcType.soldier: size = 6f; break;
-                            case NpcType.tower: size = 10f; break;
-                            case NpcType.flag: size = 14f; break;
+                            case NpcType.soldier: size = 3f; break;
+                            case NpcType.tower: size = 5f; break;
+                            case NpcType.flag: size = 8f; break;
                         }
                         
                         marker.rectTransform.sizeDelta = new Vector2(size, size);
