@@ -104,15 +104,20 @@ namespace HillDefence
             float timeout = 8f;
             while (animator != null && animator.speed > 0f && timeout > 0f)
             {
-                timeout -= 0.5f;
-                yield return new WaitForSeconds(0.5f);
+                // Smoothly track terrain height during the death animation so they don't float and then snap abruptly
+                if (Terrain.activeTerrain != null)
+                {
+                    float y = Terrain.activeTerrain.SampleHeight(transform.position);
+                    transform.position = new Vector3(transform.position.x, y, transform.position.z);
+                }
+
+                timeout -= 0.05f;
+                yield return new WaitForSeconds(0.05f);
             }
 
-            // 1. Disable Animator (saves massive CPU bone calculations on 1000s of units)
-            if (animator != null)
-            {
-                animator.enabled = false;
-            }
+            // We intentionally do NOT set animator.enabled = false here anymore, 
+            // because disabling the animator entirely can cause a 1-frame position/bind-pose snap in Unity. 
+            // The animation event already set animator.speed = 0, which halts evaluation and saves CPU natively.
 
             // 2. Disable Shadow Casting (saves massive GPU draw calls)
             Renderer[] renderers = GetComponentsInChildren<Renderer>();
