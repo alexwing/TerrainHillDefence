@@ -230,6 +230,9 @@ namespace HillDefence
                         poiRt.SetParent(markerContainer, false);
                         // Make sure the POI map is drawn on top
                         poiRt.SetAsLastSibling();
+                        
+                        // Double the size of the player marker as requested
+                        poiRt.localScale = new Vector3(2f, 2f, 2f);
                     }
 
                     poiRt.anchorMin = new Vector2(camNormX, camNormY);
