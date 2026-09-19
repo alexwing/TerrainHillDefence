@@ -82,8 +82,8 @@ namespace HillDefence
             this.name = "death_" + this.name;
             is_death();
 
-            HillDefenceCreator.Npcs.Remove(gameObject.GetComponent<TeamSoldier>());
-            HillDefenceCreator.teams[npcInfo.teamNumber].soldiers.Remove(gameObject.GetComponent<TeamSoldier>());
+            HillDefenceCreator.Npcs.Remove(this);
+            HillDefenceCreator.teams[npcInfo.teamNumber].soldiers.Remove(this);
             animateStatus = "death";
 
             Destroy(this.GetComponent<BoxCollider>());
@@ -93,6 +93,42 @@ namespace HillDefence
             // Destroy healthbar
             if (_healthBarInstance != null)
                 Destroy(_healthBarInstance);
+
+            StartCoroutine(OptimizeCorpseCoroutine());
+        }
+
+        private System.Collections.IEnumerator OptimizeCorpseCoroutine()
+        {
+            // Wait for death animation to finish
+            yield return new WaitForSeconds(1.5f);
+
+            // 1. Disable Animator (saves massive CPU bone calculations on 1000s of units)
+            if (animator != null)
+            {
+                animator.enabled = false;
+            }
+
+            // 2. Disable Shadow Casting (saves massive GPU draw calls)
+            Renderer[] renderers = GetComponentsInChildren<Renderer>();
+            foreach (Renderer r in renderers)
+            {
+                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            }
+
+            // 3. Fall Loop: Keep corpse grounded if the terrain explodes beneath them
+            while (true)
+            {
+                if (Terrain.activeTerrain != null)
+                {
+                    float targetY = Terrain.activeTerrain.SampleHeight(transform.position);
+                    if (Mathf.Abs(transform.position.y - targetY) > 0.05f)
+                    {
+                        transform.position = new Vector3(transform.position.x, targetY, transform.position.z);
+                    }
+                }
+                // Sleep for ~2 seconds (ultra cheap polling)
+                yield return new WaitForSeconds(Random.Range(1.5f, 2.5f));
+            }
         }
 
         public void death()
