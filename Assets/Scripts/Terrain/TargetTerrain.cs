@@ -141,16 +141,36 @@ namespace HillDefence
 
         public void DetonationBullet(GameObject collision)
         {
+            GameObject obj = null;
             if (ObjectPooler.instance != null)
             {
-                GameObject obj = ObjectPooler.instance.SpawnFromPool(detonationBulletPrefab, collision.transform.position, Quaternion.identity);
+                obj = ObjectPooler.instance.SpawnFromPool(detonationBulletPrefab, collision.transform.position, Quaternion.identity);
                 ReturnToPoolAfterTime returner = obj.GetComponent<ReturnToPoolAfterTime>();
                 if (returner == null) returner = obj.AddComponent<ReturnToPoolAfterTime>();
                 returner.lifeTime = SceneConfig.TERRAIN.explosionBulletLife;
             }
             else
             {
-                Destroy(Instantiate(detonationBulletPrefab, collision.transform.position, Quaternion.identity), SceneConfig.TERRAIN.explosionBulletLife);
+                obj = Instantiate(detonationBulletPrefab, collision.transform.position, Quaternion.identity);
+                Destroy(obj, SceneConfig.TERRAIN.explosionBulletLife);
+            }
+
+            if (obj != null)
+            {
+                // Force particles to play (required for object pooling) and tint them to look like dirt/smoke instead of fire
+                ParticleSystem[] pss = obj.GetComponentsInChildren<ParticleSystem>();
+                foreach (ParticleSystem ps in pss)
+                {
+                    var main = ps.main;
+                    
+                    // Force the particle system to simulate and play from the beginning
+                    ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                    
+                    // Tint to dirt/smoke (avoiding bright reds/yellows of fire)
+                    main.startColor = new Color(0.4f, 0.38f, 0.35f, 0.8f);
+                    
+                    ps.Play(true);
+                }
             }
         }
 

@@ -9,10 +9,24 @@ namespace HillDefence
         // material to change color of the tower gun
         public SkinnedMeshRenderer towerMaterial;
 
+        public GameObject healthBarPrefab;
+        private GameObject _healthBarInstance;
+
         public void Init()
         {
             Utils.ChangeColor(towerMaterial, HillDefenceCreator.teams[npcInfo.teamNumber].teamColor);
             InvokeRepeating("UpdateTower", Random.Range(0, 1f / SceneConfig.TOWER.TowerFrameRate), 1f / SceneConfig.TOWER.TowerFrameRate);
+
+            if (healthBarPrefab == null)
+            {
+                healthBarPrefab = Resources.Load<GameObject>("healthLayout");
+            }
+            if (healthBarPrefab != null)
+            {
+                _healthBarInstance = Instantiate(healthBarPrefab, transform.position + Vector3.up * 6.5f, Quaternion.identity);
+                HealthLayout hl = _healthBarInstance.GetComponentInChildren<HealthLayout>();
+                if (hl != null) hl.SetUp(npcInfo, transform, SceneConfig.TOWER.Lives);
+            }
         }
 
         void OnTriggerEnter(Collider collision)
@@ -45,6 +59,9 @@ namespace HillDefence
             npcInfo.isDead = true;
             HillDefenceCreator.teams[npcInfo.teamNumber].towers.Remove(gameObject.GetComponent<TeamTower>());
             HillDefenceCreator.Npcs.Remove(gameObject.GetComponent<TeamTower>());
+            
+            if (_healthBarInstance != null) Destroy(_healthBarInstance);
+            
             Destroy(gameObject);
             TargetTerrain.instance.ModifyTerrain(collision, SceneConfig.TOWER.DestrucionTerrainSize, SceneConfig.TOWER.DestrucionTerrainSize, false);
             TargetTerrain.instance.DetonationTerrain(collision, SceneConfig.TOWER.DetonationSize);

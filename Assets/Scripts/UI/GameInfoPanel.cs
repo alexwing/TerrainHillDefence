@@ -236,7 +236,7 @@ namespace HillDefence
                 if (t.teamFlag == null || t.teamFlag.npcInfo.isDead)
                 {
                     fb.label.text = $"<b>Team {i}</b>\n<color=#FF4444>DEFEATED</color>";
-                    fb.healthFill.fillAmount = 0;
+                    fb.healthFill.rectTransform.anchorMax = new Vector2(0f, 1f);
                     Color dead = new Color(0.15f, 0.15f, 0.15f, 0.7f);
                     fb.bgImage.color = dead;
                 }
@@ -252,7 +252,7 @@ namespace HillDefence
                     float unitHp = t.maxUnits > 0 ? (float)total / t.maxUnits : 0f;
                     unitHp = Mathf.Clamp01(unitHp);
 
-                    fb.healthFill.fillAmount = unitHp;
+                    fb.healthFill.rectTransform.anchorMax = new Vector2(unitHp, 1f);
                     fb.label.text = $"<b>Team {i}</b>\nUnits: {total} (S: {alive} | T: {towers})";
                 }
             }

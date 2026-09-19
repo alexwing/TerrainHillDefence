@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
@@ -9,8 +9,10 @@ namespace HillDefence
     /// </summary>
     public class HealthLayout : MonoBehaviour
     {
-        [Tooltip("The soldier this healthbar belongs to.")]
-        public TeamSoldier teamSoldier;
+        [Tooltip("The NPC this healthbar belongs to.")]
+        public GameNpc npc;
+        private Transform targetTransform;
+        private int maxLives;
 
         [Tooltip("The Image used as the health fill bar.")]
         public Image healthImage;
@@ -18,34 +20,34 @@ namespace HillDefence
         [Tooltip("Optional TextMeshProUGUI to display percentage (e.g. 100%).")]
         public TextMeshProUGUI healthText;
 
-        [Tooltip("Vertical offset above the soldier pivot.")]
-        public float yOffset = 2.5f;
-
         private int _lastShootCount = -1;
 
-        public void SetUp(TeamSoldier soldier)
+        public void SetUp(GameNpc npcInfo, Transform target, int lives)
         {
-            teamSoldier = soldier;
+            npc = npcInfo;
+            targetTransform = target;
+            maxLives = lives;
             _lastShootCount = -1;
             UpdateBar();
         }
 
         void LateUpdate()
         {
-            if (!teamSoldier || teamSoldier.npcInfo.isDead)
+            if (npc == null || npc.isDead || targetTransform == null)
             {
                 Destroy(gameObject);
                 return;
             }
 
-            if (teamSoldier.npcInfo.shootCount != _lastShootCount)
+            if (npc.shootCount != _lastShootCount)
             {
-                _lastShootCount = teamSoldier.npcInfo.shootCount;
+                _lastShootCount = npc.shootCount;
                 UpdateBar();
             }
 
-            // Position directly above soldier and match camera view
-            transform.position = teamSoldier.transform.position + Vector3.up * yOffset;
+            // Position directly above the character (using a large enough offset so it's above their heads, not their feet)
+            transform.position = targetTransform.position + Vector3.up * 4.5f;
+            
             if (Camera.main != null)
             {
                 transform.rotation = Camera.main.transform.rotation;
@@ -54,10 +56,10 @@ namespace HillDefence
 
         private void UpdateBar()
         {
-            if (teamSoldier == null) return;
+            if (npc == null) return;
 
-            int maxLives = Mathf.Max(1, SceneConfig.SOLDIER.Lives);
-            float hp = Mathf.Clamp01(1f - (float)teamSoldier.npcInfo.shootCount / (float)maxLives);
+            int lives = Mathf.Max(1, maxLives);
+            float hp = Mathf.Clamp01(1f - (float)npc.shootCount / (float)lives);
             int percent = Mathf.RoundToInt(hp * 100f);
 
             if (healthImage != null)

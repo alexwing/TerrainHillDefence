@@ -500,45 +500,40 @@ namespace HillDefence
                 return;
             }
             teamTower.GetComponent<BoxCollider>().enabled = true;
-
-            Color realC = HillDefenceCreator.teams[teamIndex].teamColor;
-            realC.a = 1f;
-            Utils.ChangeColor(teamTower.towerMaterial, realC);
-
+            teamTower.npcInfo.npcType = NpcType.tower;
             teamTower.npcInfo.teamNumber = teamIndex;
             teamTower.npcInfo.npcNumber = HillDefenceCreator.teams[teamIndex].towers.Count;
-            teamTower.npcInfo.npcType = NpcType.tower;
-            teamTower.npcInfo.npcObject = teamTower.gameObject;
-
+            teamTower.npcInfo.npcObject = newTower;
             teamTower.name = "Tower_" + teamTower.npcInfo.teamNumber + "_" + teamTower.npcInfo.npcNumber;
             teamTower.Init();
             HillDefenceCreator.teams[teamIndex].towers.Add(teamTower);
             HillDefenceCreator.Npcs.Add(teamTower);
-
-            isPlacingTurret = false;
-            HidePlacementCursor();
+            
+            // Allow continuous placement; do not disable placement mode here.
         }
 
         private void PlaceSoldier(Vector3 position, int teamIndex)
         {
-            if (HillDefenceCreator.instance == null || HillDefenceCreator.instance.enemyPrefab == null) return;
-
-            GameObject soldier = Instantiate(HillDefenceCreator.instance.enemyPrefab, position, Quaternion.identity);
-            TeamSoldier teamSoldier = soldier.GetComponent<TeamSoldier>();
-
+            GameObject newSoldier = Instantiate(HillDefenceCreator.instance.enemyPrefab, position, Quaternion.identity);
+            newSoldier.SetActive(true);
+            TeamSoldier teamSoldier = newSoldier.GetComponent<TeamSoldier>();
+            if (teamSoldier == null)
+            {
+                Destroy(newSoldier);
+                return;
+            }
+            teamSoldier.GetComponent<BoxCollider>().enabled = true;
+            teamSoldier.npcInfo.npcType = NpcType.soldier;
             teamSoldier.npcInfo.teamNumber = teamIndex;
             teamSoldier.npcInfo.npcNumber = HillDefenceCreator.teams[teamIndex].soldiers.Count;
-            teamSoldier.npcInfo.npcType = NpcType.soldier;
-            teamSoldier.npcInfo.npcObject = soldier;
-
-            soldier.name = "Soldier_" + teamIndex + "_" + teamSoldier.npcInfo.npcNumber;
+            teamSoldier.npcInfo.npcObject = newSoldier;
+            teamSoldier.name = "Soldier_Spawned_" + teamSoldier.npcInfo.teamNumber + "_" + teamSoldier.npcInfo.npcNumber;
             teamSoldier.Init();
 
             HillDefenceCreator.teams[teamIndex].soldiers.Add(teamSoldier);
             HillDefenceCreator.Npcs.Add(teamSoldier);
 
-            isPlacingSoldier = false;
-            HidePlacementCursor();
+            // Allow continuous placement; do not disable placement mode here.
         }
 
         public void ShowWin(Team team)
