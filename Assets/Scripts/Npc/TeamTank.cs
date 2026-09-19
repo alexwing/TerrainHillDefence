@@ -148,7 +148,10 @@ namespace HillDefence
                 
                 if (distance <= SceneConfig.TOWER.FindEnemyRange)
                 {
-                    if (Vector3.Angle(enemyNpc.npcObject.transform.position - transform.position, transform.forward) < SceneConfig.TOWER.RotationAngleMinToShoot)
+                    
+                    Vector3 flatEnemyPos = enemyNpc.npcObject.transform.position;
+                    flatEnemyPos.y = transform.position.y;
+                    if (Vector3.Angle(flatEnemyPos - transform.position, transform.forward) < SceneConfig.TOWER.RotationAngleMinToShoot)
                     {
                         Shoot(SceneConfig.TOWER.shootCarence, SceneConfig.TOWER.shootSpeed, SceneConfig.TOWER.ShootMaxDistance, SceneConfig.TOWER.shootTargetHeight);                      
                     }      
@@ -157,5 +160,6 @@ namespace HillDefence
         }
     }
 }
+
 
 
