@@ -8,21 +8,20 @@ namespace HillDefence
 
         new public void Init()
         {
-            
             MeshRenderer[] renderers = GetComponentsInChildren<MeshRenderer>(true);
             foreach (MeshRenderer mr in renderers)
             {
-                if (mr.gameObject.name != "Barrel")
+                if (mr.gameObject.name != ""Barrel"")
                 {
                     Utils.ChangeColor(mr, HillDefenceCreator.teams[npcInfo.teamNumber].teamColor);
                 }
             }
             
-            InvokeRepeating("UpdateTank", Random.Range(0, 1f / SceneConfig.SOLDIER.SoldierFrameRate), 1f / SceneConfig.SOLDIER.SoldierFrameRate);
+            InvokeRepeating(""UpdateTank"", Random.Range(0, 1f / SceneConfig.SOLDIER.SoldierFrameRate), 1f / SceneConfig.SOLDIER.SoldierFrameRate);
 
             if (healthBarPrefab == null)
             {
-                healthBarPrefab = Resources.Load<GameObject>("healthLayout");
+                healthBarPrefab = Resources.Load<GameObject>(""healthLayout"");
             }
             if (healthBarPrefab != null)
             {
@@ -36,7 +35,7 @@ namespace HillDefence
         {
             if (!collision.gameObject) return;
             
-            if (collision.gameObject.tag == "bullet" && "bullet_" + npcInfo.teamNumber != collision.gameObject.name)
+            if (collision.gameObject.tag == ""bullet"" && ""bullet_"" + npcInfo.teamNumber != collision.gameObject.name)
             {
                 TargetTerrain.instance.DetonationBullet(collision.gameObject);
                 if (npcInfo.shootCount >= SceneConfig.TOWER.Lives * 2)
@@ -64,8 +63,8 @@ namespace HillDefence
             Destroy(gameObject);
             TargetTerrain.instance.ModifyTerrain(collision, SceneConfig.TOWER.DestrucionTerrainSize, SceneConfig.TOWER.DestrucionTerrainSize, false);
             TargetTerrain.instance.DetonationTerrain(collision, SceneConfig.TOWER.DetonationSize);
-            CancelInvoke("UpdateTank");
-            CancelInvoke("findEnemyTank");                
+            CancelInvoke(""UpdateTank"");
+            CancelInvoke(""findEnemyTank"");                
         }
 
         new public void findEnemy()
@@ -108,8 +107,12 @@ namespace HillDefence
             if (Terrain.activeTerrain != null)
             {
                 float y = Terrain.activeTerrain.SampleHeight(transform.position);
-                transform.position = new Vector3(transform.position.x, y, transform.position.z);
+                transform.position = new Vector3(transform.position.x, y + 0.3f, transform.position.z);
             }
+
+            Vector3 targetPoint = transform.position;
+            bool shouldMove = false;
+            float moveDistance = 0f;
 
             if (enemyNpc != null)
             {
@@ -120,23 +123,37 @@ namespace HillDefence
                 }
 
                 float distance = Vector3.Distance(enemyNpc.npcObject.transform.position, transform.position);
-                Vector3 desiredDir = (enemyNpc.npcObject.transform.position - transform.position).normalized;
-
                 if (distance > SceneConfig.SOLDIER.AttackRange)
                 {
-                    Vector3 targetPos = transform.position + desiredDir * distance;
-                    transform.position = Vector3.Lerp(
-                        transform.position,
-                        targetPos,
-                        Time.deltaTime * (SceneConfig.SOLDIER.SoldierVelocity * 0.5f) * (1f / SceneConfig.SOLDIER.SoldierFrameRate));
-                    isWalking = true;
+                    targetPoint = enemyNpc.npcObject.transform.position;
+                    shouldMove = true;
+                    moveDistance = distance;
                 }
-                else
+            }
+            else
+            {
+                Vector3 basePos = HillDefenceCreator.teams[npcInfo.teamNumber].teamFlag.transform.position;
+                float distToBase = Vector3.Distance(basePos, transform.position);
+                if (distToBase > 25f)
                 {
-                    isWalking = false;
+                    targetPoint = basePos;
+                    shouldMove = true;
+                    moveDistance = distToBase;
                 }
+            }
 
-                // --- Terrain slope alignment & Tank Body Rotation ---
+            if (shouldMove)
+            {
+                Vector3 desiredDir = (targetPoint - transform.position).normalized;
+                Vector3 targetPos = transform.position + desiredDir * moveDistance;
+                
+                transform.position = Vector3.Lerp(
+                    transform.position,
+                    targetPos,
+                    Time.deltaTime * (SceneConfig.SOLDIER.SoldierVelocity * 0.5f) * (1f / SceneConfig.SOLDIER.SoldierFrameRate));
+                
+                isWalking = true;
+                
                 Vector3 lookDir = desiredDir;
                 lookDir.y = 0; 
                 if (lookDir.sqrMagnitude > 0.01f)
@@ -158,33 +175,34 @@ namespace HillDefence
                         transform.rotation = Quaternion.Lerp(transform.rotation, targetRot, Time.deltaTime * 5f);
                     }
                 }
+            }
+            else
+            {
+                isWalking = false;
+            }
 
-                // Turret aims independently!
-                if (tower != null)
+            if (enemyNpc != null && tower != null)
+            {
+                Vector3 flatEnemyPos = enemyNpc.npcObject.transform.position;
+                Vector3 turretLookDir = (enemyNpc.npcObject.transform.position - tower.transform.position).normalized;
+                turretLookDir.y = 0;
+                
+                if (turretLookDir.sqrMagnitude > 0.01f)
                 {
-                    Vector3 flatEnemyPos = enemyNpc.npcObject.transform.position;
-                    // Keep pitch unchanged if possible, just yaw towards enemy
-                    Vector3 turretLookDir = (enemyNpc.npcObject.transform.position - tower.transform.position).normalized;
-                    turretLookDir.y = 0; // only rotate on Y
-                    if (turretLookDir.sqrMagnitude > 0.01f)
+                    Quaternion targetRot = Quaternion.LookRotation(turretLookDir);
+                    tower.transform.rotation = Quaternion.Lerp(tower.transform.rotation, targetRot, Time.deltaTime * SceneConfig.TOWER.RotationSpeed);
+                }
+                
+                float distance = Vector3.Distance(enemyNpc.npcObject.transform.position, transform.position);
+                if (distance <= SceneConfig.TOWER.FindEnemyRange)
+                {
+                    flatEnemyPos.y = tower.transform.position.y;
+                    if (Vector3.Angle(flatEnemyPos - tower.transform.position, tower.transform.forward) < SceneConfig.TOWER.RotationAngleMinToShoot)
                     {
-                        Quaternion targetRot = Quaternion.LookRotation(turretLookDir);
-                        tower.transform.rotation = Quaternion.Lerp(tower.transform.rotation, targetRot, Time.deltaTime * SceneConfig.TOWER.RotationSpeed);
-                    }
-                    
-                    if (distance <= SceneConfig.TOWER.FindEnemyRange)
-                    {
-                        flatEnemyPos.y = tower.transform.position.y;
-                        if (Vector3.Angle(flatEnemyPos - tower.transform.position, tower.transform.forward) < SceneConfig.TOWER.RotationAngleMinToShoot)
-                        {
-                            Shoot(SceneConfig.TOWER.shootCarence, SceneConfig.TOWER.shootSpeed, SceneConfig.TOWER.ShootMaxDistance, SceneConfig.TOWER.shootTargetHeight);                      
-                        }      
-                    }
+                        Shoot(SceneConfig.TOWER.shootCarence, SceneConfig.TOWER.shootSpeed, SceneConfig.TOWER.ShootMaxDistance, SceneConfig.TOWER.shootTargetHeight);                      
+                    }      
                 }
             }
         }
     }
 }
-
-
-
