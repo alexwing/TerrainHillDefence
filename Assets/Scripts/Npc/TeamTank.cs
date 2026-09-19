@@ -8,8 +8,15 @@ namespace HillDefence
 
         new public void Init()
         {
-            if (towerMaterial != null)
-                Utils.ChangeColor(towerMaterial, HillDefenceCreator.teams[npcInfo.teamNumber].teamColor);
+            
+            MeshRenderer[] renderers = GetComponentsInChildren<MeshRenderer>(true);
+            foreach (MeshRenderer mr in renderers)
+            {
+                if (mr.gameObject.name != "Barrel")
+                {
+                    Utils.ChangeColor(mr, HillDefenceCreator.teams[npcInfo.teamNumber].teamColor);
+                }
+            }
             
             InvokeRepeating("UpdateTank", Random.Range(0, 1f / SceneConfig.SOLDIER.SoldierFrameRate), 1f / SceneConfig.SOLDIER.SoldierFrameRate);
 
@@ -113,28 +120,43 @@ namespace HillDefence
                 }
 
                 float distance = Vector3.Distance(enemyNpc.npcObject.transform.position, transform.position);
+                Vector3 desiredDir = (enemyNpc.npcObject.transform.position - transform.position).normalized;
 
                 if (distance > SceneConfig.SOLDIER.AttackRange)
                 {
-                    Vector3 desiredDir = (enemyNpc.npcObject.transform.position - transform.position).normalized;
                     Vector3 targetPos = transform.position + desiredDir * distance;
                     transform.position = Vector3.Lerp(
                         transform.position,
                         targetPos,
                         Time.deltaTime * (SceneConfig.SOLDIER.SoldierVelocity * 0.5f) * (1f / SceneConfig.SOLDIER.SoldierFrameRate));
-                    
                     isWalking = true;
-                    
-                    Vector3 lookDir = desiredDir;
-                    lookDir.y = 0;
-                    if (lookDir.sqrMagnitude > 0.01f)
-                    {
-                        transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(lookDir), Time.deltaTime * 2f);
-                    }
                 }
                 else
                 {
                     isWalking = false;
+                }
+
+                // --- Terrain slope alignment & Tank Body Rotation ---
+                Vector3 lookDir = desiredDir;
+                lookDir.y = 0; 
+                if (lookDir.sqrMagnitude > 0.01f)
+                {
+                    Vector3 normal = Vector3.up;
+                    if (Terrain.activeTerrain != null)
+                    {
+                        TerrainData td = Terrain.activeTerrain.terrainData;
+                        Vector3 terrainLocalPos = transform.position - Terrain.activeTerrain.transform.position;
+                        float nx = terrainLocalPos.x / td.size.x;
+                        float ny = terrainLocalPos.z / td.size.z;
+                        normal = td.GetInterpolatedNormal(nx, ny);
+                    }
+                    
+                    Vector3 projectedForward = Vector3.ProjectOnPlane(lookDir, normal).normalized;
+                    if (projectedForward.sqrMagnitude > 0.01f)
+                    {
+                        Quaternion targetRot = Quaternion.LookRotation(projectedForward, normal);
+                        transform.rotation = Quaternion.Lerp(transform.rotation, targetRot, Time.deltaTime * 5f);
+                    }
                 }
 
                 // Turret aims independently!
@@ -163,4 +185,6 @@ namespace HillDefence
         }
     }
 }
+
+
 
