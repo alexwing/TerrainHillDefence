@@ -9,162 +9,135 @@ namespace HillDefence.EditorScripts
     {
         static RebuildTank4X()
         {
-            Execute();
+            EditorApplication.delayCall += Execute;
         }
 
         [MenuItem("Tools/Rebuild Tank 4X")]
-        [InitializeOnLoadMethod]
         public static void Execute()
         {
-            if (SessionState.GetBool("RebuildTank4X_v2", false)) return;
-            SessionState.SetBool("RebuildTank4X_v2", true);
+            if (SessionState.GetBool("RebuildTank4X_v5", false)) return;
+            SessionState.SetBool("RebuildTank4X_v5", true);
 
             string tankPath = "Assets/Resources/Tank.prefab";
             string fbxPath = "Assets/Models/TankSketchfab.fbx";
             string teamMatPath = "Assets/Materials/TankTeamMaterial.mat";
             string barrelMatPath = "Assets/Materials/TankBarrelMaterial.mat";
 
-            GameObject fbxModel = AssetDatabase.LoadAssetAtPath<GameObject>(fbxPath);
-            if (fbxModel == null)
+            AssetDatabase.ImportAsset(fbxPath, ImportAssetOptions.ForceUpdate);
+            GameObject tankModel = AssetDatabase.LoadAssetAtPath<GameObject>(fbxPath);
+            if (tankModel == null)
             {
                 Debug.LogError("[RebuildTank4X] TankSketchfab.fbx not found at " + fbxPath);
                 return;
             }
 
+            // Ensure materials
+            if (!AssetDatabase.IsValidFolder("Assets/Materials"))
+            {
+                AssetDatabase.CreateFolder("Assets", "Materials");
+            }
+
             Material teamMat = AssetDatabase.LoadAssetAtPath<Material>(teamMatPath);
+            if (teamMat == null)
+            {
+                teamMat = new Material(Shader.Find("Standard"));
+                AssetDatabase.CreateAsset(teamMat, teamMatPath);
+            }
+
             Material barrelMat = AssetDatabase.LoadAssetAtPath<Material>(barrelMatPath);
-
-            // Clean or create Tank.prefab
-            GameObject root;
-            bool exists = File.Exists(tankPath);
-            if (exists)
+            if (barrelMat == null)
             {
-                root = PrefabUtility.LoadPrefabContents(tankPath);
-            }
-            else
-            {
-                root = new GameObject("Tank");
+                barrelMat = new Material(Shader.Find("Standard"));
+                barrelMat.color = Color.gray;
+                AssetDatabase.CreateAsset(barrelMat, barrelMatPath);
             }
 
-            // Remove all existing children from root
-            int childCount = root.transform.childCount;
-            for (int i = childCount - 1; i >= 0; i--)
-            {
-                GameObject.DestroyImmediate(root.transform.GetChild(i).gameObject, true);
-            }
-
-            // Set root transform
+            // Build fresh in-memory hierarchy
+            GameObject root = new GameObject("Tank");
             root.transform.position = Vector3.zero;
             root.transform.rotation = Quaternion.identity;
-            root.transform.localScale = Vector3.one;
+            root.transform.localScale = Vector3.one * 2.0f;
 
-            // Add or configure BoxCollider
-            BoxCollider bc = root.GetComponent<BoxCollider>();
-            if (bc == null) bc = root.AddComponent<BoxCollider>();
+            BoxCollider bc = root.AddComponent<BoxCollider>();
             bc.isTrigger = true;
-            // 4x larger size: length ~46, width ~30, height ~14
-            bc.size = new Vector3(30f, 15f, 46f);
-            bc.center = new Vector3(0f, 7.5f, 0f);
+            bc.size = new Vector3(8f, 4f, 12f);
+            bc.center = new Vector3(0f, 2f, 0f);
 
-            // Add or configure TeamTank
-            TeamTank tt = root.GetComponent<TeamTank>();
-            if (tt == null) tt = root.AddComponent<TeamTank>();
+            TeamTank tt = root.AddComponent<TeamTank>();
 
-            // Remove TeamTower if it was separately on root
-            TeamTower oldTower = root.GetComponent<TeamTower>();
-            if (oldTower != null && oldTower != tt)
+            // VisualWrapper with 4x scale (original was 0.75, now 3.0)
+            GameObject visualWrapper = new GameObject("VisualWrapper");
+            visualWrapper.transform.SetParent(root.transform, false);
+            visualWrapper.transform.localPosition = Vector3.zero;
+            visualWrapper.transform.localRotation = Quaternion.identity;
+            visualWrapper.transform.localScale = Vector3.one * 3.0f;
+
+            // Instantiate FBX
+            GameObject fbxInst = (GameObject)PrefabUtility.InstantiatePrefab(tankModel);
+            fbxInst.name = "FBX_Root";
+            fbxInst.transform.SetParent(visualWrapper.transform, false);
+            fbxInst.transform.localPosition = Vector3.zero;
+            fbxInst.transform.localRotation = Quaternion.identity;
+
+            // Unpack completely
+            PrefabUtility.UnpackPrefabInstance(fbxInst, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+
+            // Find parts: fbxInst is Hull, child is Turret, grandchild is Barrel
+            Transform turret = fbxInst.transform.Find("Turret");
+            Transform barrel = turret != null ? turret.Find("Barrel") : null;
+
+            // Apply Materials
+            MeshRenderer mrHull = fbxInst.GetComponent<MeshRenderer>();
+            if (mrHull != null && teamMat != null)
             {
-                GameObject.DestroyImmediate(oldTower, true);
+                mrHull.sharedMaterial = teamMat;
+                tt.towerMaterial = mrHull;
             }
 
-            // Instantiate FBX visual as child
-            GameObject visual = (GameObject)PrefabUtility.InstantiatePrefab(fbxModel, root.transform);
-            visual.name = "TankVisual";
-            visual.transform.localPosition = Vector3.zero;
-            visual.transform.localRotation = Quaternion.identity;
-            // 4x scale (previous was 1.5x, 1.5 * 4 = 6.0f)
-            visual.transform.localScale = Vector3.one * 6.0f;
-
-            // Find parts inside TankVisual
-            Transform hullT = visual.transform.Find("Hull");
-            Transform turretT = null;
-            Transform barrelT = null;
-
-            if (hullT != null)
+            if (turret != null)
             {
-                turretT = hullT.Find("Turret");
-            }
-            if (turretT == null)
-            {
-                turretT = visual.transform.Find("Turret");
-            }
-            if (turretT != null)
-            {
-                barrelT = turretT.Find("Barrel");
-            }
-
-            // Fallback searches if hierarchy varies
-            if (hullT == null) hullT = visual.transform;
-            if (turretT == null) turretT = visual.transform;
-
-            // Setup Materials
-            if (hullT != null)
-            {
-                MeshRenderer mr = hullT.GetComponent<MeshRenderer>();
-                if (mr != null && teamMat != null)
+                MeshRenderer mrTurret = turret.GetComponent<MeshRenderer>();
+                if (mrTurret != null && teamMat != null)
                 {
-                    mr.sharedMaterial = teamMat;
-                    tt.towerMaterial = mr;
+                    mrTurret.sharedMaterial = teamMat;
                 }
             }
 
-            if (turretT != null)
+            if (barrel != null)
             {
-                MeshRenderer mr = turretT.GetComponent<MeshRenderer>();
-                if (mr != null && teamMat != null)
+                MeshRenderer mrBarrel = barrel.GetComponent<MeshRenderer>();
+                if (mrBarrel != null && barrelMat != null)
                 {
-                    mr.sharedMaterial = teamMat;
+                    mrBarrel.sharedMaterial = barrelMat;
                 }
             }
 
-            if (barrelT != null)
+            // Assign turret for aiming
+            if (turret != null)
             {
-                MeshRenderer mr = barrelT.GetComponent<MeshRenderer>();
-                if (mr != null && barrelMat != null)
-                {
-                    mr.sharedMaterial = barrelMat;
-                }
-            }
+                tt.tower = turret.gameObject;
 
-            // Setup ShootPos on Turret
-            Transform shootPosT = turretT.Find("ShootPos");
-            if (shootPosT == null)
-            {
+                // Create ShootPos at the tip of the barrel in Turret local space
                 GameObject sp = new GameObject("ShootPos");
-                sp.transform.SetParent(turretT, false);
-                // Tip of the muzzle in turret local space
-                sp.transform.localPosition = new Vector3(0f, 0.52f, 6.8f);
+                sp.transform.SetParent(turret, false);
+                sp.transform.localPosition = new Vector3(0f, -0.75f, 6.2f);
                 sp.transform.localRotation = Quaternion.identity;
-                shootPosT = sp.transform;
+                tt.shootInitPosition = sp;
             }
             else
             {
-                shootPosT.localPosition = new Vector3(0f, 0.52f, 6.8f);
-                shootPosT.localRotation = Quaternion.identity;
+                tt.tower = visualWrapper;
             }
 
-            // Hook up TeamTank references
-            tt.tower = turretT.gameObject;
-            tt.shootInitPosition = shootPosT.gameObject;
             tt.healthBarPrefab = Resources.Load<GameObject>("healthLayout");
             tt.npcInfo.npcType = NpcType.tank;
 
-            // Save Prefab
+            // Save as Prefab Asset
             PrefabUtility.SaveAsPrefabAsset(root, tankPath);
-            PrefabUtility.UnloadPrefabContents(root);
-            Debug.Log("[RebuildTank4X] Successfully assembled Tank.prefab 4X with attached cannon!");
+            GameObject.DestroyImmediate(root);
+            Debug.Log("[RebuildTank4X] SUCCESS! Tank.prefab built with 4X scale, perfect horizontal alignment, and attached cannon.");
 
-            // Also verify UI.prefab
+            // Ensure UI.prefab references the tank
             string uiPath = "Assets/Prefabs/UI.prefab";
             if (File.Exists(uiPath))
             {
@@ -177,7 +150,6 @@ namespace HillDefence.EditorScripts
                     {
                         uic.tankPrefab = tankAsset;
                         PrefabUtility.SaveAsPrefabAsset(uiRoot, uiPath);
-                        Debug.Log("[RebuildTank4X] Assigned tankPrefab in UI.prefab");
                     }
                 }
                 PrefabUtility.UnloadPrefabContents(uiRoot);

@@ -110,7 +110,7 @@ namespace HillDefence
             if (Terrain.activeTerrain != null)
             {
                 float y = Terrain.activeTerrain.SampleHeight(transform.position);
-                transform.position = new Vector3(transform.position.x, y + 0.3f, transform.position.z);
+                transform.position = new Vector3(transform.position.x, y + 2.5f, transform.position.z);
             }
 
             Vector3 targetPoint = transform.position;
@@ -201,6 +201,11 @@ namespace HillDefence
                         Shoot(SceneConfig.TOWER.shootCarence, SceneConfig.TOWER.shootSpeed, SceneConfig.TOWER.ShootMaxDistance, SceneConfig.TOWER.shootTargetHeight);                      
                     }      
                 }
+            }
+            else if (tower != null)
+            {
+                // Align turret back forward when no enemies
+                tower.transform.localRotation = Quaternion.Slerp(tower.transform.localRotation, Quaternion.identity, (1f / SceneConfig.SOLDIER.SoldierFrameRate) * 2f);
             }
         }
     }
