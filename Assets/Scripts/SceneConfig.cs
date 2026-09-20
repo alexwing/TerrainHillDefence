@@ -29,7 +29,7 @@ public static class SceneConfig
         public readonly static float shootCarence = 0.75f;
         public readonly static float shootSpeed = 100f;
         public readonly static float shootTargetHeight = 1.75f;
-        public readonly static float RotationAngleMinToShoot = 120f;
+        public readonly static float RotationAngleMinToShoot = 30f;
         public readonly static float DestrucionTerrainSize = 15f;
         public readonly static float DetonationSize = 6f;
 
@@ -40,7 +40,7 @@ public static class SceneConfig
         public readonly static float FindEnemyRange = 5000;
         public readonly static float AttackRamdomRange = 30f;
         public readonly static float SoldierWalkAnimationVelocity = 0.5f;
-        public readonly static float SoldierVelocity = 3f;
+        public readonly static float SoldierVelocity = 15f;
         public readonly static float SoldierFrameRate = 25f;
         public readonly static float SoldierFindFrameRate = 1f;
         public readonly static int ShootMaxDistance = 300;

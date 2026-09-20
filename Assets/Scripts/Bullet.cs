@@ -7,7 +7,7 @@ namespace HillDefence
 
         public Vector3 origin;
         public GameNpc npcInfo = new GameNpc();
-        void Start()
+        void OnEnable()
         {
             InvokeRepeating("CheckDistance", 0, 1f / SceneConfig.SOLDIER.ShootMaxDistanceCheckFrameRate);
         }

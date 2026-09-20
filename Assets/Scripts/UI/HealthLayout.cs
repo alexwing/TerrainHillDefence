@@ -9,6 +9,10 @@ namespace HillDefence
     /// </summary>
     public class HealthLayout : MonoBehaviour
     {
+        private Collider _cachedCollider;
+        private static Transform _cachedCamTransform;
+        private static Material _sharedAlwaysOnTopMat;
+        
         [Tooltip("The NPC this healthbar belongs to.")]
         public GameNpc npc;
         private Transform targetTransform;
@@ -51,8 +55,12 @@ namespace HillDefence
             transform.localScale = transform.localScale * 3.5f;
 
             // Make it render on top of everything (ZTest Always)
-            Material alwaysOnTop = new Material(Shader.Find("UI/Default"));
-            alwaysOnTop.SetInt("unity_GUIZTestMode", (int)UnityEngine.Rendering.CompareFunction.Always);
+            if (_sharedAlwaysOnTopMat == null)
+            {
+                _sharedAlwaysOnTopMat = new Material(Shader.Find("UI/Default"));
+                _sharedAlwaysOnTopMat.SetInt("unity_GUIZTestMode", (int)UnityEngine.Rendering.CompareFunction.Always);
+            }
+            Material alwaysOnTop = _sharedAlwaysOnTopMat;
             
             _graphics = GetComponentsInChildren<UnityEngine.UI.Graphic>(true);
             foreach (UnityEngine.UI.Graphic g in _graphics)
@@ -60,6 +68,8 @@ namespace HillDefence
                 g.material = alwaysOnTop;
             }
 
+            _cachedCollider = target.GetComponentInChildren<Collider>();
+            if (Camera.main != null) _cachedCamTransform = Camera.main.transform;
             UpdateBar();
         }
 
@@ -79,20 +89,20 @@ namespace HillDefence
 
             // Dynamically calculate position above the highest point of the collider
             float topY = targetTransform.position.y + yOffset; 
-            Collider col = targetTransform.GetComponentInChildren<Collider>();
-            if (col != null)
+            if (_cachedCollider != null)
             {
-                topY = col.bounds.max.y + 1.5f;
+                topY = _cachedCollider.bounds.max.y + 1.5f;
             }
 
             transform.position = new Vector3(targetTransform.position.x, topY, targetTransform.position.z);
             
-            if (Camera.main != null)
+            if (_cachedCamTransform == null && Camera.main != null) _cachedCamTransform = Camera.main.transform;
+            if (_cachedCamTransform != null)
             {
-                transform.rotation = Camera.main.transform.rotation;
+                transform.rotation = _cachedCamTransform.rotation;
 
                 // Distance culling: hide if too far from camera
-                float distSq = (transform.position - Camera.main.transform.position).sqrMagnitude;
+                float distSq = (transform.position - _cachedCamTransform.position).sqrMagnitude;
                 bool isClose = distSq <= (maxVisibleDistance * maxVisibleDistance);
 
                 if (_canvas != null)

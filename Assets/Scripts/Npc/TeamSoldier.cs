@@ -72,7 +72,7 @@ namespace HillDefence
                     enemyNpc = findAttackingME != null && findAttackingME.npcInfo.teamNumber != npcInfo.teamNumber && !npcInfo.isDead ? findAttackingME.npcInfo : enemyNpc;
                 }
 
-                Destroy(collision.gameObject);
+                BulletUtils.Despawn(collision.gameObject);
             }
         }
 
@@ -123,8 +123,10 @@ namespace HillDefence
             // The animation event already set animator.speed = 0, which halts evaluation and saves CPU natively.
 
             // 3. Fall Loop: Keep corpse grounded ONLY if the terrain heavily explodes beneath them
-            while (true)
+            float corpseTimer = 60f;
+            while (corpseTimer > 0f)
             {
+                corpseTimer -= Random.Range(1.5f, 2.5f);
                 if (Terrain.activeTerrain != null)
                 {
                     float targetY = Terrain.activeTerrain.SampleHeight(transform.position);
@@ -139,6 +141,7 @@ namespace HillDefence
                 // Sleep for ~2 seconds (ultra cheap polling)
                 yield return new WaitForSeconds(Random.Range(1.5f, 2.5f));
             }
+            Destroy(gameObject);
         }
 
         public void death()
@@ -235,11 +238,8 @@ namespace HillDefence
                     desiredDir = ApplyTowerAvoidance(desiredDir);
 
                     // Move toward target distance in the avoidance direction
-                    Vector3 targetPos = transform.position + desiredDir * distance;
-                    transform.position = Vector3.Lerp(
-                        transform.position,
-                        targetPos,
-                        Time.deltaTime * SceneConfig.SOLDIER.SoldierVelocity * (1f / SceneConfig.SOLDIER.SoldierFrameRate));
+                    float step = SceneConfig.SOLDIER.SoldierVelocity * (1f / SceneConfig.SOLDIER.SoldierFrameRate);
+                    transform.position += desiredDir * step;
 
                     isWalking = true;
                 }
@@ -276,32 +276,35 @@ namespace HillDefence
         // Cached avoidance direction (recalculated by findEnemy, not every frame)
         private Vector3 _cachedAvoidDir = Vector3.zero;
 
+        // Static buffer for non-allocating physics queries
+        private static Collider[] _avoidBuffer = new Collider[32];
+
         /// <summary>
         /// Recalculates tower avoidance direction. Called from findEnemy (low frequency).
         /// </summary>
         private void RecalcTowerAvoidance()
         {
-            Collider[] nearby = Physics.OverlapSphere(transform.position, SceneConfig.SOLDIER.TowerAvoidanceRadius);
+            int count = Physics.OverlapSphereNonAlloc(transform.position, SceneConfig.SOLDIER.TowerAvoidanceRadius, _avoidBuffer);
             Vector3 avoidance = Vector3.zero;
-            int count = 0;
+            int towerCount = 0;
 
-            foreach (Collider col in nearby)
+            for (int i = 0; i < count; i++)
             {
-                TeamTower tower = col.GetComponent<TeamTower>();
+                TeamTower tower = _avoidBuffer[i].GetComponent<TeamTower>();
                 if (tower != null)
                 {
-                    Vector3 away = transform.position - col.transform.position;
+                    Vector3 away = transform.position - _avoidBuffer[i].transform.position;
                     away.y = 0;
                     float dist = away.magnitude;
                     if (dist > 0.05f)
                     {
                         avoidance += away.normalized / dist;
-                        count++;
+                        towerCount++;
                     }
                 }
             }
 
-            _cachedAvoidDir = count > 0 ? (avoidance / count).normalized : Vector3.zero;
+            _cachedAvoidDir = towerCount > 0 ? (avoidance / towerCount).normalized : Vector3.zero;
         }
 
         /// <summary>

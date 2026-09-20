@@ -12,7 +12,7 @@ namespace HillDefence
         public GameObject healthBarPrefab;
         protected GameObject _healthBarInstance;
 
-        public void Init()
+        public virtual void Init()
         {
             Utils.ChangeColor(towerMaterial, HillDefenceCreator.teams[npcInfo.teamNumber].teamColor);
             InvokeRepeating("UpdateTower", Random.Range(0, 1f / SceneConfig.TOWER.TowerFrameRate), 1f / SceneConfig.TOWER.TowerFrameRate);
@@ -38,6 +38,8 @@ namespace HillDefence
             if (collision.gameObject.tag == "bullet" && "bullet_" + npcInfo.teamNumber != collision.gameObject.name)
             {
                 TargetTerrain.instance.DetonationBullet(collision.gameObject);
+                npcInfo.shootCount++;
+                BulletUtils.Despawn(collision.gameObject);
                 if (npcInfo.shootCount >= SceneConfig.TOWER.Lives)
                 {
                     deathNPC(collision.gameObject);
@@ -48,8 +50,6 @@ namespace HillDefence
                     Bullet findAttackingME = collision.gameObject.GetComponent<Bullet>();
                     enemyNpc = findAttackingME!=null && findAttackingME.npcInfo.teamNumber != npcInfo.teamNumber && !npcInfo.isDead ? findAttackingME.npcInfo : enemyNpc;
                 }
-                Destroy(collision.gameObject);
-                npcInfo.shootCount++;
 
             }
         }
@@ -57,8 +57,8 @@ namespace HillDefence
         public void deathNPC(GameObject collision)
         {
             npcInfo.isDead = true;
-            HillDefenceCreator.teams[npcInfo.teamNumber].towers.Remove(gameObject.GetComponent<TeamTower>());
-            HillDefenceCreator.Npcs.Remove(gameObject.GetComponent<TeamTower>());
+            HillDefenceCreator.teams[npcInfo.teamNumber].towers.Remove(this);
+            HillDefenceCreator.Npcs.Remove(this);
             
             if (_healthBarInstance != null) Destroy(_healthBarInstance);
             
@@ -70,7 +70,7 @@ namespace HillDefence
         }
 
         //find nearest enemy soldier or tower within detection range (NOT flags)
-        public void findEnemy()
+        public virtual void findEnemy()
         {
             // If current target is dead or out of range, drop it
             if (enemyNpc != null)
@@ -92,13 +92,12 @@ namespace HillDefence
             // Search for a new target if we don't have one
             if (enemyNpc == null)
             {
-                // Priority: soldiers first, then enemy towers
-                GameNpc found = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.TOWER.FindEnemyRange, NpcType.soldier);
+                // Priority: tanks (biggest threat) -> soldiers -> towers
+                GameNpc found = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.TOWER.FindEnemyRange, NpcType.tank);
                 if (found == null)
-                {
+                    found = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.TOWER.FindEnemyRange, NpcType.soldier);
+                if (found == null)
                     found = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.TOWER.FindEnemyRange, NpcType.tower);
-                if (found == null) found = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.TOWER.FindEnemyRange, NpcType.tank);
-                }
                 enemyNpc = found;
             }
         }
@@ -113,15 +112,20 @@ namespace HillDefence
                     enemyNpc = null;
                     return;
                 }
-                //rotation lerp only y
-                Quaternion rotation = Quaternion.Lerp(tower.transform.rotation, Quaternion.LookRotation(enemyNpc.npcObject.transform.position - transform.position), Time.deltaTime * SceneConfig.TOWER.RotationSpeed);
-                tower.transform.rotation = new Quaternion(rotation.x, rotation.y, tower.transform.rotation.z, tower.transform.rotation.w);
+                // Rotate turret toward enemy (yaw only)
+                Vector3 aimDir = enemyNpc.npcObject.transform.position - transform.position;
+                aimDir.y = 0;
+                if (aimDir.sqrMagnitude > 0.01f)
+                {
+                    Quaternion targetRot = Quaternion.LookRotation(aimDir);
+                    tower.transform.rotation = Quaternion.Slerp(tower.transform.rotation, targetRot, (1f / SceneConfig.TOWER.TowerFrameRate) * SceneConfig.TOWER.RotationSpeed);
+                }
                 
                 float sqrDistance = (enemyNpc.npcObject.transform.position - transform.position).sqrMagnitude;
                 if (sqrDistance <= SceneConfig.TOWER.FindEnemyRange * SceneConfig.TOWER.FindEnemyRange)
                 {
                     //check rotation is near to enemy
-                    if (Vector3.Angle(enemyNpc.npcObject.transform.position - transform.position, transform.forward) < SceneConfig.TOWER.RotationAngleMinToShoot)
+                    if (Vector3.Angle(enemyNpc.npcObject.transform.position - transform.position, tower.transform.forward) < SceneConfig.TOWER.RotationAngleMinToShoot)
                     {
                         Shoot(SceneConfig.TOWER.shootCarence, SceneConfig.TOWER.shootSpeed, SceneConfig.TOWER.ShootMaxDistance, SceneConfig.TOWER.shootTargetHeight);                      
                     }      
@@ -136,6 +140,3 @@ namespace HillDefence
         }
     }
 }
-
-
-

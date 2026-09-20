@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace HillDefence
 {
@@ -68,13 +68,14 @@ namespace HillDefence
                 {
                     deathNPC(collision.gameObject);
                 }
-                Destroy(collision.gameObject);
+                BulletUtils.Despawn(collision.gameObject);
             }
         }
 
         public void deathNPC(GameObject collision)
         {
             npcInfo.isDead = true;
+            HillDefenceCreator.Npcs.Remove(this);
             Bullet bullet = collision.GetComponent<Bullet>();
             if (bullet != null && bullet.npcInfo != null)
             {

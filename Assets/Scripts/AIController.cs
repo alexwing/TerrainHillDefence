@@ -37,7 +37,6 @@ namespace HillDefence
                 NpcInfo npc = HillDefenceCreator.Npcs[_currentTickIndex];
                 if (npc != null && !npc.npcInfo.isDead)
                 {
-                    // If it's a soldier, trigger its AI tick
                     TeamSoldier soldier = npc as TeamSoldier;
                     if (soldier != null)
                     {
@@ -45,10 +44,19 @@ namespace HillDefence
                     }
                     else
                     {
-                        TeamTower tower = npc as TeamTower;
-                        if (tower != null)
+                        // Check TeamTank BEFORE TeamTower (tank inherits tower)
+                        TeamTank tank = npc as TeamTank;
+                        if (tank != null)
                         {
-                            tower.findEnemy();
+                            tank.findEnemy();
+                        }
+                        else
+                        {
+                            TeamTower tower = npc as TeamTower;
+                            if (tower != null)
+                            {
+                                tower.findEnemy();
+                            }
                         }
                     }
                 }
@@ -84,11 +92,7 @@ namespace HillDefence
             }
             return bestTarget;
         }
-        void StateChanged(CullingGroupEvent e)
-        {
-            print("object " + e.index + " is " + (e.isVisible ? "visible" : "not visible"));
 
-        }
 
     }
 }

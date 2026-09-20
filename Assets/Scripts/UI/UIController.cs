@@ -472,7 +472,7 @@ namespace HillDefence
                                 {
                                     Color baseC = HillDefenceCreator.teams[selectedTeamIndex].teamColor;
                                     Color pulseC = Color.Lerp(baseC, Color.white, pulse);
-                                    if (isPlacingTurret || isPlacingTank)
+                                    if (isPlacingTurret)
                                     {
                                         TeamTower towerCursor = placementCursor.GetComponent<TeamTower>();
                                         if (towerCursor != null)
@@ -480,11 +480,14 @@ namespace HillDefence
                                     }
                                     else if (isPlacingTank)
                                     {
-                                        TeamTank tankCursor = placementCursor.GetComponent<TeamTank>();
-                                        if (tankCursor != null)
-                                            Utils.ChangeColor(tankCursor.towerMaterial, pulseC);
+                                        MeshRenderer[] mrs = placementCursor.GetComponentsInChildren<MeshRenderer>(true);
+                                        foreach (MeshRenderer mr in mrs)
+                                        {
+                                            if (mr.gameObject.name != "Barrel")
+                                                Utils.ChangeColor(mr, pulseC);
+                                        }
                                     }
-                                    else
+                                    else if (isPlacingSoldier)
                                     {
                                         TeamSoldier soldierCursor = placementCursor.GetComponent<TeamSoldier>();
                                         if (soldierCursor != null)
@@ -506,7 +509,7 @@ namespace HillDefence
                                 else
                                 {
                                     Color pulseC = Color.Lerp(Color.black, Color.red, pulse);
-                                    if (isPlacingTurret || isPlacingTank)
+                                    if (isPlacingTurret)
                                     {
                                         TeamTower towerCursor = placementCursor.GetComponent<TeamTower>();
                                         if (towerCursor != null)
@@ -514,9 +517,12 @@ namespace HillDefence
                                     }
                                     else if (isPlacingTank)
                                     {
-                                        TeamTank tankCursor = placementCursor.GetComponent<TeamTank>();
-                                        if (tankCursor != null)
-                                            Utils.ChangeColor(tankCursor.towerMaterial, pulseC);
+                                        MeshRenderer[] mrs = placementCursor.GetComponentsInChildren<MeshRenderer>(true);
+                                        foreach (MeshRenderer mr in mrs)
+                                        {
+                                            if (mr.gameObject.name != "Barrel")
+                                                Utils.ChangeColor(mr, pulseC);
+                                        }
                                     }
                                 }
                             }
@@ -567,11 +573,11 @@ namespace HillDefence
             teamTank.GetComponent<BoxCollider>().enabled = true;
             teamTank.npcInfo.npcType = NpcType.tank;
             teamTank.npcInfo.teamNumber = teamIndex;
-            teamTank.npcInfo.npcNumber = HillDefenceCreator.teams[teamIndex].towers.Count;
+            teamTank.npcInfo.npcNumber = HillDefenceCreator.teams[teamIndex].tanks.Count;
             teamTank.npcInfo.npcObject = newTank;
             teamTank.name = "Tank_" + teamTank.npcInfo.teamNumber + "_" + teamTank.npcInfo.npcNumber;
             teamTank.Init();
-            HillDefenceCreator.teams[teamIndex].towers.Add(teamTank);
+            HillDefenceCreator.teams[teamIndex].tanks.Add(teamTank);
             HillDefenceCreator.Npcs.Add(teamTank);
         }
 

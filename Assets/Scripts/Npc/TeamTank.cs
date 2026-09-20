@@ -6,7 +6,7 @@ namespace HillDefence
     {
         private bool isWalking = false;
 
-        new public void Init()
+        public override void Init()
         {
             MeshRenderer[] renderers = GetComponentsInChildren<MeshRenderer>(true);
             foreach (MeshRenderer mr in renderers)
@@ -38,6 +38,8 @@ namespace HillDefence
             if (collision.gameObject.tag == "bullet" && "bullet_" + npcInfo.teamNumber != collision.gameObject.name)
             {
                 TargetTerrain.instance.DetonationBullet(collision.gameObject);
+                npcInfo.shootCount++;
+                BulletUtils.Despawn(collision.gameObject);
                 if (npcInfo.shootCount >= SceneConfig.TOWER.Lives * 2)
                 {
                     deathNPCTank(collision.gameObject);
@@ -47,15 +49,13 @@ namespace HillDefence
                     Bullet findAttackingME = collision.gameObject.GetComponent<Bullet>();
                     enemyNpc = findAttackingME!=null && findAttackingME.npcInfo.teamNumber != npcInfo.teamNumber && !npcInfo.isDead ? findAttackingME.npcInfo : enemyNpc;
                 }
-                Destroy(collision.gameObject);
-                npcInfo.shootCount++;
             }
         }
 
         public void deathNPCTank(GameObject collision)
         {
             npcInfo.isDead = true;
-            HillDefenceCreator.teams[npcInfo.teamNumber].towers.Remove(this);
+            HillDefenceCreator.teams[npcInfo.teamNumber].tanks.Remove(this);
             HillDefenceCreator.Npcs.Remove(this);
             
             if (_healthBarInstance != null) Destroy(_healthBarInstance);
@@ -64,10 +64,10 @@ namespace HillDefence
             TargetTerrain.instance.ModifyTerrain(collision, SceneConfig.TOWER.DestrucionTerrainSize, SceneConfig.TOWER.DestrucionTerrainSize, false);
             TargetTerrain.instance.DetonationTerrain(collision, SceneConfig.TOWER.DetonationSize);
             CancelInvoke("UpdateTank");
-            CancelInvoke("findEnemyTank");                
+            CancelInvoke("findEnemy");                
         }
 
-        new public void findEnemy()
+        public override void findEnemy()
         {
             if (enemyNpc != null)
             {
@@ -89,6 +89,9 @@ namespace HillDefence
                 
                 if (found == null)
                     found = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, SceneConfig.TOWER.FindEnemyRange, NpcType.tank);
+                // If no combat units found, attack enemy flag
+                if (found == null)
+                    found = AIController.instance.getNearNpc(transform.position, npcInfo.teamNumber, -1, NpcType.flag);
 
                 enemyNpc = found;
             }
@@ -145,12 +148,8 @@ namespace HillDefence
             if (shouldMove)
             {
                 Vector3 desiredDir = (targetPoint - transform.position).normalized;
-                Vector3 targetPos = transform.position + desiredDir * moveDistance;
-                
-                transform.position = Vector3.Lerp(
-                    transform.position,
-                    targetPos,
-                    Time.deltaTime * (SceneConfig.SOLDIER.SoldierVelocity * 0.5f) * (1f / SceneConfig.SOLDIER.SoldierFrameRate));
+                float step = (SceneConfig.SOLDIER.SoldierVelocity * 0.5f) * (1f / SceneConfig.SOLDIER.SoldierFrameRate);
+                transform.position += desiredDir * step;
                 
                 isWalking = true;
                 
@@ -172,7 +171,7 @@ namespace HillDefence
                     if (projectedForward.sqrMagnitude > 0.01f)
                     {
                         Quaternion targetRot = Quaternion.LookRotation(projectedForward, normal);
-                        transform.rotation = Quaternion.Lerp(transform.rotation, targetRot, Time.deltaTime * 5f);
+                        transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, (1f / SceneConfig.SOLDIER.SoldierFrameRate) * 5f);
                     }
                 }
             }
@@ -190,7 +189,7 @@ namespace HillDefence
                 if (turretLookDir.sqrMagnitude > 0.01f)
                 {
                     Quaternion targetRot = Quaternion.LookRotation(turretLookDir);
-                    tower.transform.rotation = Quaternion.Lerp(tower.transform.rotation, targetRot, Time.deltaTime * SceneConfig.TOWER.RotationSpeed);
+                    tower.transform.rotation = Quaternion.Slerp(tower.transform.rotation, targetRot, (1f / SceneConfig.SOLDIER.SoldierFrameRate) * SceneConfig.TOWER.RotationSpeed);
                 }
                 
                 float distance = Vector3.Distance(enemyNpc.npcObject.transform.position, transform.position);
