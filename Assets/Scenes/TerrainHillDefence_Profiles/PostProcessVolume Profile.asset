@@ -17,7 +17,7 @@ MonoBehaviour:
     overrideState: 1
     value: 1
   shutterAngle:
-    overrideState: 0
+    overrideState: 1
     value: 270
   sampleCount:
     overrideState: 0
@@ -63,3 +63,6 @@ MonoBehaviour:
   settings:
   - {fileID: -512732588894876323}
   - {fileID: -871958459429277716}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}

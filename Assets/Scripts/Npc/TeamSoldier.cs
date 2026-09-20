@@ -13,6 +13,7 @@ namespace HillDefence
         public GameObject healthBarPrefab;
 
         private float AttackDistance = 0f;
+        private float _flankSign = 1f;
 
         // [HideInInspector]
         private Animator animator;
@@ -27,6 +28,7 @@ namespace HillDefence
         {
             animator = GetComponent<Animator>();
             AttackDistance = Random.Range(-SceneConfig.SOLDIER.AttackRamdomRange, SceneConfig.SOLDIER.AttackRamdomRange);
+            _flankSign = Random.value > 0.5f ? 1f : -1f;
         }
 
         public void Init()
@@ -228,13 +230,38 @@ namespace HillDefence
 
                 Vector3 myPosition = transform.position;
                 float distance = Vector3.Distance(enemyNpc.npcObject.transform.position, myPosition);
+                bool isTargetTank = enemyNpc.npcType == NpcType.tank;
 
-                if (distance > SceneConfig.SOLDIER.AttackRange + AttackDistance && enemyNpc != null)
+                // 1. TACTICAL RETREAT / KITING:
+                // If fighting a tank and it comes closer than TankSafeDistance (~40m),
+                // the soldier falls back and side-steps away from the tank while firing!
+                if (isTargetTank && distance < SceneConfig.SOLDIER.TankSafeDistance)
+                {
+                    Vector3 retreatDir = (transform.position - enemyNpc.npcObject.transform.position).normalized;
+                    retreatDir.y = 0;
+                    Vector3 lateralFlank = Vector3.Cross(retreatDir, Vector3.up).normalized * _flankSign * 0.5f;
+                    retreatDir = (retreatDir + lateralFlank).normalized;
+                    retreatDir = ApplyTowerAvoidance(retreatDir);
+
+                    float step = (SceneConfig.SOLDIER.SoldierVelocity * 0.75f) * (1f / SceneConfig.SOLDIER.SoldierFrameRate);
+                    transform.position += retreatDir * step;
+
+                    isWalking = true;
+                    is_ataka();
+                }
+                else if (distance > SceneConfig.SOLDIER.AttackRange + AttackDistance && enemyNpc != null)
                 {
                     // Base direction toward enemy
                     Vector3 desiredDir = (enemyNpc.npcObject.transform.position - transform.position).normalized;
 
-                    // Steer around towers
+                    // If approaching an enemy tank, arc in from the flanks rather than marching into the cannon
+                    if (isTargetTank)
+                    {
+                        Vector3 flankDir = Vector3.Cross(desiredDir, Vector3.up).normalized * _flankSign;
+                        desiredDir = (desiredDir + flankDir * SceneConfig.SOLDIER.TankFlankStrength).normalized;
+                    }
+
+                    // Steer around towers and nearby tanks
                     desiredDir = ApplyTowerAvoidance(desiredDir);
 
                     // Move toward target distance in the avoidance direction
@@ -280,31 +307,47 @@ namespace HillDefence
         private static Collider[] _avoidBuffer = new Collider[32];
 
         /// <summary>
-        /// Recalculates tower avoidance direction. Called from findEnemy (low frequency).
+        /// Recalculates tower and tank avoidance direction. Called from findEnemy (low frequency).
         /// </summary>
         private void RecalcTowerAvoidance()
         {
-            int count = Physics.OverlapSphereNonAlloc(transform.position, SceneConfig.SOLDIER.TowerAvoidanceRadius, _avoidBuffer);
+            float maxAvoidRadius = Mathf.Max(SceneConfig.SOLDIER.TowerAvoidanceRadius, SceneConfig.SOLDIER.TankProximityAvoidRadius);
+            int count = Physics.OverlapSphereNonAlloc(transform.position, maxAvoidRadius, _avoidBuffer);
             Vector3 avoidance = Vector3.zero;
-            int towerCount = 0;
+            int avoidCount = 0;
 
             for (int i = 0; i < count; i++)
             {
+                // Check for tanks (steer clear of 60-ton vehicles)
+                TeamTank tank = _avoidBuffer[i].GetComponent<TeamTank>();
+                if (tank != null)
+                {
+                    Vector3 away = transform.position - _avoidBuffer[i].transform.position;
+                    away.y = 0;
+                    float dist = away.magnitude;
+                    if (dist > 0.05f && dist < SceneConfig.SOLDIER.TankProximityAvoidRadius)
+                    {
+                        avoidance += (away.normalized / dist) * 2.0f;
+                        avoidCount++;
+                        continue;
+                    }
+                }
+
                 TeamTower tower = _avoidBuffer[i].GetComponent<TeamTower>();
                 if (tower != null)
                 {
                     Vector3 away = transform.position - _avoidBuffer[i].transform.position;
                     away.y = 0;
                     float dist = away.magnitude;
-                    if (dist > 0.05f)
+                    if (dist > 0.05f && dist < SceneConfig.SOLDIER.TowerAvoidanceRadius)
                     {
                         avoidance += away.normalized / dist;
-                        towerCount++;
+                        avoidCount++;
                     }
                 }
             }
 
-            _cachedAvoidDir = towerCount > 0 ? (avoidance / towerCount).normalized : Vector3.zero;
+            _cachedAvoidDir = avoidCount > 0 ? (avoidance / avoidCount).normalized : Vector3.zero;
         }
 
         /// <summary>
