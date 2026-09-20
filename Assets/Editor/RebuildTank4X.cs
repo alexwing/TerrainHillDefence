@@ -15,8 +15,8 @@ namespace HillDefence.EditorScripts
         [MenuItem("Tools/Rebuild Tank 4X")]
         public static void Execute()
         {
-            if (SessionState.GetBool("RebuildTank4X_v5", false)) return;
-            SessionState.SetBool("RebuildTank4X_v5", true);
+            if (SessionState.GetBool("RebuildTank4X_v6", false)) return;
+            SessionState.SetBool("RebuildTank4X_v6", true);
 
             string tankPath = "Assets/Resources/Tank.prefab";
             string fbxPath = "Assets/Models/TankSketchfab.fbx";

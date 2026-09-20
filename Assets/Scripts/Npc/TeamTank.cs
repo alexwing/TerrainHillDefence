@@ -110,7 +110,7 @@ namespace HillDefence
             if (Terrain.activeTerrain != null)
             {
                 float y = Terrain.activeTerrain.SampleHeight(transform.position);
-                transform.position = new Vector3(transform.position.x, y + 2.5f, transform.position.z);
+                transform.position = new Vector3(transform.position.x, y + 0.5f, transform.position.z);
             }
 
             Vector3 targetPoint = transform.position;
