@@ -145,6 +145,17 @@ namespace HillDefence
                 }
             }
 
+            // Calculate terrain normal at current position
+            Vector3 terrainNormal = Vector3.up;
+            if (Terrain.activeTerrain != null)
+            {
+                TerrainData td = Terrain.activeTerrain.terrainData;
+                Vector3 terrainLocalPos = transform.position - Terrain.activeTerrain.transform.position;
+                float nx = terrainLocalPos.x / td.size.x;
+                float ny = terrainLocalPos.z / td.size.z;
+                terrainNormal = td.GetInterpolatedNormal(nx, ny);
+            }
+
             if (shouldMove)
             {
                 Vector3 desiredDir = (targetPoint - transform.position).normalized;
@@ -157,20 +168,10 @@ namespace HillDefence
                 lookDir.y = 0; 
                 if (lookDir.sqrMagnitude > 0.01f)
                 {
-                    Vector3 normal = Vector3.up;
-                    if (Terrain.activeTerrain != null)
-                    {
-                        TerrainData td = Terrain.activeTerrain.terrainData;
-                        Vector3 terrainLocalPos = transform.position - Terrain.activeTerrain.transform.position;
-                        float nx = terrainLocalPos.x / td.size.x;
-                        float ny = terrainLocalPos.z / td.size.z;
-                        normal = td.GetInterpolatedNormal(nx, ny);
-                    }
-                    
-                    Vector3 projectedForward = Vector3.ProjectOnPlane(lookDir, normal).normalized;
+                    Vector3 projectedForward = Vector3.ProjectOnPlane(lookDir, terrainNormal).normalized;
                     if (projectedForward.sqrMagnitude > 0.01f)
                     {
-                        Quaternion targetRot = Quaternion.LookRotation(projectedForward, normal);
+                        Quaternion targetRot = Quaternion.LookRotation(projectedForward, terrainNormal);
                         transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, (1f / SceneConfig.SOLDIER.SoldierFrameRate) * 5f);
                     }
                 }
@@ -178,25 +179,39 @@ namespace HillDefence
             else
             {
                 isWalking = false;
+                // Keep chassis aligned with terrain normal even when standing still
+                Vector3 currentForward = transform.forward;
+                Vector3 projectedForward = Vector3.ProjectOnPlane(currentForward, terrainNormal).normalized;
+                if (projectedForward.sqrMagnitude > 0.01f)
+                {
+                    Quaternion targetRot = Quaternion.LookRotation(projectedForward, terrainNormal);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, (1f / SceneConfig.SOLDIER.SoldierFrameRate) * 5f);
+                }
             }
 
             if (enemyNpc != null && tower != null)
             {
-                Vector3 flatEnemyPos = enemyNpc.npcObject.transform.position;
-                Vector3 turretLookDir = (enemyNpc.npcObject.transform.position - tower.transform.position).normalized;
-                turretLookDir.y = 0;
+                // Aim turret in local space of the tank hull so it preserves the slope/tilt of the chassis
+                Vector3 worldAimDir = (enemyNpc.npcObject.transform.position - tower.transform.position).normalized;
+                Transform parentT = tower.transform.parent != null ? tower.transform.parent : transform;
+                Vector3 localAimDir = parentT.InverseTransformDirection(worldAimDir);
+                localAimDir.y = 0; // Turret only yaws around the hull's deck normal (cannot pitch/roll into the hull)
                 
-                if (turretLookDir.sqrMagnitude > 0.01f)
+                if (localAimDir.sqrMagnitude > 0.001f)
                 {
-                    Quaternion targetRot = Quaternion.LookRotation(turretLookDir);
-                    tower.transform.rotation = Quaternion.Slerp(tower.transform.rotation, targetRot, (1f / SceneConfig.SOLDIER.SoldierFrameRate) * SceneConfig.TOWER.RotationSpeed);
+                    Quaternion targetLocalRot = Quaternion.LookRotation(localAimDir, Vector3.up);
+                    tower.transform.localRotation = Quaternion.Slerp(
+                        tower.transform.localRotation, 
+                        targetLocalRot, 
+                        (1f / SceneConfig.SOLDIER.SoldierFrameRate) * SceneConfig.TOWER.RotationSpeed
+                    );
                 }
                 
                 float distance = Vector3.Distance(enemyNpc.npcObject.transform.position, transform.position);
                 if (distance <= SceneConfig.TOWER.FindEnemyRange)
                 {
-                    flatEnemyPos.y = tower.transform.position.y;
-                    if (Vector3.Angle(flatEnemyPos - tower.transform.position, tower.transform.forward) < SceneConfig.TOWER.RotationAngleMinToShoot)
+                    Vector3 toEnemy = (enemyNpc.npcObject.transform.position - tower.transform.position).normalized;
+                    if (Vector3.Angle(toEnemy, tower.transform.forward) < SceneConfig.TOWER.RotationAngleMinToShoot)
                     {
                         Shoot(SceneConfig.TOWER.shootCarence, SceneConfig.TOWER.shootSpeed, SceneConfig.TOWER.ShootMaxDistance, SceneConfig.TOWER.shootTargetHeight);                      
                     }      
@@ -204,7 +219,7 @@ namespace HillDefence
             }
             else if (tower != null)
             {
-                // Align turret back forward when no enemies
+                // Align turret back forward when no enemies (parallel to chassis heading)
                 tower.transform.localRotation = Quaternion.Slerp(tower.transform.localRotation, Quaternion.identity, (1f / SceneConfig.SOLDIER.SoldierFrameRate) * 2f);
             }
         }
