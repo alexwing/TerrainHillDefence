@@ -117,12 +117,23 @@ namespace HillDefence.EditorScripts
             {
                 tt.tower = turret.gameObject;
 
-                // Create ShootPos at the tip of the barrel in Turret local space
-                GameObject sp = new GameObject("ShootPos");
-                sp.transform.SetParent(turret, false);
-                sp.transform.localPosition = new Vector3(0f, -0.75f, 6.2f);
-                sp.transform.localRotation = Quaternion.identity;
-                tt.shootInitPosition = sp;
+                // Create ShootPos at the tip of the barrel
+                if (barrel != null)
+                {
+                    GameObject sp = new GameObject("ShootPos");
+                    sp.transform.SetParent(barrel, false);
+                    sp.transform.localPosition = new Vector3(0f, 0f, 2.7f);
+                    sp.transform.localRotation = Quaternion.identity;
+                    tt.shootInitPosition = sp;
+                }
+                else
+                {
+                    GameObject sp = new GameObject("ShootPos");
+                    sp.transform.SetParent(turret, false);
+                    sp.transform.localPosition = new Vector3(0f, -0.75f, 6.2f);
+                    sp.transform.localRotation = Quaternion.identity;
+                    tt.shootInitPosition = sp;
+                }
             }
             else
             {
